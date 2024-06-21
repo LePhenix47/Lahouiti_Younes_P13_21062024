@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-P13Application<p13>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.openclassrooms.p13.P13Application",
+            "projectName": "p13",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
