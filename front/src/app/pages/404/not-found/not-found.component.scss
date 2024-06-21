@@ -1,0 +1,11 @@
+.error-404 {
+  @include center-flex-column(25px);
+
+  text-align: center;
+
+  text-wrap: balance;
+
+  &__title {
+    margin-top: 10%;
+  }
+}
