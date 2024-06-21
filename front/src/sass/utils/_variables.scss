@@ -1,0 +1,32 @@
+:root {
+  // *
+  --bg-primary: white;
+  --bg-secondary: #7451eb;
+  --bg-tertiary: #f5f5f5;
+
+  --color-error: #a40f0f;
+
+  --color-primary: black;
+  --color-secondary: gray;
+
+  // * Style for the scrollbars
+  --_scrollbar-track-bg-color: white;
+
+  --_scrollbar-thumb-bg-color: var(--bg-secondary);
+  --_scrollbar-thumb-bg-color--hover: #7551ebad;
+  --_scrollbar-thumb-bg-color--active: #8059ff;
+
+  // * Style for the text selection
+  --selection-bg-color: var(--bg-secondary);
+  --selection-color: white;
+}
+
+::backdrop {
+  --backdrop-bg-color: rgba(0, 0, 0, 0.5);
+
+  --_scrollbar-track-bg-color: white;
+
+  --_scrollbar-thumb-bg-color: #545454;
+  --_scrollbar-thumb-bg-color--hover: #757575;
+  --_scrollbar-thumb-bg-color--active: #b0b0b0;
+}
