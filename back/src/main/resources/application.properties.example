@@ -1,22 +1,22 @@
 spring.application.name=p13
 
-# PostgreSQL database
-spring.datasource.driver-class-name=org.postgresql.Driver
-spring.datasource.url=jdbc:postgresql://localhost:5432/p6-mdd
-spring.datasource.username=postgres
-spring.datasource.password=Az&rty1234
-
-# Java Persistence API
-spring.jpa.show-sql=true
-spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.properties.hibernate.format_sql=true
-
-# TomCat server
-server.port=3001
-server.error.include-message=always
-server.error.include-binding-errors=always
-server.error.include-stacktrace=on_param
+# # PostgreSQL database
+# spring.datasource.driver-class-name=org.postgresql.Driver
+# spring.datasource.url=jdbc:postgresql://localhost:5432/p6-mdd
+# spring.datasource.username=postgres
+# spring.datasource.password=Az&rty1234
+# 
+# # Java Persistence API
+# spring.jpa.show-sql=true
+# spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+# spring.jpa.hibernate.ddl-auto=update
+# spring.jpa.properties.hibernate.format_sql=true
+# 
+# # TomCat server
+# server.port=3001
+# server.error.include-message=always
+# server.error.include-binding-errors=always
+# server.error.include-stacktrace=on_param
 
 
 # Logger
