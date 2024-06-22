@@ -14,6 +14,7 @@ public class SpringSecurityConfig {
 
     private static final String[] AUTHENTICATION_NEEDED_ROUTES = {
             "/api/**",
+            "/ws/**"
     };
     public static final String passwordEncoder = null;
 
@@ -33,7 +34,8 @@ public class SpringSecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests((authorize) -> authorize.requestMatchers(
-                        AUTHENTICATION_NEEDED_ROUTES).permitAll().anyRequest().authenticated());
+                        AUTHENTICATION_NEEDED_ROUTES).permitAll().anyRequest()
+                        .authenticated());
 
         return http.build();
     }

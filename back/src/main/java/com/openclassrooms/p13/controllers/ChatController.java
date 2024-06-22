@@ -8,7 +8,10 @@ import org.springframework.stereotype.Controller;
 
 import com.openclassrooms.p13.payload.request.ChatMessage;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Controller
+@Slf4j
 public class ChatController {
 
     /**
@@ -20,6 +23,8 @@ public class ChatController {
     @MessageMapping("/chat.sendMessage")
     @SendTo("/topic/public")
     public ChatMessage sendMessage(@Payload ChatMessage message) {
+        log.info("New message has been sent : {}", message);
+
         return message;
     }
 
@@ -34,6 +39,8 @@ public class ChatController {
     @MessageMapping("/chat.addUser")
     @SendTo("/topic/public")
     public ChatMessage addUser(@Payload ChatMessage message, SimpMessageHeaderAccessor headerAccessor) {
+        log.info("New user has arrived : {}", message);
+
         headerAccessor.getSessionAttributes().put("username", message.sender());
 
         return message;
