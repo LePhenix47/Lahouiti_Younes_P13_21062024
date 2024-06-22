@@ -1,0 +1,45 @@
+package com.openclassrooms.p13.configurations;
+
+import org.springframework.context.event.EventListener;
+import org.springframework.messaging.simp.SimpMessageSendingOperations;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.stereotype.Component;
+import org.springframework.web.socket.messaging.SessionDisconnectEvent;
+
+import com.openclassrooms.p13.payload.request.ChatMessage;
+import com.openclassrooms.p13.utils.enums.MessageType;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class WebSocketEventListener {
+
+    private final SimpMessageSendingOperations messageTemplate;
+
+    // @EventListener
+    // public void onWebSocketConnect() {
+
+    // }
+
+    @EventListener
+    public void onWebSocketDisconnect(SessionDisconnectEvent event) {
+        StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
+
+        String username = (String) headerAccessor.getSessionAttributes().get("username");
+        if (username == null) {
+            log.debug("User not found for this session for username : " + username);
+
+            return;
+        }
+
+        log.info("User : {}", username, "has disconnected from chat");
+
+        var message = new ChatMessage("", username, MessageType.LEAVE);
+
+        messageTemplate.convertAndSend("/topic/public", message);
+    }
+
+}
