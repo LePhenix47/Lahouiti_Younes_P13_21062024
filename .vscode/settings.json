@@ -10,9 +10,10 @@
         ".husky": true,
         ".vscode": true,
         ".next": true,
-        "[!b]*/**": true,
-        "b[!a]*/**": true,
-        "ba[!c]*/**": true,
-        "bac[!k]*/**": true
+        "[!f]*/**": true,
+        "f[!r]*/**": true,
+        "fr[!o]*/**": true,
+        "fro[!n]*/**": true,
+        "fron[!t]*/**": true
     }
 }
