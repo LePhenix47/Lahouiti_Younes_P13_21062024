@@ -17,7 +17,7 @@ export class AccessSupportComponent {
   /**
    * Article creation form.
    */
-  public readonly createArticleForm = this.formBuilder.group({
+  public readonly chatForm = this.formBuilder.group({
     username: [['', Validators.required]],
   });
 
