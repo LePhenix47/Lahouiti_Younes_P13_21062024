@@ -1,1 +1,40 @@
 @use "../../../styles.scss" as *;
+
+.access-support {
+  @include center-flex-column(25px);
+
+  width: 100%;
+  height: 100%;
+
+
+  &__logo {
+    border-radius: 15px;
+
+    height: 150px;
+
+    @include fit-image(contain);
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  &__fieldset {
+    display: inherit;
+    gap: 15px;
+  }
+
+  &__button {
+    width: 100%;
+
+    padding: 5px;
+  }
+
+  &__legend {
+    font-family: "Phosphate Pro Solid";
+
+    margin-bottom: 15px;
+  }
+}

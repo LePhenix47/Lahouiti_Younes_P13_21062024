@@ -63,8 +63,8 @@
 
 
 //Mixin to make the image fit
-@mixin cover-image ($position: center) {
-  object-fit: cover;
+@mixin fit-image ($fit: cover, $position: center) {
+  object-fit: $fit;
   object-position: $position;
 }
 
