@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import Stomp, { Frame, Message, over } from 'stompjs';
+import Stomp, { Frame } from 'stompjs';
 import SockJS from 'sockjs-client';
 import { environment } from '@environments/environment';
 
@@ -20,15 +20,19 @@ export abstract class WebSocketsService {
    * @throws {Error} - If the WebSocket client is not initialized.
    */
   public connect(): void {
+    this.initializeWebSocketConnection();
+
+    this.stompClient.connect({}, this.handleOnConnect, this.handleOnError);
+  }
+
+  public initializeWebSocketConnection = () => {
     try {
       const socket: WebSocket = new SockJS(this.serverUrl.href);
       this.stompClient = Stomp.over(socket);
-
-      this.stompClient.connect({}, this.handleOnConnect, this.handleOnError);
     } catch (error) {
       console.error('WebSocket connection error:', error);
     }
-  }
+  };
 
   protected abstract handleOnConnect(frame: Frame | undefined): void;
 
