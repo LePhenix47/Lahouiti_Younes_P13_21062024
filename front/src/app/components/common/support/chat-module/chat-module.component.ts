@@ -1,6 +1,6 @@
 import { Component, inject, input } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { WebSocketsService } from '@core/services/websockets/websockets.service';
+import { ChatWebSocketsService } from '@core/services/chat/chat-websockets.service';
 
 @Component({
   selector: 'app-chat-module',
@@ -19,7 +19,7 @@ export class ChatModuleComponent {
     message: ['', [Validators.required]],
   });
 
-  protected readonly webSocketsService = inject(WebSocketsService);
+  protected readonly chatWebSocketsService = inject(ChatWebSocketsService);
 
   /**
    * The username associated with the comment.
@@ -27,10 +27,16 @@ export class ChatModuleComponent {
   public readonly ownUsername = input.required<string>();
 
   ngOnInit() {
-    this.webSocketsService.connect(console.log);
+    this.chatWebSocketsService.connect();
+  }
+
+  ngOnDestroy() {
+    this.chatWebSocketsService.disconnect();
   }
 
   onSubmit(event: Event) {
     event.preventDefault();
+
+    this.chatWebSocketsService.sendMessage('Hello world !');
   }
 }
