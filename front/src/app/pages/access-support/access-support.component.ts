@@ -1,5 +1,8 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { setChatUsernameAction } from '@core/ngrx/actions/chat-info.actions';
+import { Store } from '@ngrx/store';
 
 @Component({
   selector: 'app-access-support',
@@ -15,15 +18,41 @@ export class AccessSupportComponent {
   private readonly formBuilder = inject(FormBuilder);
 
   /**
+   * Store for managing application state.
+   */
+  private readonly store = inject(Store);
+
+  /**
+   * Angular router service for navigation.
+   */
+  private readonly router = inject(Router);
+
+  /**
    * Article creation form.
    */
-  public readonly chatForm = this.formBuilder.group({
-    username: [['', Validators.required]],
+  protected readonly chatForm = this.formBuilder.group({
+    username: ['', [Validators.required]],
   });
 
-  public onSubmit = (event: Event): void => {
+  /**
+   * Handles form submission for chat form.
+   *
+   * @param {Event} event - The event object for the form submission.
+   */
+  protected onSubmit = (event: Event): void => {
     event.preventDefault();
 
-    console.log('submit');
+    let { username } = this.chatForm.getRawValue();
+    username = (username as unknown as string).trim();
+
+    console.log('submit', username);
+
+    this.store.dispatch(
+      setChatUsernameAction({
+        username,
+      })
+    );
+
+    this.router.navigate(['/support']);
   };
 }
