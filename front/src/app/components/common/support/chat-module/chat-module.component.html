@@ -1,0 +1,13 @@
+<p>chat-module works! {{this.ownUsername()}}</p>
+
+<aside class="chat-module">
+  <ul class="chat-module__messages">
+    <li class="chat-module__message-item">
+    </li>
+  </ul>
+
+  <form class="chat-module__form" [formGroup]="sendMessageForm" (ngSubmit)="onSubmit($event)">
+    <input type="text" class="chat-module__input" formControlName="message" placeholder="Hello world !" />
+    <button type="submit">Send</button>
+  </form>
+</aside>

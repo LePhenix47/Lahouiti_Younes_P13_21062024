@@ -28,7 +28,7 @@ export class AccessSupportComponent {
   private readonly router = inject(Router);
 
   /**
-   * Article creation form.
+   * Chat entering form.
    */
   protected readonly enterChatForm = this.formBuilder.group({
     username: ['', [Validators.required]],
