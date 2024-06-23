@@ -30,7 +30,7 @@ export class AccessSupportComponent {
   /**
    * Article creation form.
    */
-  protected readonly chatForm = this.formBuilder.group({
+  protected readonly enterChatForm = this.formBuilder.group({
     username: ['', [Validators.required]],
   });
 
@@ -42,7 +42,7 @@ export class AccessSupportComponent {
   protected onSubmit = (event: Event): void => {
     event.preventDefault();
 
-    let { username } = this.chatForm.getRawValue();
+    let { username } = this.enterChatForm.getRawValue();
     username = (username as unknown as string).trim();
 
     if (!username) {
