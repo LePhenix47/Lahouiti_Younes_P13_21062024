@@ -26,17 +26,35 @@ export class ChatModuleComponent {
    */
   public readonly ownUsername = input.required<string>();
 
-  ngOnInit() {
+  onChatJoin = (test: any) => {
+    console.log(
+      '%conChatJoin',
+      'background!: lime; color: black; padding: 5px',
+      test
+    );
+  };
+
+  onChatNewMessage = (test: any) => {
+    console.log('onChatNewMessage', test);
+  };
+
+  onChatLeave = (test: any) => {
+    console.log('onChatLeave', test);
+  };
+
+  ngOnInit = () => {
     this.chatWebSocketsService.connect();
-  }
 
-  ngOnDestroy() {
+    // this.chatWebSocketsService.setOnJoin(this.onChatJoin);
+  };
+
+  ngOnDestroy = () => {
     this.chatWebSocketsService.disconnect();
-  }
+  };
 
-  onSubmit(event: Event) {
+  onSubmit = (event: Event) => {
     event.preventDefault();
 
-    this.chatWebSocketsService.sendMessage('Hello world !');
-  }
+    this.chatWebSocketsService.sendMessage(this.ownUsername(), 'Hello world !');
+  };
 }
