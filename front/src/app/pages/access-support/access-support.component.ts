@@ -45,6 +45,10 @@ export class AccessSupportComponent {
     let { username } = this.chatForm.getRawValue();
     username = (username as unknown as string).trim();
 
+    if (!username) {
+      return;
+    }
+
     console.log('submit', username);
 
     this.store.dispatch(
