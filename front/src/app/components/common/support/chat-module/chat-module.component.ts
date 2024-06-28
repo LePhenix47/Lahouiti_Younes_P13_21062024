@@ -48,6 +48,8 @@ export class ChatModuleComponent {
     this.chatWebSocketsService.connect();
 
     this.chatWebSocketsService.setOnJoin(this.onChatJoin);
+    this.chatWebSocketsService.setOnChatMessage(this.onChatNewMessage);
+    this.chatWebSocketsService.setOnLeave(this.onChatLeave);
   }
 
   ngOnDestroy() {
