@@ -20,34 +20,35 @@ public class WebSocketEventListener {
 
     private final SimpMessageSendingOperations messageTemplate;
 
-    // @EventListener
-    // public void onWebSocketConnect(SessionConnectEvent event) {
-    // StompHeaderAccessor headerAccessor =
-    // StompHeaderAccessor.wrap(event.getMessage());
+    @EventListener
+    public void onWebSocketConnect(SessionConnectEvent event) {
+        StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
 
-    // String username = (String)
-    // headerAccessor.getSessionAttributes().get("username");
-    // if (username == null) {
-    // log.debug("User not found for this session for username : " + username);
+        String username = (String) headerAccessor.getSessionAttributes().get("username");
+        log.info(headerAccessor.getSessionAttributes().toString());
 
-    // return;
-    // }
+        if (username == null) {
+            log.info("On WebSocket Connect, user not found for this session for username : " + username);
+        } else {
+            log.info("User : {}" + username + "has connected to chat");
+        }
 
-    // log.info("User : {}", username, "has connected to chat");
-    // }
+        var message = new ChatMessage("", username, MessageType.JOIN);
+
+        messageTemplate.convertAndSend("/topic/public", message);
+    }
 
     @EventListener
     public void onWebSocketDisconnect(SessionDisconnectEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
+        log.info(headerAccessor.getSessionAttributes().toString());
 
         String username = (String) headerAccessor.getSessionAttributes().get("username");
         if (username == null) {
-            log.debug("User not found for this session for username : " + username);
-
-            return;
+            log.debug("On WebSocket Disconnect: " + "User not found for this session for username : " + username);
+        } else {
+            log.info("User : {}" + username + "has disconnected from chat");
         }
-
-        log.info("User : {}", username, "has disconnected from chat");
 
         var message = new ChatMessage("", username, MessageType.LEAVE);
 
