@@ -3,6 +3,9 @@ import Stomp, { Frame } from 'stompjs';
 import SockJS from 'sockjs-client';
 import { environment } from '@environments/environment';
 
+/**
+ * A base service class for interacting with websockets.
+ */
 @Injectable({
   providedIn: 'root',
 })
@@ -16,17 +19,25 @@ export abstract class WebSocketsService {
   /**
    * Establishes a WebSocket connection to the server and invokes the callback when connected.
    *
-   * @param callback - The callback function to be invoked when the connection is established.
    * @throws {Error} - If the WebSocket client is not initialized.
    */
   public connect(): void {
+    console.log('Connecting WebSocketsService...', WebSocketsService);
+
     this.initializeWebSocketConnection();
 
     this.stompClient.connect({}, this.handleOnConnect, this.handleOnError);
   }
 
+  /**
+   * Initializes the WebSocket connection.
+   */
   public initializeWebSocketConnection = () => {
     try {
+      if (this.stompClient) {
+        throw new Error('WebSockets are already initialized');
+      }
+
       const socket: WebSocket = new SockJS(this.serverUrl.href);
       this.stompClient = Stomp.over(socket);
     } catch (error) {
@@ -34,12 +45,26 @@ export abstract class WebSocketsService {
     }
   };
 
+  /**
+   * Handles the connection with the server.
+   */
   protected abstract handleOnConnect(frame: Frame | undefined): void;
 
+  /**
+   * Handles errors that occur during the connection.
+   */
   protected abstract handleOnError(error: string | Frame): void;
 
+  /**
+   * Handles disconnecting from the server.
+   */
   protected abstract handleOnDisconnect(): void;
 
+  /**
+   * Disconnects the WebSocket client.
+   *
+   * @throws {Error} - If the WebSocket client is not initialized.
+   */
   public disconnect(): void {
     if (!this.stompClient) {
       throw new Error('Stomp client not initialized');

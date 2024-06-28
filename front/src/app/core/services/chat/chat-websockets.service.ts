@@ -57,7 +57,7 @@ export class ChatWebSocketsService extends WebSocketsService {
   }
 
   protected isClientInitializedAndConnected = (): void => {
-    console.log(this.stompClient);
+    console.log(this.stompClient, this.connected);
 
     if (!this.stompClient) {
       throw new Error(
@@ -70,6 +70,11 @@ export class ChatWebSocketsService extends WebSocketsService {
     }
   };
 
+  /**
+   * Returns the connection status of the service.
+   *
+   * @return {boolean} The connection status of the service.
+   */
   public isConnected(): boolean {
     return this.connected;
   }
@@ -81,6 +86,11 @@ export class ChatWebSocketsService extends WebSocketsService {
     this.connected = false;
   };
 
+  /**
+   * Returns the connection status of the service.
+   *
+   * @return {boolean} The connection status of the service.
+   */
   protected handleOnConnect = (frame: Frame | undefined): void => {
     console.log(
       '%cConnected:',
