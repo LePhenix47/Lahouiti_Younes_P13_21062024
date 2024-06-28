@@ -21,17 +21,28 @@ export class ChatModuleComponent {
 
   protected readonly chatWebSocketsService = inject(ChatWebSocketsService);
 
+  protected readonly messageLogs: {
+    username: string;
+    message: string;
+    date: Date;
+  }[] = [];
+
   /**
    * The username associated with the comment.
    */
   public readonly ownUsername = input.required<string>();
 
-  onChatJoin = (test: any) => {
-    console.log(
-      '%conChatJoin',
-      'background!: lime; color: black; padding: 5px',
-      test
-    );
+  private hasAddedUser: boolean = false;
+
+  onChatJoin = (data: any) => {
+    if (this.hasAddedUser) {
+      // * If we do not check this we will get an infinite loop
+      return;
+    }
+
+    this.chatWebSocketsService.setCurrentUser(this.ownUsername());
+    this.chatWebSocketsService.addUser();
+    this.hasAddedUser = true;
   };
 
   onChatNewMessage = (test: any) => {
