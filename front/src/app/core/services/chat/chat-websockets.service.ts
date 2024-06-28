@@ -57,8 +57,6 @@ export class ChatWebSocketsService extends WebSocketsService {
   }
 
   protected isClientInitializedAndConnected = (): void => {
-    console.log(this.stompClient, this.connected);
-
     if (!this.stompClient) {
       throw new Error(
         `Stomp client is not defined (value: ${this.stompClient})`
@@ -78,19 +76,7 @@ export class ChatWebSocketsService extends WebSocketsService {
   public isConnected(): boolean {
     return this.connected;
   }
-  protected handleOnDisconnect = (): void => {
-    console.log(
-      '%cDisconnected!',
-      'background: red; color: white; padding: 5px'
-    );
-    this.connected = false;
-  };
 
-  /**
-   * Returns the connection status of the service.
-   *
-   * @return {boolean} The connection status of the service.
-   */
   protected handleOnConnect = (frame: Frame | undefined): void => {
     console.log(
       '%cConnected:',
@@ -100,10 +86,20 @@ export class ChatWebSocketsService extends WebSocketsService {
     this.connected = true;
 
     this.onNewServerMessage();
+
+    this.onJoin(frame);
   };
 
   protected handleOnError = (error: string | Frame): void => {
     console.error('WebSocket connection error:', error);
+    this.connected = false;
+  };
+
+  protected handleOnDisconnect = (): void => {
+    console.log(
+      '%cDisconnected!',
+      'background: red; color: white; padding: 5px'
+    );
     this.connected = false;
   };
 

@@ -22,8 +22,6 @@ export abstract class WebSocketsService {
    * @throws {Error} - If the WebSocket client is not initialized.
    */
   public connect(): void {
-    console.log('Connecting WebSocketsService...', WebSocketsService);
-
     this.initializeWebSocketConnection();
 
     this.stompClient.connect({}, this.handleOnConnect, this.handleOnError);
@@ -35,7 +33,9 @@ export abstract class WebSocketsService {
   public initializeWebSocketConnection = () => {
     try {
       if (this.stompClient) {
-        throw new Error('WebSockets are already initialized');
+        throw new Error(
+          'Cannot connect to server as Stomp client is already initialized'
+        );
       }
 
       const socket: WebSocket = new SockJS(this.serverUrl.href);
@@ -67,7 +67,7 @@ export abstract class WebSocketsService {
    */
   public disconnect(): void {
     if (!this.stompClient) {
-      throw new Error('Stomp client not initialized');
+      throw new Error('Cannot disconnect as Stomp client is not initialized');
     }
 
     this.stompClient.disconnect(this.handleOnDisconnect);
