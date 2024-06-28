@@ -42,19 +42,26 @@ export class ChatModuleComponent {
     console.log('onChatLeave', test);
   };
 
-  ngOnInit = () => {
+  ngOnInit() {
+    console.log('chatmodule ngOnInit');
+
     this.chatWebSocketsService.connect();
 
-    // this.chatWebSocketsService.setOnJoin(this.onChatJoin);
-  };
+    this.chatWebSocketsService.setOnJoin(this.onChatJoin);
+  }
 
-  ngOnDestroy = () => {
+  ngOnDestroy() {
     this.chatWebSocketsService.disconnect();
-  };
+  }
 
   onSubmit = (event: Event) => {
     event.preventDefault();
 
-    this.chatWebSocketsService.sendMessage(this.ownUsername(), 'Hello world !');
+    const formValues = this.sendMessageForm.value;
+    console.log('Form Values:', formValues);
+
+    const { message } = formValues;
+
+    this.chatWebSocketsService.sendMessage(this.ownUsername(), message!);
   };
 }
