@@ -14,30 +14,32 @@ export abstract class WebSocketsService {
     `http://${environment.baseUrl}/ws`
   );
 
-  protected stompClient!: Stomp.Client;
+  protected stompClient!: Stomp.Client | null;
 
   /**
    * Establishes a WebSocket connection to the server and invokes the callback when connected.
    *
    * @throws {Error} - If the WebSocket client is not initialized.
    */
-  public connect(): void {
-    this.initializeWebSocketConnection();
+  public connect = (): void => {
+    try {
+      this.initializeWebSocketConnection();
 
-    this.stompClient.connect({}, this.handleOnConnect, this.handleOnError);
-  }
+      console.log(
+        '%cConnecting...',
+        'background: teal; color: white; padding: 5px; font: 1em'
+      );
+      this.stompClient!.connect({}, this.handleOnConnect, this.handleOnError);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   /**
    * Initializes the WebSocket connection.
    */
   public initializeWebSocketConnection = () => {
     try {
-      if (this.stompClient) {
-        throw new Error(
-          'Cannot connect to server as Stomp client is already initialized'
-        );
-      }
-
       const socket: WebSocket = new SockJS(this.serverUrl.href);
       this.stompClient = Stomp.over(socket);
     } catch (error) {
@@ -65,11 +67,24 @@ export abstract class WebSocketsService {
    *
    * @throws {Error} - If the WebSocket client is not initialized.
    */
-  public disconnect(): void {
-    if (!this.stompClient) {
-      throw new Error('Cannot disconnect as Stomp client is not initialized');
-    }
+  public disconnect = (): void => {
+    try {
+      if (!this.stompClient) {
+        throw new Error('Cannot disconnect as Stomp client is not initialized');
+      }
 
-    this.stompClient.disconnect(this.handleOnDisconnect);
-  }
+      this.stompClient.disconnect(this.handleOnDisconnect);
+
+      this.resetStompClient();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  /**
+   * Resets the Stomp client by setting it to `null` in order to re-enter the later if the user re-connects
+   */
+  private resetStompClient = (): void => {
+    this.stompClient = null;
+  };
 }
