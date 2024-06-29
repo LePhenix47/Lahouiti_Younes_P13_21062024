@@ -28,9 +28,9 @@ public class WebSocketEventListener {
         log.info(headerAccessor.getSessionAttributes().toString());
 
         if (username == null) {
-            log.info("On WebSocket Connect, user not found for this session for username : " + username);
+            log.info("✖ On WebSocket Connect, user not found for this session for username : " + username);
         } else {
-            log.info("User : {}" + username + "has connected to chat");
+            log.info("✔ User : {}" + username + "has connected to chat");
         }
 
         var message = new ChatMessage("", username, MessageType.JOIN);
@@ -45,9 +45,9 @@ public class WebSocketEventListener {
 
         String username = (String) headerAccessor.getSessionAttributes().get("username");
         if (username == null) {
-            log.debug("On WebSocket Disconnect: " + "User not found for this session for username : " + username);
+            log.debug("✖ On WebSocket Disconnect: " + "User not found for this session for username : " + username);
         } else {
-            log.info("User : {}" + username + "has disconnected from chat");
+            log.info("✔ User : {}" + username + "has disconnected from chat");
         }
 
         var message = new ChatMessage("", username, MessageType.LEAVE);
