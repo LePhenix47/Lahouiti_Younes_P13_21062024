@@ -1,6 +1,14 @@
-import { Component, inject, input } from '@angular/core';
+import {
+  Component,
+  effect,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ChatWebSocketsService } from '@core/services/chat/chat-websockets.service';
+import { ChatWebSocketResponse } from '@core/types/chat/chat.types';
 
 @Component({
   selector: 'app-chat-module',
@@ -27,6 +35,14 @@ export class ChatModuleComponent {
     date: Date;
   }[] = [];
 
+  protected readonly usernameLogs = signal<string[]>([]);
+
+  public readonly onNewUserJoin = output<string[]>();
+
+  private readonly _onNewUserJoinEffect = effect(() => {
+    this.onNewUserJoin.emit(this.usernameLogs());
+  });
+
   /**
    * The username associated with the comment.
    */
@@ -34,23 +50,35 @@ export class ChatModuleComponent {
 
   private hasAddedUser: boolean = false;
 
-  onChatJoin = (data: any) => {
+  onChatJoin = (data: ChatWebSocketResponse): void => {
+    console.log('Chat Join', { data });
+
     if (this.hasAddedUser) {
       // * If we do not check this we will get an infinite loop
       return;
     }
+
+    const { sender } = data;
+
+    this.addNewUsernameLog(sender);
 
     this.chatWebSocketsService.setCurrentUser(this.ownUsername());
     this.chatWebSocketsService.addUser();
     this.hasAddedUser = true;
   };
 
-  onChatNewMessage = (test: any) => {
+  onChatNewMessage = (test: ChatWebSocketResponse): void => {
     console.log('onChatNewMessage', test);
   };
 
-  onChatLeave = (test: any) => {
+  onChatLeave = (test: ChatWebSocketResponse): void => {
     console.log('onChatLeave', test);
+  };
+
+  addNewUsernameLog = (newUsername: string): void => {
+    this.usernameLogs.update((oldValues: string[]) => {
+      return [...oldValues, newUsername];
+    });
   };
 
   ngOnInit() {
@@ -58,7 +86,10 @@ export class ChatModuleComponent {
 
     this.chatWebSocketsService.connect();
 
+    this.addNewUsernameLog(this.ownUsername());
+
     this.chatWebSocketsService.setOnJoin(this.onChatJoin);
+
     this.chatWebSocketsService.setOnChatMessage(this.onChatNewMessage);
     this.chatWebSocketsService.setOnLeave(this.onChatLeave);
   }
@@ -67,7 +98,7 @@ export class ChatModuleComponent {
     this.chatWebSocketsService.disconnect();
   }
 
-  onSubmit = (event: Event) => {
+  onSubmit = (event: Event): void => {
     event.preventDefault();
 
     const formValues = this.sendMessageForm.value;
