@@ -218,7 +218,7 @@ export class ChatWebSocketsService extends WebSocketsService {
    * @param {string} message - The content of the message.
    * @return {void} This function does not return anything.
    */
-  public sendMessage(sender: string, message: string): void {
+  public sendMessage = (sender: string, message: string): void => {
     this.isClientInitializedAndConnected();
 
     this.stompClient!.send(
@@ -226,7 +226,7 @@ export class ChatWebSocketsService extends WebSocketsService {
       {},
       JSON.stringify({ message, sender, type: 'CHAT' })
     );
-  }
+  };
 
   /**
    * Sends a request to add a user to the chat room.
@@ -237,8 +237,14 @@ export class ChatWebSocketsService extends WebSocketsService {
    *
    * @return {void} This function does not return anything.
    */
-  public addUser(): void {
+  public addUser = (): void => {
     this.isClientInitializedAndConnected();
+
+    if (!this.currentUserNickname) {
+      throw new Error('No current user nickname is set');
+    }
+
+    console.log(this.currentUserNickname);
 
     this.stompClient!.send(
       '/app/chat.addUser',
@@ -249,5 +255,5 @@ export class ChatWebSocketsService extends WebSocketsService {
         message: '',
       })
     );
-  }
+  };
 }

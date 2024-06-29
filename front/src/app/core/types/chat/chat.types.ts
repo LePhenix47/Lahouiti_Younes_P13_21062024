@@ -3,3 +3,7 @@ export type ChatWebSocketResponse = {
   message: string;
   date: Date;
 };
+
+export type ChatLogMessage = ChatWebSocketResponse & {
+  type: 'JOIN' | 'LEAVE' | 'CHAT';
+};

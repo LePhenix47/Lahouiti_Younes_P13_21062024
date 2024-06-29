@@ -2,8 +2,13 @@
 
 <aside class="chat-module">
   <ul class="chat-module__messages">
+    @for(messageLog of messageLogs(); let index = $index; track index){
     <li class="chat-module__message-item">
+      ({{messageLog.type}})
+      {{messageLog.sender}}:
+      {{messageLog.message}}
     </li>
+    }
   </ul>
 
   <form class="chat-module__form" [formGroup]="sendMessageForm" (ngSubmit)="onSubmit($event)">
