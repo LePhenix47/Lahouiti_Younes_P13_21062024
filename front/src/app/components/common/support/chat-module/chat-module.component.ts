@@ -77,7 +77,18 @@ export class ChatModuleComponent {
     });
   };
 
-  onSubmit = (event: Event): void => {
+  submitMessageWithShortcut = (event: KeyboardEvent): void => {
+    const { ctrlKey, key } = event;
+
+    const shortcutNotUsed: boolean = ctrlKey && key === 'Enter';
+    if (!shortcutNotUsed) {
+      return;
+    }
+
+    this.onSubmitMessageToChat(event);
+  };
+
+  onSubmitMessageToChat = (event: Event): void => {
     event.preventDefault();
 
     const formValues = this.sendMessageForm.value;

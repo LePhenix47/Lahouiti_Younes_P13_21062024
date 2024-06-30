@@ -1,7 +1,19 @@
 @use "../../../../../styles.scss" as *;
 
+:host {
+  display: flex;
+  flex-direction: column;
+
+  height: 100%;
+}
+
 .chat-module {
+  height: inherit;
+  flex-direction: inherit;
+  display: inherit;
+
   padding: 15px;
+  --_submit-msg-btn-width: clamp(150px, 20vw, 300px);
 
   &__error {}
 
@@ -11,10 +23,12 @@
 
     gap: 15px;
 
+    overflow-y: scroll;
   }
 
 
   &__message-item {
+
     &--join {
       @include center-flex;
     }
@@ -22,7 +36,22 @@
     &--chat {
       display: flex;
       flex-direction: column;
-      align-items: baseline;
+      width: fit-content;
+      padding: 15px;
+
+      --_border-radius: 10px;
+
+      &-user {
+        align-self: flex-end;
+        background-color: var(--color-ycyw-1);
+        border-radius: var(--_border-radius) var(--_border-radius) 0 var(--_border-radius);
+      }
+
+      &-other {
+        align-self: flex-start;
+        background-color: var(--color-ycyw-2);
+        border-radius: var(--_border-radius) var(--_border-radius) var(--_border-radius) 0;
+      }
     }
 
     &--leave {
@@ -54,15 +83,23 @@
 
   &__send-message-form {
     display: flex;
+    gap: 15px;
+
+    margin-top: auto;
   }
 
-  --_button-width: clamp(150px, 20vw, 300px);
 
   &__submit-button {
-    width: var(--_button-width);
+    width: var(--_submit-msg-btn-width);
+
+
+    &:disabled {
+      filter: contrast(65%) grayscale(65%);
+    }
   }
 
-  &__input {
-    width: calc(100% - var(--_button-width));
+  &__textarea {
+    width: calc(100% - var(--_submit-msg-btn-width));
+    resize: none;
   }
 }
