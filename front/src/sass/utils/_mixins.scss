@@ -84,3 +84,10 @@
   -webkit-line-clamp: $columns;
   -webkit-box-orient: vertical;
 }
+
+
+@mixin text-background($gradent) {
+  background-image: $gradent;
+  background-clip: text;
+  color: transparent;
+}
