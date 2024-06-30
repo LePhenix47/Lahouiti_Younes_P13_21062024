@@ -44,6 +44,7 @@ export abstract class WebSocketsService {
       this.stompClient = Stomp.over(socket);
     } catch (error) {
       console.error('WebSocket connection error:', error);
+      this.handleOnError('WebSocket connection error: ' + error);
     }
   };
 
@@ -82,7 +83,7 @@ export abstract class WebSocketsService {
   };
 
   /**
-   * Resets the Stomp client by setting it to `null` in order to re-enter the later if the user re-connects
+   * Resets the Stomp client by setting it to `null` in order for the user to re-enter at later if they re-connect
    */
   private resetStompClient = (): void => {
     this.stompClient = null;

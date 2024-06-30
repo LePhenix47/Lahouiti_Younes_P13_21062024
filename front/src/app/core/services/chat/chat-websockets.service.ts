@@ -17,6 +17,8 @@ export class ChatWebSocketsService extends WebSocketsService {
    */
   public connected: boolean = false;
 
+  public hasError: boolean = false;
+
   /**
    * Callback function to be executed when a user joins the chat.
    * @param args - The arguments passed to the callback function.
@@ -37,6 +39,12 @@ export class ChatWebSocketsService extends WebSocketsService {
    * @returns The result of the callback function.
    */
   public onChatMessage: (...args: any[]) => any = () => {};
+
+  public onChatConnection: (...args: any[]) => any = () => {};
+
+  public setOnChatConnection = (callback: (...args: any[]) => any): void => {
+    this.onChatConnection = callback;
+  };
 
   /**
    * Sets the callback function to be executed when a user joins the chat.
@@ -105,8 +113,11 @@ export class ChatWebSocketsService extends WebSocketsService {
       frame
     );
     this.connected = true;
+    this.hasError = false;
 
     this.subscribeToTopicWebSocket();
+
+    this.onChatConnection();
   };
 
   /**
@@ -119,6 +130,7 @@ export class ChatWebSocketsService extends WebSocketsService {
     debugger;
     console.error('WebSocket connection error:', error);
     this.connected = false;
+    this.hasError = true;
   };
 
   /**
@@ -244,7 +256,11 @@ export class ChatWebSocketsService extends WebSocketsService {
       throw new Error('No current user nickname is set');
     }
 
-    console.log(this.currentUserNickname);
+    console.log(
+      '%cAdd user',
+      'background: #3f51b5; color: white; padding: 5px',
+      this.currentUserNickname
+    );
 
     this.stompClient!.send(
       '/app/chat.addUser',

@@ -27,16 +27,10 @@ export class ChatModuleComponent {
 
   protected readonly messageLogs = signal<ChatLogMessage[]>([]);
 
-  debugCalls = 0;
-
   /**
    * The username associated with the comment.
    */
   public readonly ownUsername = input.required<string>();
-
-  private hasAddedUser: boolean = false;
-
-  public previousNickname: string = '';
 
   ngOnInit() {
     console.log('chatmodule ngOnInit');
@@ -44,6 +38,7 @@ export class ChatModuleComponent {
     this.chatWebSocketsService.connect();
 
     this.chatWebSocketsService.setOnJoin(this.onChatJoin);
+    this.chatWebSocketsService.setOnChatConnection(this.onChatConnection);
 
     this.chatWebSocketsService.setOnChatMessage(this.onChatNewMessage);
     this.chatWebSocketsService.setOnLeave(this.onChatLeave);
@@ -53,27 +48,15 @@ export class ChatModuleComponent {
     this.chatWebSocketsService.disconnect();
   }
 
-  onChatJoin = (data: ChatWebSocketResponse): void => {
-    const { sender } = data;
-    if (this.debugCalls > 3) {
-      console.log('Chat Join', { data }, this.previousNickname);
-      return;
-    }
-
-    if (this.previousNickname !== sender) {
-      // * If we do not check this we will get an infinite loop
-      console.log('%cAlready added user', 'background: crimson', data);
-
-      return;
-    }
+  onChatConnection = (): void => {
+    console.log('onChatCOnnection');
 
     this.chatWebSocketsService.setCurrentUser(this.ownUsername());
     this.chatWebSocketsService.addUser();
-    this.previousNickname = sender;
+  };
 
+  onChatJoin = (data: ChatWebSocketResponse): void => {
     this.addNewMessageLog({ ...data, type: 'JOIN' });
-
-    this.debugCalls++;
   };
 
   onChatNewMessage = (data: ChatWebSocketResponse): void => {

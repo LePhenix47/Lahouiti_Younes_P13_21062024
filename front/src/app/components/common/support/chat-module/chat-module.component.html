@@ -1,6 +1,9 @@
 <p>chat-module works! {{this.ownUsername()}}</p>
 
 <aside class="chat-module">
+  @if(chatWebSocketsService.hasError){
+  <p class="chat-module__error">An unexpected error occurred</p>
+  } @else {
   <ul class="chat-module__messages">
     @for(messageLog of messageLogs(); let index = $index; track index){
     <li class="chat-module__message-item">
@@ -15,4 +18,5 @@
     <input type="text" class="chat-module__input" formControlName="message" placeholder="Hello world !" />
     <button type="submit">Send</button>
   </form>
+  }
 </aside>
