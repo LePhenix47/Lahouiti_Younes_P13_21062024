@@ -4,7 +4,7 @@
   * {
     --_scrollbar-track-bg: transparent;
 
-    --_scrollbar-bg: var(--_scrollbar-track-bg);
+    --_scrollbar-bg: transparent;
     --_scrollbar-border-radius: 100vmax;
     --_scrollbar-width: 5px;
     --_scrollbar-moz-width: thin;
@@ -12,7 +12,7 @@
 
     --_scrollbar-thumb-border: 0px solid var(--bg-primary);
 
-    --_scrollbar-thumb-bg: var(--color-primary);
+    --_scrollbar-thumb-bg: color-mix(in oklab, var(--color-ycyw-1), var(--color-ycyw-2));
     --_scrollbar-thumb-bg-hover: var(--color-primary);
     --_scrollbar-thumb-bg-active: var(--color-primary);
 
@@ -27,7 +27,7 @@
     &::-webkit-scrollbar-track {
       margin-block: var(--_scrollbar-margin-block);
 
-      background-color: var(--_scrollbar-track-bg);
+      background-color: transparent;
     }
 
     &::-webkit-scrollbar-thumb {

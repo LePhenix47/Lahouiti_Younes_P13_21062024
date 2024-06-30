@@ -13,14 +13,14 @@
   --color-secondary: gray;
 
   // * Style for the scrollbars
-  --_scrollbar-track-bg-color: white;
+  --_scrollbar-track-bg-color: red;
 
-  --_scrollbar-thumb-bg-color: var(--bg-secondary);
+  --_scrollbar-thumb-bg-color: color-mix(in oklab, var(--color-ycyw-1), var(--color-ycyw-2));
   --_scrollbar-thumb-bg-color--hover: #7551ebad;
   --_scrollbar-thumb-bg-color--active: #8059ff;
 
   // * Style for the text selection
-  --selection-bg-color: var(--bg-secondary);
+  --selection-bg-color: color-mix(in oklab, var(--color-ycyw-1), var(--color-ycyw-2));
   --selection-color: white;
 }
 

@@ -29,9 +29,9 @@
   *::selection {
     -webkit-text-stroke: transparent;
 
-    color: var(--selection-color);
+    color: white;
 
-    background-color: var(--selection-bg-color);
+    background-color: color-mix(in oklab, var(--color-ycyw-1), var(--color-ycyw-2));
   }
 
   html {
