@@ -7,26 +7,24 @@
     @switch (messageLog.type) {
     @case ("JOIN") {
     <li class="chat-module__message-item chat-module__message-item--join">
-      <span class="chat-module__sender chat-module__sender--join">{{messageLog.sender}}</span> has joined the chat
+      <span class="chat-module__sender chat-module__sender--join">{{messageLog.sender}}&nbsp;</span>
+      has joined the chat
     </li>
     }
     @case ("CHAT") {
-    @if(messageLog.sender === this.ownUsername()) {
-    <li class="chat-module__message-item chat-module__message-item--chat chat-module__message-item--chat-user">
-      <span class="chat-module__sender chat-module__sender--chat">{{messageLog.sender}}:</span>
-      {{messageLog.message}}
+    <li
+      class="chat-module__message-item chat-module__message-item--chat chat-module__message-item--chat-{{messageLog.sender === this.ownUsername() ? 'user': 'other'}}">
+      <p class="chat-module__message-main-info">
+        <span class="chat-module__sender chat-module__sender--chat">{{messageLog.sender}}:&nbsp;</span>
+        <span class="chat-module__message">{{messageLog.message}}</span>
+      </p>
+      <span class="chat-module__date">{{messageLog.date.toLocaleTimeString()}}</span>
     </li>
-    } @else {
-
-    <li class="chat-module__message-item chat-module__message-item--chat chat-module__message-item--chat-other">
-      <span class="chat-module__sender chat-module__sender--chat">{{messageLog.sender}}:</span>
-      {{messageLog.message}}
-    </li>
-    }
     }
     @case ("LEAVE") {
     <li class="chat-module__message-item chat-module__message-item--leave">
-      <span class="chat-module__sender chat-module__sender--leave">{{messageLog.sender}}</span> has left the chat
+      <span class="chat-module__sender chat-module__sender--leave">{{messageLog.sender}}&nbsp;</span>
+      has left the chat
     </li>
     }
     @default {
@@ -39,7 +37,7 @@
 
   <form class="chat-module__send-message-form" [formGroup]="sendMessageForm" (ngSubmit)="onSubmit($event)">
     <input type="text" class="chat-module__input" formControlName="message" placeholder="Hello world !" />
-    <button type="submit" class=" ycyw__button ycyw__button--2">Send</button>
+    <button type="submit" class="chat-module__submit-button ycyw__button ycyw__button--2">Send</button>
   </form>
   }
 </aside>

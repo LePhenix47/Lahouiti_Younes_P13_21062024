@@ -1,26 +1,68 @@
 @use "../../../../../styles.scss" as *;
 
 .chat-module {
+  padding: 15px;
+
   &__error {}
 
   &__messages-list {
     display: flex;
     flex-direction: column;
+
+    gap: 15px;
+
   }
 
 
   &__message-item {
-    &--join {}
+    &--join {
+      @include center-flex;
+    }
+
+    &--chat {
+      display: flex;
+      flex-direction: column;
+      align-items: baseline;
+    }
+
+    &--leave {
+      @include center-flex;
+    }
+
+    &--error {}
+  }
+
+  &__message-main-info {}
+
+  &__sender {
+    --_text-gradient: linear-gradient(90deg, var(--color-ycyw-1), var(--color-ycyw-2));
+    font-weight: bolder;
+
+    &--join {
+      @include text-background(var(--_text-gradient));
+    }
 
     &--chat {}
 
-    &--leave {}
+    &--leave {
+      @include text-background(var(--_text-gradient));
+    }
 
     &--error {}
   }
 
 
-  &__send-message-form {}
+  &__send-message-form {
+    display: flex;
+  }
 
-  &__input {}
+  --_button-width: clamp(150px, 20vw, 300px);
+
+  &__submit-button {
+    width: var(--_button-width);
+  }
+
+  &__input {
+    width: calc(100% - var(--_button-width));
+  }
 }
