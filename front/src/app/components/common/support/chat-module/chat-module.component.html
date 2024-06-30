@@ -7,26 +7,26 @@
     @switch (messageLog.type) {
     @case ("JOIN") {
     <li class="chat-module__message-item chat-module__message-item--join">
-      <span>{{messageLog.sender}}</span> has joined the chat
+      <span class="chat-module__sender chat-module__sender--join">{{messageLog.sender}}</span> has joined the chat
     </li>
     }
     @case ("CHAT") {
     @if(messageLog.sender === this.ownUsername()) {
     <li class="chat-module__message-item chat-module__message-item--chat chat-module__message-item--chat-user">
-      {{messageLog.sender}}:
+      <span class="chat-module__sender chat-module__sender--chat">{{messageLog.sender}}:</span>
       {{messageLog.message}}
     </li>
     } @else {
 
     <li class="chat-module__message-item chat-module__message-item--chat chat-module__message-item--chat-other">
-      {{messageLog.sender}}:
+      <span class="chat-module__sender chat-module__sender--chat">{{messageLog.sender}}:</span>
       {{messageLog.message}}
     </li>
     }
     }
     @case ("LEAVE") {
     <li class="chat-module__message-item chat-module__message-item--leave">
-      <span>{{messageLog.sender}}</span> has left the chat
+      <span class="chat-module__sender chat-module__sender--leave">{{messageLog.sender}}</span> has left the chat
     </li>
     }
     @default {
