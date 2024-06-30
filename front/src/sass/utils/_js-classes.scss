@@ -1,8 +1,30 @@
-//Simple classes to show or hide elements
+// * Simple classes to show or hide elements
 .hide {
   display: none !important;
 }
 
 .show {
   display: initial !important;
+}
+
+// * Your car your way (ycyw) classes
+.ycyw {
+  &__button {
+    width: 100%;
+
+    padding: 5px;
+    font-family: "Phosphate Pro Solid";
+
+    border-radius: 100vmax;
+
+    &--1 {
+      background-color: var(--color-ycyw-1);
+
+    }
+
+    &--2 {
+      background-color: var(--color-ycyw-2);
+
+    }
+  }
 }
