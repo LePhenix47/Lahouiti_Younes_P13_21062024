@@ -175,6 +175,10 @@ export class ChatWebSocketsService extends WebSocketsService {
     const { body } = stompMessage!;
 
     const { type, sender, message } = JSON.parse(body);
+    if (!sender) {
+      throw new Error('Sender is not defined in the received message');
+    }
+
     console.log(
       '%cReceived message:',
       'background: blue; color: white; padding: 5px',
