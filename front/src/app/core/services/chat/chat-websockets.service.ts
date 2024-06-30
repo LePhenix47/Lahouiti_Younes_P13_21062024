@@ -17,6 +17,10 @@ export class ChatWebSocketsService extends WebSocketsService {
    */
   public connected: boolean = false;
 
+  /**
+   * Indicates whether an error has occurred during the WebSocket connection.
+   * @type {boolean}
+   */
   public hasError: boolean = false;
 
   /**
@@ -40,12 +44,20 @@ export class ChatWebSocketsService extends WebSocketsService {
    */
   public onChatMessage: (...args: any[]) => any = () => {};
 
+  /**
+   * Callback function to be executed when the chat connection is established.
+   * @param args - The arguments passed to the callback function.
+   * @returns The result of the callback function.
+   */
   public onChatConnection: (...args: any[]) => any = () => {};
 
+  /**
+   * Sets the callback function to be executed when the chat connection is established.
+   * @param callback - The callback function to be executed.
+   */
   public setOnChatConnection = (callback: (...args: any[]) => any): void => {
     this.onChatConnection = callback;
   };
-
   /**
    * Sets the callback function to be executed when a user joins the chat.
    * @param callback - The callback function to be executed.
@@ -54,10 +66,13 @@ export class ChatWebSocketsService extends WebSocketsService {
     this.onJoin = callback;
   };
 
+  /**
+   * Sets the current user nickname.
+   * @param {string} nickname - The nickname of the current user.
+   */
   public setCurrentUser = (nickname: string): void => {
     this.currentUserNickname = nickname;
   };
-
   /**
    * Sets the callback function to be executed when a user leaves the chat.
    * @param callback - The callback function to be executed.
@@ -116,7 +131,6 @@ export class ChatWebSocketsService extends WebSocketsService {
     this.hasError = false;
 
     this.subscribeToTopicWebSocket();
-
     this.onChatConnection();
   };
 
@@ -127,7 +141,6 @@ export class ChatWebSocketsService extends WebSocketsService {
    * @return {void}
    */
   protected handleOnError = (error: string | Frame): void => {
-    debugger;
     console.error('WebSocket connection error:', error);
     this.connected = false;
     this.hasError = true;
