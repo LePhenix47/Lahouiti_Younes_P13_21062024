@@ -18,13 +18,16 @@
 
     border-radius: 100vmax;
 
+
     &--1 {
       background-color: var(--color-ycyw-1);
+      color: white;
 
     }
 
     &--2 {
       background-color: var(--color-ycyw-2);
+      color: black;
 
     }
   }
