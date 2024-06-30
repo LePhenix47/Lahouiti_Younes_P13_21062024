@@ -1,22 +1,45 @@
-<p>chat-module works! {{this.ownUsername()}}</p>
-
 <aside class="chat-module">
   @if(chatWebSocketsService.hasError){
   <p class="chat-module__error">An unexpected error occurred</p>
   } @else {
-  <ul class="chat-module__messages">
+  <ul class="chat-module__messages-list">
     @for(messageLog of messageLogs(); let index = $index; track index){
-    <li class="chat-module__message-item">
-      ({{messageLog.type}})
+    @switch (messageLog.type) {
+    @case ("JOIN") {
+    <li class="chat-module__message-item chat-module__message-item--join">
+      <span>{{messageLog.sender}}</span> has joined the chat
+    </li>
+    }
+    @case ("CHAT") {
+    @if(messageLog.sender === this.ownUsername()) {
+    <li class="chat-module__message-item chat-module__message-item--chat chat-module__message-item--chat-user">
+      {{messageLog.sender}}:
+      {{messageLog.message}}
+    </li>
+    } @else {
+
+    <li class="chat-module__message-item chat-module__message-item--chat chat-module__message-item--chat-other">
       {{messageLog.sender}}:
       {{messageLog.message}}
     </li>
     }
+    }
+    @case ("LEAVE") {
+    <li class="chat-module__message-item chat-module__message-item--leave">
+      <span>{{messageLog.sender}}</span> has left the chat
+    </li>
+    }
+    @default {
+    <li class="chat-module__message-item chat-module__message-item--error">An unexpected error occurred</li>
+    }
+    }
+
+    }
   </ul>
 
-  <form class="chat-module__form" [formGroup]="sendMessageForm" (ngSubmit)="onSubmit($event)">
+  <form class="chat-module__send-message-form" [formGroup]="sendMessageForm" (ngSubmit)="onSubmit($event)">
     <input type="text" class="chat-module__input" formControlName="message" placeholder="Hello world !" />
-    <button type="submit">Send</button>
+    <button type="submit" class=" ycyw__button ycyw__button--2">Send</button>
   </form>
   }
 </aside>

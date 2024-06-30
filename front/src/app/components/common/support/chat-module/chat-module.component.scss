@@ -1,0 +1,26 @@
+@use "../../../../../styles.scss" as *;
+
+.chat-module {
+  &__error {}
+
+  &__messages-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+
+  &__message-item {
+    &--join {}
+
+    &--chat {}
+
+    &--leave {}
+
+    &--error {}
+  }
+
+
+  &__send-message-form {}
+
+  &__input {}
+}
