@@ -45,12 +45,14 @@
         align-self: flex-end;
         background-color: var(--color-ycyw-1);
         border-radius: var(--_border-radius) var(--_border-radius) 0 var(--_border-radius);
+        color: white;
       }
 
       &-other {
         align-self: flex-start;
         background-color: var(--color-ycyw-2);
         border-radius: var(--_border-radius) var(--_border-radius) var(--_border-radius) 0;
+        color: black;
       }
     }
 
