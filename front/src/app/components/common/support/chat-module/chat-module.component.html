@@ -39,7 +39,7 @@
 
   <form class="chat-module__send-message-form" [formGroup]="sendMessageForm" (ngSubmit)="onSubmitMessageToChat($event)">
     <textarea type="text" class="chat-module__textarea ycyw__input" formControlName="message"
-      placeholder="Hello world !" (keydown)="submitMessageWithShortcut($event)"></textarea>
+      placeholder="Send a message, ex: Hello world !" (keydown)="submitMessageWithShortcut($event)"></textarea>
     <button type="submit" class="chat-module__submit-button ycyw__button ycyw__button--2"
       [disabled]="!sendMessageForm.valid">Send</button>
   </form>
