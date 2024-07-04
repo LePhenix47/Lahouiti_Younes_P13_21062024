@@ -21,6 +21,14 @@ export class SupportComponent {
     this.store.select('chatUserInfo')
   )()!.username;
 
+  test = (arrayOfUsers: string[]): void => {
+    console.log(
+      '%ctest',
+      'color: white ; background: #d46e08; font-size: 1em; padding: 5px',
+      arrayOfUsers
+    );
+  };
+
   ngOnInit() {
     console.log('Own username', this.ownUsername);
   }

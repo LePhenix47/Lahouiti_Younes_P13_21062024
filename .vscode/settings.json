@@ -9,6 +9,7 @@
         "**node_modules": true,
         ".husky": true,
         ".vscode": true,
-        ".next": true
+        ".next": true,
+        "**/node_modules": true
     }
 }

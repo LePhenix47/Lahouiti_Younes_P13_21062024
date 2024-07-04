@@ -1,4 +1,11 @@
-import { Component, inject, input, signal } from '@angular/core';
+import {
+  Component,
+  effect,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ChatWebSocketsService } from '@core/services/chat/chat-websockets.service';
 import {
@@ -41,6 +48,10 @@ export class ChatModuleComponent {
    * The username associated with the comment.
    */
   public readonly ownUsername = input.required<string>();
+
+  public groupChatUsers = signal<string[]>([]);
+
+  public readonly usersPresenceOutput = output<string[]>();
 
   ngOnInit() {
     console.log('chatmodule ngOnInit');
@@ -93,12 +104,15 @@ export class ChatModuleComponent {
    * @param {ChatWebSocketResponse} data - The data of the new member join event.
    */
   onChatNewMemberJoin = (data: ChatWebSocketJoinLeaveResponse): void => {
+    const { users } = data;
     this.addNewMessageLog({
       type: 'JOIN',
       sender: data.sender,
       date: new Date(),
       message: '',
     });
+
+    this.usersPresenceOutput.emit(users);
   };
 
   /**
@@ -118,12 +132,15 @@ export class ChatModuleComponent {
   onChatMemberLeave = (data: ChatWebSocketJoinLeaveResponse): void => {
     console.log('onChatLeave', data);
 
+    const { users } = data;
     this.addNewMessageLog({
       type: 'LEAVE',
       sender: data.sender,
       date: new Date(),
       message: '',
     });
+
+    this.usersPresenceOutput.emit(users);
   };
 
   /**
