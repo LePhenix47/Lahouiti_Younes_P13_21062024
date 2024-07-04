@@ -4,6 +4,11 @@ export type ChatWebSocketResponse = {
   date: Date;
 };
 
+export type ChatWebSocketJoinLeaveResponse = {
+  sender: string;
+  users: string[];
+};
+
 export type ChatLogMessage = ChatWebSocketResponse & {
   type: 'JOIN' | 'LEAVE' | 'CHAT';
 };

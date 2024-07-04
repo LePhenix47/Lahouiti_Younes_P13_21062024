@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ChatWebSocketsService } from '@core/services/chat/chat-websockets.service';
 import {
   ChatLogMessage,
+  ChatWebSocketJoinLeaveResponse,
   ChatWebSocketResponse,
 } from '@core/types/chat/chat.types';
 
@@ -91,8 +92,13 @@ export class ChatModuleComponent {
    * Adds a new chat message log for a new member join event.
    * @param {ChatWebSocketResponse} data - The data of the new member join event.
    */
-  onChatNewMemberJoin = (data: ChatWebSocketResponse): void => {
-    this.addNewMessageLog({ ...data, type: 'JOIN' });
+  onChatNewMemberJoin = (data: ChatWebSocketJoinLeaveResponse): void => {
+    this.addNewMessageLog({
+      type: 'JOIN',
+      sender: data.sender,
+      date: new Date(),
+      message: '',
+    });
   };
 
   /**
@@ -109,10 +115,15 @@ export class ChatModuleComponent {
    * Adds a new chat message log for a chat member leave event.
    * @param {ChatWebSocketResponse} data - The data of the chat member leave event.
    */
-  onChatMemberLeave = (data: ChatWebSocketResponse): void => {
+  onChatMemberLeave = (data: ChatWebSocketJoinLeaveResponse): void => {
     console.log('onChatLeave', data);
 
-    this.addNewMessageLog({ ...data, type: 'LEAVE' });
+    this.addNewMessageLog({
+      type: 'LEAVE',
+      sender: data.sender,
+      date: new Date(),
+      message: '',
+    });
   };
 
   /**

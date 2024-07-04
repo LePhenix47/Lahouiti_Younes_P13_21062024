@@ -187,7 +187,8 @@ export class ChatWebSocketsService extends WebSocketsService {
   private handleTopicWebSocketMessage = (stompMessage: Stomp.Message): void => {
     const { body } = stompMessage!;
 
-    const { type, sender, message } = JSON.parse(body);
+    const parsedBody = JSON.parse(body);
+    const { sender, type } = parsedBody;
     if (!sender) {
       throw new Error('Sender is not defined in the received message');
     }
@@ -195,22 +196,25 @@ export class ChatWebSocketsService extends WebSocketsService {
     console.log(
       '%cReceived message:',
       'background: blue; color: white; padding: 5px',
-      { type, sender, message }
+      { parsedBody }
     );
 
     const date = new Date();
 
     switch (type) {
       case 'JOIN': {
-        this.onJoin({ sender, message, date });
+        const { users } = parsedBody;
+        this.onJoin({ sender, users });
         break;
       }
       case 'CHAT': {
+        const { message } = parsedBody;
         this.onChatMessage({ sender, message, date });
         break;
       }
       case 'LEAVE': {
-        this.onLeave({ sender, message, date });
+        const { users } = parsedBody;
+        this.onLeave({ sender, users });
         break;
       }
 
