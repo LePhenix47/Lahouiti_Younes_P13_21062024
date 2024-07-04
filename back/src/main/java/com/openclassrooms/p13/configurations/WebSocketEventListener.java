@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
-import com.openclassrooms.p13.payload.request.ChatMessage;
+import com.openclassrooms.p13.payload.request.JoinLeaveMessage;
 import com.openclassrooms.p13.utils.enums.MessageType;
 
 import lombok.RequiredArgsConstructor;
@@ -51,7 +51,7 @@ public class WebSocketEventListener {
         log.info("✔ User : {} has disconnected from chat", username, connectedUsers);
         removeConnectedUser(username); // Remove the username from the connected users set
 
-        var message = new ChatMessage("", username, MessageType.LEAVE);
+        var message = new JoinLeaveMessage(username, MessageType.JOIN, connectedUsers);
 
         messageTemplate.convertAndSend("/topic/public", message);
     }

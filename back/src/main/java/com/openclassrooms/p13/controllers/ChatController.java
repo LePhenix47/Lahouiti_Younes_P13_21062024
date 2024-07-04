@@ -9,6 +9,7 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Controller;
 
 import com.openclassrooms.p13.payload.request.ChatMessage;
+import com.openclassrooms.p13.payload.request.JoinLeaveMessage;
 import com.openclassrooms.p13.utils.enums.MessageType;
 import com.openclassrooms.p13.configurations.WebSocketEventListener; // Import WebSocketEventListener
 
@@ -48,7 +49,7 @@ public class ChatController {
      */
     @MessageMapping("/chat.addUser")
     @SendTo("/topic/public")
-    public ChatMessage addUser(@Payload ChatMessage message, SimpMessageHeaderAccessor headerAccessor) {
+    public JoinLeaveMessage addUser(@Payload ChatMessage message, SimpMessageHeaderAccessor headerAccessor) {
         log.info("New user has arrived : {}", message);
 
         // Retrieve username from the message record
@@ -64,7 +65,9 @@ public class ChatController {
         Set<String> connectedUsers = webSocketEventListener.getConnectedUsers();
         log.info("Connected users: {}", connectedUsers);
 
-        return new ChatMessage("", username, MessageType.JOIN);
+        JoinLeaveMessage joinLeaveMessage = new JoinLeaveMessage(username, MessageType.JOIN, connectedUsers);
+
+        return joinLeaveMessage;
     }
 
 }
