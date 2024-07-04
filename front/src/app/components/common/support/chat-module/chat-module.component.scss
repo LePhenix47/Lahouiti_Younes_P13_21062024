@@ -18,10 +18,15 @@
   &__error {}
 
   &__messages-list {
+    --_gap: 15px;
+
     display: flex;
     flex-direction: column;
 
-    gap: 15px;
+    gap: var(--_gap);
+    padding-bottom: var(--_gap);
+
+    flex-grow: 1;
 
     overflow-y: scroll;
   }
