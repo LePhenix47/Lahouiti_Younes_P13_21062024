@@ -1,1 +1,2 @@
-<app-chat-module [ownUsername]="ownUsername" (usersPresenceOutput)="test($event)"></app-chat-module>
+<app-chat-module [ownUsername]="ownUsername" (usersPresenceOutput)="test($event)"
+  (groupChatUsersStompClientOutput)="setStompClient($event)"></app-chat-module>

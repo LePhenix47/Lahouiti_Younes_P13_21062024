@@ -2,6 +2,8 @@ import { Component, inject } from '@angular/core';
 import { ChatModuleComponent } from '@components/common/support/chat-module/chat-module.component';
 import { Username } from '@core/ngrx/actions/chat-info.actions';
 import { Store } from '@ngrx/store';
+import Stomp, { Frame } from 'stompjs';
+
 import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
@@ -21,12 +23,19 @@ export class SupportComponent {
     this.store.select('chatUserInfo')
   )()!.username;
 
+  protected sharedStompClient: Stomp.Client | null = null;
+
   test = (arrayOfUsers: string[]): void => {
     console.log(
       '%ctest',
       'color: white ; background: #d46e08; font-size: 1em; padding: 5px',
       arrayOfUsers
     );
+  };
+
+  setStompClient = (stompClient: Stomp.Client | null) => {
+    console.log('setStompClient', stompClient);
+    this.sharedStompClient = stompClient;
   };
 
   ngOnInit() {

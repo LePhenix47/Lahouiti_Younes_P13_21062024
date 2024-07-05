@@ -26,7 +26,7 @@ export abstract class WebSocketsService {
       this.initializeWebSocketConnection();
 
       console.log(
-        '%cConnecting...',
+        '%cConnecting to WebSocket on server...',
         'background: teal; color: white; padding: 5px; font: 1em'
       );
       this.stompClient!.connect({}, this.handleOnConnect, this.handleOnError);
@@ -88,4 +88,13 @@ export abstract class WebSocketsService {
   private resetStompClient = (): void => {
     this.stompClient = null;
   };
+
+  /**
+   * Returns the Stomp.Client instance used for the websocket connection.
+   *
+   * @return {Stomp.Client | null} The Stomp.Client instance or null if not initialized.
+   */
+  public getStompClient(): Stomp.Client | null {
+    return this.stompClient;
+  }
 }
