@@ -48,7 +48,7 @@ public class WebSocketEventListener {
     @EventListener
     public void onWebSocketDisconnect(SessionDisconnectEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
-        log.info(headerAccessor.getSessionAttributes().toString());
+        log.info("Disconnecting from WebSocket session...");
 
         String username = (String) headerAccessor.getSessionAttributes().get("username");
         String sessionId = headerAccessor.getSessionId();
@@ -62,7 +62,7 @@ public class WebSocketEventListener {
         log.info("✔ User : {} has disconnected from chat", sessionId, username, connectedUsers);
         removeConnectedUser(sessionId, username); // Remove the username from the connected users set
 
-        var message = new JoinLeaveMessage(username, MessageType.JOIN, connectedUsers);
+        var message = new JoinLeaveMessage(username, MessageType.LEAVE, connectedUsers);
 
         messageTemplate.convertAndSend("/topic/public", message);
     }
