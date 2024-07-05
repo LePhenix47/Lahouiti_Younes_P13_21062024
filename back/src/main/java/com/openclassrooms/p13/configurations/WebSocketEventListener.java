@@ -25,9 +25,18 @@ public class WebSocketEventListener {
     private final SimpMessageSendingOperations messageTemplate;
 
     // Concurrent set to store usernames of connected users
+    /**
+     * A concurrent set to store usernames of connected users.
+     * It uses {@link ConcurrentHashMap#newKeySet()} to create a thread-safe set.
+     */
     private final Set<String> connectedUsers = ConcurrentHashMap.newKeySet();
 
     // Map to store WebSocket session ID to username mapping
+
+    /**
+     * A map to store WebSocket session ID to username mapping.
+     * It uses {@link ConcurrentHashMap} to provide thread-safe access to the map.
+     */
     private final Map<String, String> sessionUsernameMap = new ConcurrentHashMap<>();
 
     /**
