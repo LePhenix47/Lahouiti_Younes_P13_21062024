@@ -5,13 +5,14 @@ import { Store } from '@ngrx/store';
 import Stomp, { Frame } from 'stompjs';
 
 import { toSignal } from '@angular/core/rxjs-interop';
+import { ChatRoomMediaComponent } from '@components/common/support/chat-room-media/chat-room-media.component';
 
 @Component({
   selector: 'app-support',
   standalone: true,
   templateUrl: './support.component.html',
   styleUrl: './support.component.scss',
-  imports: [ChatModuleComponent],
+  imports: [ChatModuleComponent, ChatRoomMediaComponent],
 })
 export class SupportComponent {
   /**
@@ -25,12 +26,16 @@ export class SupportComponent {
 
   protected sharedStompClient: Stomp.Client | null = null;
 
-  test = (arrayOfUsers: string[]): void => {
+  protected usersList: string[] = [];
+
+  setUsersArray = (arrayOfUsers: string[]): void => {
     console.log(
       '%ctest',
       'color: white ; background: #d46e08; font-size: 1em; padding: 5px',
       arrayOfUsers
     );
+
+    this.usersList = arrayOfUsers;
   };
 
   setStompClient = (stompClient: Stomp.Client | null) => {
