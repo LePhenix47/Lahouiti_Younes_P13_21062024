@@ -54,16 +54,17 @@ public class ChatController {
 
         // Retrieve username from the message record
         String username = message.sender();
+        String sessionId = headerAccessor.getSessionId();
 
         // Set username in session attributes
         headerAccessor.getSessionAttributes().put("username", username);
 
         // Add the user to connected users set
-        webSocketEventListener.addConnectedUser(username);
+        webSocketEventListener.addConnectedUser(sessionId, username);
 
         // Retrieve the current list of connected users
         Set<String> connectedUsers = webSocketEventListener.getConnectedUsers();
-        log.info("Connected users: {}", connectedUsers);
+        log.info("Connected users: {}", sessionId, connectedUsers);
 
         JoinLeaveMessage joinLeaveMessage = new JoinLeaveMessage(username, MessageType.JOIN, connectedUsers);
 

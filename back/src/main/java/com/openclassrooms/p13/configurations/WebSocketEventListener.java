@@ -1,5 +1,6 @@
 package com.openclassrooms.p13.configurations;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -26,6 +27,14 @@ public class WebSocketEventListener {
     // Concurrent set to store usernames of connected users
     private final Set<String> connectedUsers = ConcurrentHashMap.newKeySet();
 
+    // Map to store WebSocket session ID to username mapping
+    private final Map<String, String> sessionUsernameMap = new ConcurrentHashMap<>();
+
+    /**
+     * Handles the event when a WebSocket connection is established.
+     *
+     * @param event The SessionConnectEvent representing the connection event.
+     */
     @EventListener
     public void onWebSocketConnect(SessionConnectEvent event) {
         log.info("Establishing WebSocket connection...");
@@ -42,14 +51,16 @@ public class WebSocketEventListener {
         log.info(headerAccessor.getSessionAttributes().toString());
 
         String username = (String) headerAccessor.getSessionAttributes().get("username");
+        String sessionId = headerAccessor.getSessionId();
+
         if (username == null) {
             log.debug("✖ On WebSocket Disconnect: User not found for this session");
 
             return;
         }
 
-        log.info("✔ User : {} has disconnected from chat", username, connectedUsers);
-        removeConnectedUser(username); // Remove the username from the connected users set
+        log.info("✔ User : {} has disconnected from chat", sessionId, username, connectedUsers);
+        removeConnectedUser(sessionId, username); // Remove the username from the connected users set
 
         var message = new JoinLeaveMessage(username, MessageType.JOIN, connectedUsers);
 
@@ -59,20 +70,23 @@ public class WebSocketEventListener {
     /**
      * Adds a connected user to the set of connected users.
      *
-     * @param username the username of the connected user
+     * @param sessionId the session ID of the WebSocket session
+     * @param username  the username of the connected user
      */
-    public void addConnectedUser(String username) {
+    public void addConnectedUser(String sessionId, String username) {
         connectedUsers.add(username);
+        sessionUsernameMap.put(sessionId, username);
     }
 
     /**
      * Removes a connected user from the set of connected users.
      *
-     * @param username the username of the user to be removed
-     * @return void
+     * @param sessionId the session ID of the WebSocket session
+     * @param username  the username of the user to be removed
      */
-    public void removeConnectedUser(String username) {
+    public void removeConnectedUser(String sessionId, String username) {
         connectedUsers.remove(username);
+        sessionUsernameMap.remove(sessionId);
     }
 
     /**
@@ -82,6 +96,17 @@ public class WebSocketEventListener {
      */
     public Set<String> getConnectedUsers() {
         return connectedUsers;
+    }
+
+    /**
+     * Retrieves the username associated with the provided session ID from the
+     * sessionUsernameMap.
+     *
+     * @param sessionId the session ID for which to retrieve the username
+     * @return the username associated with the provided session ID
+     */
+    public String getUsernameForSession(String sessionId) {
+        return sessionUsernameMap.get(sessionId);
     }
 
 }
