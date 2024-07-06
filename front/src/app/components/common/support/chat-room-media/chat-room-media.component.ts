@@ -29,6 +29,8 @@ export class ChatRoomMediaComponent {
    */
   public readonly usersList = input.required<string[]>();
 
+  public realUsersList: string[] = [];
+
   /**
    * The username of the current user.
    */
@@ -42,7 +44,21 @@ export class ChatRoomMediaComponent {
   public openMicrophone = signal<boolean>(false);
   public showScreenCast = signal<boolean>(false);
 
-  public userChange = effect(async () => {
+  public userChange = effect(() => {
+    this.updateLocalStream();
+  });
+
+  ngOnInit() {
+    this.chatWebRtcService.setStompClient(this.stompClient()!);
+
+    this.realUsersList = this.usersList()!.filter(
+      (user) => user !== this.ownUsername()
+    );
+  }
+
+  ngOnDestroy() {}
+
+  private updateLocalStream = async () => {
     console.log(
       this.showWebcam(),
       this.openMicrophone(),
@@ -59,13 +75,7 @@ export class ChatRoomMediaComponent {
     const ownVideoElement = this.ownWebCamVideoRef
       ?.nativeElement as HTMLVideoElement;
     ownVideoElement.srcObject = this.chatWebRtcService.getLocalStream();
-  });
-
-  ngOnInit() {
-    this.chatWebRtcService.setStompClient(this.stompClient()!);
-  }
-
-  ngOnDestroy() {}
+  };
 
   /**
    * Updates the given signal with the current state of the input element.
@@ -73,38 +83,41 @@ export class ChatRoomMediaComponent {
    * @param {WritableSignal<boolean>} signal - The signal to update.
    * @param {Event} event - The event that triggered the update.
    */
-  private updateSignal(signal: WritableSignal<boolean>, event: Event): void {
+  private updateSignal = (
+    signal: WritableSignal<boolean>,
+    event: Event
+  ): void => {
     const input = event.currentTarget as HTMLInputElement;
 
     signal.update(() => {
       return input.checked;
     });
-  }
+  };
 
   /**
    * Toggles the webcam state based on the given event.
    *
    * @param {Event} event - The event that triggered the toggle.
    */
-  public toggleWebcam(event: Event): void {
+  public toggleWebcam = (event: Event): void => {
     this.updateSignal(this.showWebcam, event);
-  }
+  };
 
   /**
    * Toggles the audio input based on the given event.
    *
    * @param {Event} event - The event that triggered the toggle.
    */
-  public toggleAudio(event: Event): void {
+  public toggleAudio = (event: Event): void => {
     this.updateSignal(this.openMicrophone, event);
-  }
+  };
 
   /**
    * Toggles the screen cast state based on the given event.
    *
    * @param {Event} event - The event that triggered the toggle.
    */
-  public toggleScreenCast(event: Event): void {
+  public toggleScreenCast = (event: Event): void => {
     this.updateSignal(this.showScreenCast, event);
-  }
+  };
 }

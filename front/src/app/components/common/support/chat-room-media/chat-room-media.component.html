@@ -3,7 +3,7 @@
     <li class="chat-room-media__user">{{ownUsername()}}
       <video autoplay playsInline #ownWebCamVideoRef class="chat-room-media__webcam-video"></video>
     </li>
-    @for(user of usersList(); let index = $index; track index){
+    @for(user of realUsersList; let index = $index; track index){
     <li class="chat-room-media__user">{{user}}
       <video autoplay playsInline class="chat-room-media__webcam-video"></video>
     </li>
