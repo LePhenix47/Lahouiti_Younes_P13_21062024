@@ -1,6 +1,61 @@
 import { Injectable } from '@angular/core';
 import Stomp from 'stompjs';
 
+/**
+ * A base service class for interacting with WebRTC.
+ *
+ * When implementing WebRTC with this class, this is the order of operations:
+ *
+ * 1. Set up STOMP client for signaling (if not inherited).
+ *    - Use `setStompClient` method to set the STOMP client.
+ *    - Subscribe to the signaling topic (`/user/{userId}/topic/signal`) using `subscribeToSignaling`.
+ *
+ * 2. Set up local media stream.
+ *    - Use `setLocalStream` method to initialize the local media stream (audio, video).
+ *    - Optionally, display the local stream in UI or perform further operations with it.
+ *
+ * 3. Add a peer connection for each user.
+ *    - Use `addPeerConnection` method to create a new `RTCPeerConnection` for each remote user.
+ *    - Add event listeners (`onicecandidate`, `ontrack`) and local tracks to the peer connection.
+ *
+ * 4. Subscribe to the signaling topic specific to the user to receive offers, answers, and ICE candidates.
+ *    - Implement `subscribeToSignalTopic` method to subscribe to `/user/{userId}/topic/signal`.
+ *    - Handle incoming signaling messages (`offer`, `answer`, `candidate`) in the subscription callback.
+ *
+ * 5. Handle incoming offers from remote peers.
+ *    - Implement `handleOffer` method to handle incoming offer messages.
+ *    - Respond with an answer (`createAnswer`, `setLocalDescription`) and send it via `sendSignalingMessage`.
+ *
+ * 6. Handle incoming answers from remote peers.
+ *    - Implement `handleAnswer` method to handle incoming answer messages.
+ *    - Set remote description (`setRemoteDescription`) for the corresponding peer connection.
+ *
+ * 7. Handle incoming ICE candidates from remote peers.
+ *    - Implement `handleIceCandidate` method to handle incoming ICE candidate messages.
+ *    - Add ICE candidates (`addIceCandidate`) to the corresponding peer connection.
+ *
+ * 8. Exchange signaling messages with peers.
+ *    - Use `sendSignalingMessage` method to send signaling messages (offer, answer, ICE candidate) via STOMP.
+ *
+ * 9. Manage peer connections and clean up resources.
+ *    - Use `closePeerConnection` method to close a peer connection for a specific user when needed.
+ *    - Clean up local and remote streams, peer connections, and any other resources as required.
+ *
+ * Example usage:
+ *
+ * ```
+ * const rtc = new ChatWebRtcService();
+ *
+ * rtc.setStompClient(stompClient); // Step 1
+ * rtc.setLocalStream(true, true);  // Step 2
+ * rtc.addPeerConnection(userId);   // Step 3
+ * rtc.subscribeToSignalTopic(userId); // Step 4
+ *
+ * // Implementation continues with handling offers, answers, ICE candidates (Steps 5-7)
+ * // and managing peer connections and cleanup (Step 9).
+ * ```
+ */
+
 @Injectable({
   providedIn: 'root',
 })
@@ -8,7 +63,7 @@ export abstract class WebRTCService {
   /**
    * Map of peer connections, where the key is the peer user ID.
    */
-  private peerConnections: Map<string, RTCPeerConnection> = new Map();
+  protected peerConnections: Map<string, RTCPeerConnection> = new Map();
 
   /**
    * Local media stream, own webcam, audio or screencasts.
@@ -16,7 +71,10 @@ export abstract class WebRTCService {
    */
   protected localStream: MediaStream | null = null;
 
-  protected remoteStreams: Set<MediaStream> = new Set(); // Use Set to store unique streams
+  /**
+   * Set of remote media streams, streams from other peers.
+   */
+  protected remoteStreams: Set<MediaStream> = new Set();
 
   /**
    * RTC configuration with ICE servers for STUN/TURN servers.
@@ -32,30 +90,30 @@ export abstract class WebRTCService {
 
   /**
    * STOMP client for signaling.
-   * Can be null if no client has been set.
+   * Can be `null` if no client has been set.
    */
-  private stompClient: Stomp.Client | null = null;
+  protected stompClient: Stomp.Client | null = null;
 
   /**
    * Sets the STOMP client for signaling.
-   * @param {Stomp.Client} client - The STOMP client.
+   * @param {Stomp.Client} stompClient - The STOMP client.
    */
-  public setStompClient(client: Stomp.Client): void {
-    this.stompClient = client;
+  public setStompClient(stompClient: Stomp.Client): void {
+    this.stompClient = stompClient;
   }
 
   /**
    * Sets up the STOMP client to receive signaling messages.
    * @param {string} topic - The topic to subscribe to.
    */
-  public subscribeToSignaling(topic: string): void {
+  public subscribeToSignaling(): void {
     if (!this.stompClient) {
       console.error('STOMP client is not set.');
       return;
     }
 
-    this.stompClient.subscribe(topic, (message) => {
-      this.sendSignalingMessage(`${topic}/signal`, message);
+    this.stompClient.subscribe(`topic/signal`, (message: Stomp.Message) => {
+      this.sendSignalingMessage('/topic/signal', message);
     });
   }
 
@@ -187,11 +245,10 @@ export abstract class WebRTCService {
    * @param {string} userId - The ID of the user.
    * @param {RTCIceCandidate} candidate - The ICE candidate.
    */
-  public handleIceCandidate(userId: string, candidate: RTCIceCandidate): void {
-    // Implementation to send the ICE candidate to the remote peer through signaling server
-    console.log(`Sending ICE candidate to ${userId}`, candidate);
-  }
-
+  public abstract handleIceCandidate(
+    userId: string,
+    candidate: RTCIceCandidate
+  ): void;
   /**
    * Handles track events.
    * @param {string} userId - The ID of the user.
