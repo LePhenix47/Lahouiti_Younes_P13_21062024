@@ -66,7 +66,7 @@ export abstract class WebRTCService {
   protected peerConnections: Map<string, RTCPeerConnection> = new Map();
 
   /**
-   * Local media stream, own webcam, audio or screencasts.
+   * Local media stream, own webcam, audio or screen casts.
    * Can be `null` if no stream has been set.
    */
   protected localStream: MediaStream | null = null;
@@ -145,8 +145,12 @@ export abstract class WebRTCService {
   public async setLocalStream(
     audio: boolean = true,
     video: boolean = true
-  ): Promise<MediaStream> {
+  ): Promise<MediaStream | null> {
     try {
+      if (!audio && !video) {
+        return null;
+      }
+
       if (this.localStream) {
         return this.localStream;
       }
@@ -156,13 +160,27 @@ export abstract class WebRTCService {
         video,
       });
 
-      return this.localStream;
+      return this.localStream!;
     } catch (error) {
       console.error('Error accessing media devices.', error);
       throw error;
     }
   }
 
+  /**
+   * Stops all tracks of the current local stream and resets it to null.
+   */
+  public resetLocalStream(): void {
+    if (!this.localStream) {
+      return;
+    }
+
+    for (const localTrack of this.localStream.getTracks()) {
+      localTrack.stop();
+    }
+
+    this.localStream = null;
+  }
   /**
    * Returns the local media stream.
    *

@@ -1,5 +1,8 @@
 <aside class="chat-room-media">
   <ul class="chat-room-media__users-list">
+    <li class="chat-room-media__user">{{ownUsername()}}
+      <video autoplay playsInline #ownWebCamVideoRef class="chat-room-media__webcam-video"></video>
+    </li>
     @for(user of usersList(); let index = $index; track index){
     <li class="chat-room-media__user">{{user}}
       <video autoplay playsInline class="chat-room-media__webcam-video"></video>
@@ -9,12 +12,13 @@
 
   <form class="chat-room-media__controls">
     <label class="chat-room-media__label chat-room-media__control">
-      <input type="checkbox" name="" class="chat-room-media__input">Webcam</label>
+      <input type="checkbox" name="" class="chat-room-media__input" (change)="toggleWebcam($event)" /> Webcam</label>
 
     <label class="chat-room-media__label chat-room-media__control">
-      <input type="checkbox" name="" class="chat-room-media__input">Audio</label>
+      <input type="checkbox" name="" class="chat-room-media__input" (change)="toggleAudio($event)" /> Audio</label>
 
     <label class="chat-room-media__label chat-room-media__control">
-      <input type="checkbox" name="" class="chat-room-media__input">Screencast</label>
+      <input type="checkbox" name="" class="chat-room-media__input" (change)="toggleScreenCast($event)" /> Screen
+      cast</label>
   </form>
 </aside>
