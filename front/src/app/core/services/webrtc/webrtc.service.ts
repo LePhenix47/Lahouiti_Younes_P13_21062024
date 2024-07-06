@@ -70,6 +70,7 @@ export abstract class WebRTCService {
    * Can be `null` if no stream has been set.
    */
   protected localStream: MediaStream | null = null;
+  protected screenStream: MediaStream | null = null;
 
   /**
    * Set of remote media streams, streams from other peers.
@@ -104,9 +105,8 @@ export abstract class WebRTCService {
 
   /**
    * Sets up the STOMP client to receive signaling messages.
-   * @param {string} topic - The topic to subscribe to.
-   */
-  public subscribeToSignaling(): void {
+   * */
+  public subscribeToSignaling = (): void => {
     if (!this.stompClient) {
       console.error('STOMP client is not set.');
       return;
@@ -115,14 +115,17 @@ export abstract class WebRTCService {
     this.stompClient.subscribe(`topic/signal`, (message: Stomp.Message) => {
       this.sendSignalingMessage('/topic/signal', message);
     });
-  }
+  };
 
   /**
    * Sends a signaling message through STOMP.
    * @param {string} destination - The destination path.
    * @param {any} message - The message to send.
    */
-  protected sendSignalingMessage(destination: string, message: any): void {
+  protected sendSignalingMessage = (
+    destination: string,
+    message: any
+  ): void => {
     if (!this.stompClient?.connected) {
       console.error(
         Boolean(this.stompClient)
@@ -134,7 +137,7 @@ export abstract class WebRTCService {
     }
 
     this.stompClient.send(destination, {}, JSON.stringify(message));
-  }
+  };
 
   /**
    * Sets the local media stream.
@@ -142,10 +145,10 @@ export abstract class WebRTCService {
    * @param {boolean} video - Whether to capture video.
    * @returns {Promise<MediaStream>}
    */
-  public async setLocalStream(
+  public setLocalStream = async (
     audio: boolean = true,
     video: boolean = true
-  ): Promise<MediaStream | null> {
+  ): Promise<MediaStream | null> => {
     try {
       if (!audio && !video) {
         return null;
@@ -165,12 +168,12 @@ export abstract class WebRTCService {
       console.error('Error accessing media devices.', error);
       throw error;
     }
-  }
+  };
 
   /**
    * Stops all tracks of the current local stream and resets it to null.
    */
-  public resetLocalStream(): void {
+  public resetLocalStream = (): void => {
     if (!this.localStream) {
       return;
     }
@@ -180,15 +183,54 @@ export abstract class WebRTCService {
     }
 
     this.localStream = null;
-  }
+  };
+
   /**
    * Returns the local media stream.
    *
    * @return {MediaStream | null} The local media stream, or `null` if it has not been set.
    */
-  public getLocalStream(): MediaStream | null {
+  public getLocalStream = (): MediaStream | null => {
     return this.localStream;
+  };
+
+  public async updateLocalStream(
+    audio: boolean = true,
+    video: boolean = false
+  ): Promise<MediaStream | null> {
+    this.resetLocalStream();
+    return this.setLocalStream(audio, video);
   }
+
+  public setScreenShareStream = async (
+    withInnerDeviceAudio: boolean = false
+  ): Promise<MediaStream> => {
+    try {
+      const screenStream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+        audio: withInnerDeviceAudio,
+      });
+
+      // Stop previous screen share tracks if they exist
+      if (this.screenStream) {
+        this.screenStream.getTracks().forEach((track) => track.stop());
+      }
+
+      this.screenStream = screenStream;
+
+      // Add screen share tracks to each peer connection
+      this.peerConnections.forEach((peerConnection) => {
+        screenStream.getTracks().forEach((track) => {
+          peerConnection.addTrack(track, screenStream);
+        });
+      });
+
+      return screenStream;
+    } catch (error) {
+      console.error('Error accessing display media.', error);
+      throw error;
+    }
+  };
 
   /**
    * Adds a peer connection for a specific user.
@@ -247,14 +289,16 @@ export abstract class WebRTCService {
   private addLocalTracksToPeerConnection(
     peerConnection: RTCPeerConnection
   ): void {
-    if (!this.localStream) {
-      console.error('No local stream to add to peer connection.');
-
-      return;
+    if (this.localStream) {
+      for (const track of this.localStream.getTracks()) {
+        peerConnection.addTrack(track, this.localStream);
+      }
     }
 
-    for (const track of this.localStream.getTracks()) {
-      peerConnection.addTrack(track, this.localStream);
+    if (this.screenStream) {
+      for (const track of this.screenStream.getTracks()) {
+        peerConnection.addTrack(track, this.screenStream!);
+      }
     }
   }
 
