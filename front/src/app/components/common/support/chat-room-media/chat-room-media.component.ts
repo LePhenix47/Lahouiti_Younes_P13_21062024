@@ -1,4 +1,5 @@
-import { Component, input } from '@angular/core';
+import { Component, inject, input } from '@angular/core';
+import { ChatWebRtcService } from '@core/services/video-chat/chat-webrtc.service';
 import Stomp from 'stompjs';
 
 @Component({
@@ -24,6 +25,8 @@ export class ChatRoomMediaComponent {
    */
   public readonly ownUsername = input.required<string>();
 
+  private readonly chatWebRtcService = inject(ChatWebRtcService);
+
   ngOnInit() {
     console.log(
       'ChatRoomMediaComponent',
@@ -31,6 +34,8 @@ export class ChatRoomMediaComponent {
       this.usersList(),
       this.ownUsername()
     );
+
+    this.chatWebRtcService.setStompClient(this.stompClient()!);
   }
 
   ngOnDestroy() {}
