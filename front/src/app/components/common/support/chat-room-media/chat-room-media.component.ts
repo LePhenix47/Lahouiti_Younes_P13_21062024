@@ -5,6 +5,7 @@ import {
   inject,
   input,
   signal,
+  SimpleChanges,
   ViewChild,
   WritableSignal,
 } from '@angular/core';
@@ -32,8 +33,6 @@ export class ChatRoomMediaComponent {
    */
   public readonly usersList = input.required<string[]>();
 
-  public realUsersList: string[] = [];
-
   /**
    * The username of the current user.
    */
@@ -54,14 +53,23 @@ export class ChatRoomMediaComponent {
   });
 
   ngOnInit() {
+    console.group('ngOnInit()');
     this.chatWebRtcService.setStompClient(this.stompClient()!);
 
-    this.realUsersList = this.usersList()!.filter(
-      (user) => user !== this.ownUsername()
-    );
+    console.log(this.chatWebRtcService.geStompClient(), this.stompClient());
+
+    this.chatWebRtcService.startWebRTCSession(this.ownUsername());
+    console.groupEnd();
   }
 
-  ngOnDestroy() {}
+  ngOnDestroy() {
+    this.chatWebRtcService.endWebRTCSession(this.ownUsername());
+  }
+
+  public initializeConnection = () => {
+    this.chatWebRtcService.startWebRTCSession(this.ownUsername());
+    console.log(this.chatWebRtcService.getPeerConnections());
+  };
 
   private updateLocalStream = async () => {
     console.log(
