@@ -1,10 +1,17 @@
 <aside class="chat-room-media">
   <ul class="chat-room-media__users-list">
-    <li class="chat-room-media__user">{{ownUsername()}}
+    <li class="chat-room-media__user">
+      <p class="chat-room-media__username">
+        {{ownUsername()}}
+      </p>
       <video autoplay playsInline #ownWebCamVideoRef class="chat-room-media__webcam-video"></video>
+      <video autoplay playsInline #screenCastVideoRef class="chat-room-media__screen-cast-video"></video>
     </li>
     @for(user of realUsersList; let index = $index; track index){
-    <li class="chat-room-media__user">{{user}}
+    <li class="chat-room-media__user">
+      <p class="chat-room-media__username">
+        {{user}}
+      </p>
       <video autoplay playsInline class="chat-room-media__webcam-video"></video>
     </li>
     }

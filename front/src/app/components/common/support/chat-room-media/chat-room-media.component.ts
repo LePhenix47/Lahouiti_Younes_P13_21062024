@@ -19,6 +19,9 @@ import Stomp from 'stompjs';
   styleUrl: './chat-room-media.component.scss',
 })
 export class ChatRoomMediaComponent {
+  @ViewChild('ownWebCamVideoRef') ownWebCamVideoRef: ElementRef | null = null;
+  @ViewChild('screenCastVideoRef') screenCastVideoRef: ElementRef | null = null;
+
   /**
    * The Stomp client for the WebSocket connection.
    */
@@ -38,14 +41,16 @@ export class ChatRoomMediaComponent {
 
   private readonly chatWebRtcService = inject(ChatWebRtcService);
 
-  @ViewChild('ownWebCamVideoRef') ownWebCamVideoRef: ElementRef | null = null;
-
   public showWebcam = signal<boolean>(false);
   public openMicrophone = signal<boolean>(false);
   public showScreenCast = signal<boolean>(false);
 
   public userChange = effect(() => {
+    console.log('effect');
+
     this.updateLocalStream();
+
+    this.updateScreenCastStream();
   });
 
   ngOnInit() {
@@ -75,6 +80,29 @@ export class ChatRoomMediaComponent {
     const ownVideoElement = this.ownWebCamVideoRef
       ?.nativeElement as HTMLVideoElement;
     ownVideoElement.srcObject = this.chatWebRtcService.getLocalStream();
+  };
+
+  private updateScreenCastStream = async () => {
+    try {
+      this.chatWebRtcService.resetScreenShareStream();
+
+      if (!this.showScreenCast()) {
+        return;
+      }
+
+      const screenStream = await this.chatWebRtcService.setScreenShareStream();
+
+      const screenVideoElement = this.screenCastVideoRef
+        ?.nativeElement as HTMLVideoElement;
+      screenVideoElement.srcObject = screenStream;
+    } catch (error) {
+      console.error('Error accessing screen stream.', error);
+      alert(error);
+
+      this.showScreenCast.update(() => {
+        return false;
+      });
+    }
   };
 
   /**

@@ -21,8 +21,8 @@
   }
 
   &__user {
-    width: 200px;
-    height: 100px;
+    min-width: 200px;
+    min-height: 100px;
     border-radius: 15px;
 
     font-family: "Phosphate Pro Solid";
@@ -39,6 +39,12 @@
 
   }
 
+  &__username {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+  }
+
   &__webcam-video {
     position: absolute;
     top: 0;
@@ -46,8 +52,18 @@
 
     width: 100%;
     height: 100%;
-    @include fit-image(cover);
+    @include fit-image(contain);
 
     scale: -100% 100%;
+  }
+
+  &__screen-cast-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+    @include fit-image(contain);
   }
 }

@@ -194,13 +194,13 @@ export abstract class WebRTCService {
     return this.localStream;
   };
 
-  public async updateLocalStream(
+  public updateLocalStream = async (
     audio: boolean = true,
     video: boolean = false
-  ): Promise<MediaStream | null> {
+  ): Promise<MediaStream | null> => {
     this.resetLocalStream();
     return this.setLocalStream(audio, video);
-  }
+  };
 
   public setScreenShareStream = async (
     withInnerDeviceAudio: boolean = false
@@ -211,25 +211,39 @@ export abstract class WebRTCService {
         audio: withInnerDeviceAudio,
       });
 
-      // Stop previous screen share tracks if they exist
-      if (this.screenStream) {
-        this.screenStream.getTracks().forEach((track) => track.stop());
-      }
-
       this.screenStream = screenStream;
 
-      // Add screen share tracks to each peer connection
-      this.peerConnections.forEach((peerConnection) => {
-        screenStream.getTracks().forEach((track) => {
-          peerConnection.addTrack(track, screenStream);
-        });
-      });
+      // // Add screen share tracks to each peer connection
+      // this.peerConnections.forEach((peerConnection) => {
+      //   screenStream.getTracks().forEach((track) => {
+      //     peerConnection.addTrack(track, screenStream);
+      //   });
+      // });
 
       return screenStream;
     } catch (error) {
       console.error('Error accessing display media.', error);
       throw error;
     }
+  };
+
+  public resetScreenShareStream = (): void => {
+    if (!this.screenStream) {
+      console.warn('No screen stream to reset.');
+      return;
+    }
+
+    for (const screenTrack of this.screenStream.getTracks()) {
+      screenTrack.stop();
+    }
+
+    // Set the screenStream to null
+    this.screenStream = null;
+  };
+
+  public updateScreenShareStream = async () => {
+    this.resetScreenShareStream();
+    return this.setScreenShareStream();
   };
 
   /**
@@ -297,7 +311,7 @@ export abstract class WebRTCService {
 
     if (this.screenStream) {
       for (const track of this.screenStream.getTracks()) {
-        peerConnection.addTrack(track, this.screenStream!);
+        peerConnection.addTrack(track, this.screenStream);
       }
     }
   }
