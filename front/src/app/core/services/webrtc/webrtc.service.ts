@@ -71,19 +71,13 @@ export abstract class WebRTCService {
     this.stompClient = stompClient;
   }
 
-  /**
-   * Sets up the STOMP client to receive signaling messages.
-   * */
-  public subscribeToSignaling = (): void => {
-    if (!this.stompClient) {
-      console.error('STOMP client is not set.');
-      return;
-    }
+  public geStompClient(): Stomp.Client | null {
+    return this.stompClient;
+  }
 
-    this.stompClient.subscribe(`topic/signal`, (message: Stomp.Message) => {
-      this.sendSignalingMessage('/topic/signal', message);
-    });
-  };
+  public getPeerConnections(): Map<string, RTCPeerConnection> {
+    return this.peerConnections;
+  }
 
   /**
    * Sends a signaling message through STOMP.
@@ -94,11 +88,12 @@ export abstract class WebRTCService {
     destination: string,
     message: any
   ): void => {
-    if (!this.stompClient?.connected) {
+    if (!this.stompClient) {
       console.error(
         Boolean(this.stompClient)
           ? "STOMP client isn't initialized, please connect to the WebSockets."
-          : 'STOMP client is not connected.'
+          : 'STOMP client is not connected.',
+        this.stompClient
       );
 
       return;
@@ -222,6 +217,11 @@ export abstract class WebRTCService {
    */
   public addPeerConnection = (userId: string): RTCPeerConnection => {
     if (this.peerConnections.has(userId)) {
+      console.warn(
+        'Peer connection already exists for user.',
+        userId,
+        this.peerConnections.get(userId)
+      );
       return this.peerConnections.get(userId)!;
     }
 
@@ -258,19 +258,27 @@ export abstract class WebRTCService {
         return;
       }
 
-      for (const stream of event.streams) {
-        this.remoteStreams.add(stream);
-      }
+      this.addRemoteTracksToPeerConnection(event);
 
       this.handleTrackEvent(userId, event);
     };
   };
 
   /**
+   * Adds remote tracks to the remote streams.
+   * @param {RTCTrackEvent} event - The RTCTrackEvent instance.
+   */
+  protected addRemoteTracksToPeerConnection = (event: RTCTrackEvent): void => {
+    for (const stream of event.streams) {
+      this.remoteStreams.add(stream);
+    }
+  };
+
+  /**
    * Adds local tracks to a peer connection.
    * @param {RTCPeerConnection} peerConnection - The peer connection instance.
    */
-  private addLocalTracksToPeerConnection = (
+  protected addLocalTracksToPeerConnection = (
     peerConnection: RTCPeerConnection
   ): void => {
     if (this.localStream) {
@@ -326,7 +334,7 @@ export abstract class WebRTCService {
    * Closes the peer connection for a specific user.
    * @param {string} userId - The ID of the user.
    */
-  public closePeerConnection = (userId: string): void => {
+  protected closePeerConnection = (userId: string): void => {
     if (!this.peerConnections.has(userId)) {
       console.error("Peer connection doesn't exist for user", userId);
 
