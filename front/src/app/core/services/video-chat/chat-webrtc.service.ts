@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { WebRTCService } from '../webrtc/webrtc.service';
+import { SignalMessage } from '@core/types/chat/chat.types';
 
 @Injectable({
   providedIn: 'root',
@@ -7,38 +8,38 @@ import { WebRTCService } from '../webrtc/webrtc.service';
 export class ChatWebRtcService extends WebRTCService {
   public rtcConnected: boolean = false;
 
-  public handleTrackEvent = (userId: string, event: RTCTrackEvent): void => {
+  public handleTrackEvent = (username: string, event: RTCTrackEvent): void => {
     // Handle incoming tracks from remote peers
-    console.log(`Received tracks from ${userId}`, event);
+    console.log(`Received tracks from ${username}`, event);
     // Example: Display incoming video/audio to the user interface
   };
 
   public handleOffer = async (
-    userId: string,
+    username: string,
     offer: RTCSessionDescriptionInit
   ): Promise<void> => {
     // Handle incoming offer from remote peer
-    console.log(`Received offer from ${userId}`, offer);
+    console.log(`Received offer from ${username}`, offer);
     // Example: Respond with an answer
 
-    const peerConnection: RTCPeerConnection = this.addPeerConnection(userId);
+    const peerConnection: RTCPeerConnection = this.addPeerConnection(username);
 
     const answer: RTCSessionDescriptionInit =
       await peerConnection.createAnswer();
 
     await peerConnection.setLocalDescription(answer);
 
-    this.sendSignalingMessage(`/webrtc.signal`, { userId, offer }); // Send offer to signaling server
+    this.sendSignalingMessage(`/webrtc.signal`, { username, offer }); // Send offer to signaling server
   };
 
   public handleAnswer = async (
-    userId: string,
+    username: string,
     answer: RTCSessionDescriptionInit
   ): Promise<void> => {
     // Handle incoming answer from remote peer
-    console.log(`Received answer from ${userId}`, answer);
+    console.log(`Received answer from ${username}`, answer);
     // Set remote description for peer connection
-    const peerConnection = this.peerConnections.get(userId);
+    const peerConnection = this.peerConnections.get(username);
     if (!peerConnection) {
       return;
     }
@@ -49,14 +50,14 @@ export class ChatWebRtcService extends WebRTCService {
   };
 
   public handleIceCandidate = async (
-    userId: string,
+    username: string,
     candidate: RTCIceCandidate
   ): Promise<void> => {
     try {
       // Handle incoming ICE candidate from remote peer
-      console.log(`Received ICE candidate from ${userId}`, candidate);
+      console.log(`Received ICE candidate from ${username}`, candidate);
       // Add ICE candidate to peer connection
-      const peerConnection = this.peerConnections.get(userId);
+      const peerConnection = this.peerConnections.get(username);
       if (!peerConnection) {
         return;
       }
@@ -68,15 +69,15 @@ export class ChatWebRtcService extends WebRTCService {
   };
 
   // Example method for starting a WebRTC session with a specific user
-  public startWebRTCSession = (userId: string): void => {
+  public startWebRTCSession = (username: string, usersList: string[]): void => {
     // Example: Send an initial offer to start WebRTC session
-    this.sendOffer(userId);
+    this.subscribeToSignalTopic(username);
+    this.sendOffer(username, usersList);
     // Subscribe to the signaling topic for the user
-    this.subscribeToSignalTopic(userId);
   };
 
   // Method to subscribe to signaling topic and handle incoming messages
-  public subscribeToSignalTopic = (userId: string): void => {
+  public subscribeToSignalTopic = (username: string): void => {
     if (!this.stompClient?.connected) {
       this.rtcConnected = false;
       console.error('STOMP client is not set.', this.stompClient);
@@ -89,34 +90,70 @@ export class ChatWebRtcService extends WebRTCService {
     const signalingTopic = `/signaling`;
     this.stompClient.subscribe(signalingTopic, (message) => {
       const signalMessage = JSON.parse(message.body);
-      console.log(`Received signaling message for ${userId}`, signalMessage);
 
-      if (signalMessage.offer) {
-        this.handleOffer(userId, signalMessage.offer);
-      } else if (signalMessage.answer) {
-        this.handleAnswer(userId, signalMessage.answer);
-      } else if (signalMessage.candidate) {
-        this.handleIceCandidate(userId, signalMessage.candidate);
-      } else {
-        console.warn('Unknown signaling message type', signalMessage);
+      if (username === signalMessage.fromUsername) {
+        return;
+      }
+
+      console.log(
+        `%cReceived signaling message for ${username}`,
+        'background: crimson',
+        signalMessage,
+        username,
+        signalMessage.fromUsername,
+        username === signalMessage.fromUsername
+      );
+
+      switch (signalMessage.type) {
+        case 'offer': {
+          this.handleOffer(username, signalMessage);
+          break;
+        }
+        case 'answer': {
+          this.handleAnswer(username, signalMessage);
+          break;
+        }
+        case 'candidate': {
+          this.handleIceCandidate(username, signalMessage);
+          break;
+        }
+
+        default: {
+          console.warn('Unknown signaling message type', signalMessage);
+          break;
+        }
       }
     });
   };
   // Example method to send an offer to start a WebRTC session with a specific user
-  private sendOffer = async (userId: string): Promise<void> => {
-    const peerConnection: RTCPeerConnection = this.addPeerConnection(userId);
+  private sendOffer = async (
+    username: string,
+    usersList: string[]
+  ): Promise<void> => {
+    const peerConnection: RTCPeerConnection = this.addPeerConnection(username);
 
     const offer: RTCSessionDescriptionInit = await peerConnection.createOffer();
 
+    console.log(offer.sdp);
+
     await peerConnection.setLocalDescription(offer);
 
-    this.sendSignalingMessage(`app/webrtc.sdp`, offer);
+    const { type, sdp } = offer;
+
+    const offerPayload: SignalMessage = {
+      type,
+      sdp: sdp!,
+      fromUsername: username,
+      toUsernames: [...usersList],
+    };
+
+    this.sendSignalingMessage(`/app/webrtc.sdp`, offerPayload);
   };
 
   // Example method for ending a WebRTC session with a specific user
-  public endWebRTCSession = (userId: string): void => {
+  public endWebRTCSession = (username: string): void => {
     // Close peer connection and clean up resources
-    this.closePeerConnection(userId);
+    this.closePeerConnection(username);
     // Optionally, send a signaling message or perform cleanup actions
   };
 }

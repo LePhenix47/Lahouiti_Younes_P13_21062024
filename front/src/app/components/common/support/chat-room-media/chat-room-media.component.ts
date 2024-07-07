@@ -58,7 +58,10 @@ export class ChatRoomMediaComponent {
 
     console.log(this.chatWebRtcService.geStompClient(), this.stompClient());
 
-    this.chatWebRtcService.startWebRTCSession(this.ownUsername());
+    this.chatWebRtcService.startWebRTCSession(
+      this.ownUsername(),
+      this.usersList()
+    );
     console.groupEnd();
   }
 
@@ -67,7 +70,10 @@ export class ChatRoomMediaComponent {
   }
 
   public initializeConnection = () => {
-    this.chatWebRtcService.startWebRTCSession(this.ownUsername());
+    this.chatWebRtcService.startWebRTCSession(
+      this.ownUsername(),
+      this.usersList()
+    );
     console.log(this.chatWebRtcService.getPeerConnections());
   };
 

@@ -12,3 +12,10 @@ export type ChatWebSocketJoinLeaveResponse = {
 export type ChatLogMessage = ChatWebSocketResponse & {
   type: 'JOIN' | 'LEAVE' | 'CHAT';
 };
+
+export type SignalMessage = {
+  type: string;
+  sdp: string;
+  fromUsername: string;
+  toUsernames: string[];
+};
