@@ -5,6 +5,8 @@ import { WebRTCService } from '../webrtc/webrtc.service';
   providedIn: 'root',
 })
 export class ChatWebRtcService extends WebRTCService {
+  public rtcConnected: boolean = false;
+
   public handleTrackEvent = (userId: string, event: RTCTrackEvent): void => {
     // Handle incoming tracks from remote peers
     console.log(`Received tracks from ${userId}`, event);
@@ -19,7 +21,6 @@ export class ChatWebRtcService extends WebRTCService {
     console.log(`Received offer from ${userId}`, offer);
     // Example: Respond with an answer
 
-    await this.setLocalStream(); // Ensure local stream is set up
     const peerConnection: RTCPeerConnection = this.addPeerConnection(userId);
 
     const answer: RTCSessionDescriptionInit =
@@ -27,7 +28,7 @@ export class ChatWebRtcService extends WebRTCService {
 
     await peerConnection.setLocalDescription(answer);
 
-    this.sendSignalingMessage(`/topic/signal`, { userId, offer }); // Send offer to signaling server
+    this.sendSignalingMessage(`/webrtc.signal`, { userId, offer }); // Send offer to signaling server
   };
 
   public handleAnswer = async (
@@ -76,14 +77,16 @@ export class ChatWebRtcService extends WebRTCService {
 
   // Method to subscribe to signaling topic and handle incoming messages
   public subscribeToSignalTopic = (userId: string): void => {
-    // Subscribe to the signaling topic specific to the user
-    const signalingTopic = `/topic/signal`;
-
-    if (!this.stompClient) {
-      console.error('STOMP client is not set.');
+    if (!this.stompClient?.connected) {
+      this.rtcConnected = false;
+      console.error('STOMP client is not set.', this.stompClient);
       return;
     }
 
+    this.rtcConnected = true;
+
+    // Subscribe to the signaling topic specific to the user
+    const signalingTopic = `/signaling`;
     this.stompClient.subscribe(signalingTopic, (message) => {
       const signalMessage = JSON.parse(message.body);
       console.log(`Received signaling message for ${userId}`, signalMessage);
@@ -101,15 +104,13 @@ export class ChatWebRtcService extends WebRTCService {
   };
   // Example method to send an offer to start a WebRTC session with a specific user
   private sendOffer = async (userId: string): Promise<void> => {
-    await this.setLocalStream(); // Ensure local stream is set up
-
     const peerConnection: RTCPeerConnection = this.addPeerConnection(userId);
 
     const offer: RTCSessionDescriptionInit = await peerConnection.createOffer();
 
     await peerConnection.setLocalDescription(offer);
 
-    this.sendSignalingMessage(`/chat/${userId}/offer`, offer);
+    this.sendSignalingMessage(`/webrtc.signal`, offer);
   };
 
   // Example method for ending a WebRTC session with a specific user
