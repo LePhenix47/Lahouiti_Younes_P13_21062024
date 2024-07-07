@@ -110,7 +110,7 @@ export class ChatWebRtcService extends WebRTCService {
 
     await peerConnection.setLocalDescription(offer);
 
-    this.sendSignalingMessage(`/webrtc.signal`, offer);
+    this.sendSignalingMessage(`app/webrtc.sdp`, offer);
   };
 
   // Example method for ending a WebRTC session with a specific user
