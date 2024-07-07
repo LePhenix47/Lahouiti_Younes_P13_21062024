@@ -1,5 +1,6 @@
 package com.openclassrooms.p13.configurations;
 
+import java.security.Principal;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -10,6 +11,7 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
+import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 
 import com.openclassrooms.p13.payload.request.JoinLeaveMessage;
 import com.openclassrooms.p13.utils.enums.MessageType;
@@ -47,6 +49,22 @@ public class WebSocketEventListener {
     @EventListener
     public void onWebSocketConnect(SessionConnectEvent event) {
         log.info("Establishing WebSocket connection...");
+    }
+
+    /**
+     * Handles the subscription event when a user subscribes to a destination in the
+     * WebSocket session.
+     *
+     * @param event The SessionSubscribeEvent representing the subscription event.
+     */
+    @EventListener
+    public void onWebSocketDestinationSubscription(SessionSubscribeEvent event) {
+        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
+        String sessionId = accessor.getSessionId();
+        Principal user = accessor.getUser(); // Retrieve user if needed
+        String destination = accessor.getDestination();
+
+        log.info("User {} subscribed to destination {} in session {}", user, destination, sessionId);
     }
 
     /**
