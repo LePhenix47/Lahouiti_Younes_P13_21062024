@@ -7,55 +7,23 @@ import Stomp from 'stompjs';
  * When implementing WebRTC with this class, this is the order of operations:
  *
  * 1. Set up STOMP client for signaling (if not inherited).
- *    - Use `setStompClient` method to set the STOMP client.
- *    - Subscribe to the signaling topic (`/user/{userId}/topic/signal`) using `subscribeToSignaling`.
  *
  * 2. Set up local media stream.
- *    - Use `setLocalStream` method to initialize the local media stream (audio, video).
- *    - Optionally, display the local stream in UI or perform further operations with it.
  *
  * 3. Add a peer connection for each user.
- *    - Use `addPeerConnection` method to create a new `RTCPeerConnection` for each remote user.
- *    - Add event listeners (`onicecandidate`, `ontrack`) and local tracks to the peer connection.
  *
  * 4. Subscribe to the signaling topic specific to the user to receive offers, answers, and ICE candidates.
- *    - Implement `subscribeToSignalTopic` method to subscribe to `/user/{userId}/topic/signal`.
- *    - Handle incoming signaling messages (`offer`, `answer`, `candidate`) in the subscription callback.
  *
  * 5. Handle incoming offers from remote peers.
- *    - Implement `handleOffer` method to handle incoming offer messages.
- *    - Respond with an answer (`createAnswer`, `setLocalDescription`) and send it via `sendSignalingMessage`.
  *
  * 6. Handle incoming answers from remote peers.
- *    - Implement `handleAnswer` method to handle incoming answer messages.
- *    - Set remote description (`setRemoteDescription`) for the corresponding peer connection.
  *
  * 7. Handle incoming ICE candidates from remote peers.
- *    - Implement `handleIceCandidate` method to handle incoming ICE candidate messages.
- *    - Add ICE candidates (`addIceCandidate`) to the corresponding peer connection.
  *
  * 8. Exchange signaling messages with peers.
- *    - Use `sendSignalingMessage` method to send signaling messages (offer, answer, ICE candidate) via STOMP.
  *
  * 9. Manage peer connections and clean up resources.
- *    - Use `closePeerConnection` method to close a peer connection for a specific user when needed.
- *    - Clean up local and remote streams, peer connections, and any other resources as required.
- *
- * Example usage:
- *
- * ```
- * const rtc = new ChatWebRtcService();
- *
- * rtc.setStompClient(stompClient); // Step 1
- * rtc.setLocalStream(true, true);  // Step 2
- * rtc.addPeerConnection(userId);   // Step 3
- * rtc.subscribeToSignalTopic(userId); // Step 4
- *
- * // Implementation continues with handling offers, answers, ICE candidates (Steps 5-7)
- * // and managing peer connections and cleanup (Step 9).
- * ```
  */
-
 @Injectable({
   providedIn: 'root',
 })
@@ -158,12 +126,15 @@ export abstract class WebRTCService {
         return this.localStream;
       }
 
-      this.localStream = await navigator.mediaDevices.getUserMedia({
-        audio,
-        video,
-      });
+      const localStream: MediaStream =
+        await navigator.mediaDevices.getUserMedia({
+          audio,
+          video,
+        });
 
-      return this.localStream!;
+      this.localStream = localStream;
+
+      return localStream;
     } catch (error) {
       console.error('Error accessing media devices.', error);
       throw error;
@@ -206,19 +177,17 @@ export abstract class WebRTCService {
     withInnerDeviceAudio: boolean = false
   ): Promise<MediaStream> => {
     try {
-      const screenStream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
-        audio: withInnerDeviceAudio,
-      });
+      if (this.screenStream) {
+        return this.screenStream;
+      }
+
+      const screenStream: MediaStream =
+        await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: withInnerDeviceAudio,
+        });
 
       this.screenStream = screenStream;
-
-      // // Add screen share tracks to each peer connection
-      // this.peerConnections.forEach((peerConnection) => {
-      //   screenStream.getTracks().forEach((track) => {
-      //     peerConnection.addTrack(track, screenStream);
-      //   });
-      // });
 
       return screenStream;
     } catch (error) {
@@ -251,7 +220,7 @@ export abstract class WebRTCService {
    * @param {string} userId - The ID of the user.
    * @returns {RTCPeerConnection}
    */
-  public addPeerConnection(userId: string): RTCPeerConnection {
+  public addPeerConnection = (userId: string): RTCPeerConnection => {
     if (this.peerConnections.has(userId)) {
       return this.peerConnections.get(userId)!;
     }
@@ -263,17 +232,17 @@ export abstract class WebRTCService {
 
     this.peerConnections.set(userId, peerConnection);
     return peerConnection;
-  }
+  };
 
   /**
    * Adds event listeners to a peer connection.
    * @param {string} userId - The ID of the user.
    * @param {RTCPeerConnection} peerConnection - The peer connection instance.
    */
-  private addPeerConnectionEventListeners(
+  private addPeerConnectionEventListeners = (
     userId: string,
     peerConnection: RTCPeerConnection
-  ): void {
+  ): void => {
     peerConnection.onicecandidate = (event: RTCPeerConnectionIceEvent) => {
       if (!event.candidate) {
         console.error('Could not send ICE candidate as it was null.');
@@ -285,6 +254,7 @@ export abstract class WebRTCService {
 
     peerConnection.ontrack = (event: RTCTrackEvent) => {
       if (!this.remoteStreams) {
+        console.warn('Could not add remote stream as it was null.');
         return;
       }
 
@@ -294,15 +264,15 @@ export abstract class WebRTCService {
 
       this.handleTrackEvent(userId, event);
     };
-  }
+  };
 
   /**
    * Adds local tracks to a peer connection.
    * @param {RTCPeerConnection} peerConnection - The peer connection instance.
    */
-  private addLocalTracksToPeerConnection(
+  private addLocalTracksToPeerConnection = (
     peerConnection: RTCPeerConnection
-  ): void {
+  ): void => {
     if (this.localStream) {
       for (const track of this.localStream.getTracks()) {
         peerConnection.addTrack(track, this.localStream);
@@ -314,7 +284,7 @@ export abstract class WebRTCService {
         peerConnection.addTrack(track, this.screenStream);
       }
     }
-  }
+  };
 
   /**
    * Handles ICE candidate events.
@@ -356,7 +326,7 @@ export abstract class WebRTCService {
    * Closes the peer connection for a specific user.
    * @param {string} userId - The ID of the user.
    */
-  public closePeerConnection(userId: string): void {
+  public closePeerConnection = (userId: string): void => {
     if (!this.peerConnections.has(userId)) {
       console.error("Peer connection doesn't exist for user", userId);
 
@@ -366,5 +336,5 @@ export abstract class WebRTCService {
     this.peerConnections.get(userId)!.close();
 
     this.peerConnections.delete(userId);
-  }
+  };
 }
