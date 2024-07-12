@@ -1,18 +1,15 @@
 package com.openclassrooms.p13.configurations;
 
-import java.security.Principal;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.springframework.context.event.EventListener;
-import org.springframework.messaging.simp.SimpMessageSendingOperations;
-import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
-import org.springframework.web.socket.messaging.SessionConnectEvent;
-import org.springframework.web.socket.messaging.SessionDisconnectEvent;
-import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 
+import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.SocketIOServer;
+import com.corundumstudio.socketio.annotation.OnConnect;
+import com.corundumstudio.socketio.annotation.OnDisconnect;
 import com.openclassrooms.p13.payload.request.JoinLeaveMessage;
 import com.openclassrooms.p13.utils.enums.MessageType;
 
@@ -24,7 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class WebSocketEventListener {
 
-    private final SimpMessageSendingOperations messageTemplate;
+    private final SocketIOServer socketIOServer;
+    private final SocketServerRunner socketServerHandler;
 
     // Concurrent set to store usernames of connected users
     /**
@@ -34,64 +32,62 @@ public class WebSocketEventListener {
     private final Set<String> connectedUsers = ConcurrentHashMap.newKeySet();
 
     // Map to store WebSocket session ID to username mapping
-
     /**
      * A map to store WebSocket session ID to username mapping.
      * It uses {@link ConcurrentHashMap} to provide thread-safe access to the map.
      */
     private final Map<String, String> sessionUsernameMap = new ConcurrentHashMap<>();
 
-    /**
-     * Handles the event when a WebSocket connection is established.
-     *
-     * @param event The SessionConnectEvent representing the connection event.
-     */
-    @EventListener
-    public void onWebSocketConnect(SessionConnectEvent event) {
-        log.info("Establishing WebSocket connection...");
+    public WebSocketEventListener(SocketServerRunner socketServerRunner) {
+        this.socketServerHandler = socketServerRunner;
+
+        this.socketIOServer = this.socketServerHandler.getServer();
+
+        this.addEventListeners();
+
+        this.socketIOServer.start();
+    }
+
+    public void addEventListeners() {
+        socketIOServer.addConnectListener(this::onSocketIOConnect);
+        socketIOServer.addDisconnectListener(this::onSocketIODisconnect);
     }
 
     /**
-     * Handles the subscription event when a user subscribes to a destination in the
-     * WebSocket session.
+     * Handles the event when a WebSocket connection is established.
      *
-     * @param event The SessionSubscribeEvent representing the subscription event.
+     * @param client The SocketIOClient representing the connection event.
      */
-    @EventListener
-    public void onWebSocketDestinationSubscription(SessionSubscribeEvent event) {
-        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
-        String sessionId = accessor.getSessionId();
-        Principal user = accessor.getUser(); // Retrieve user if needed
-        String destination = accessor.getDestination();
-
-        log.info("User {} subscribed to destination {} in session {}", user, destination, sessionId);
+    @OnConnect
+    public void onSocketIOConnect(SocketIOClient client) {
+        log.info("Establishing WebSocket connection...");
+        // Add logic to handle connection establishment if needed
     }
 
     /**
      * Handles the disconnection of a user from the WebSocket session.
      *
-     * @param event The SessionDisconnectEvent representing the disconnection event.
+     * @param client The SocketIOClient representing the disconnection event.
      */
-    @EventListener
-    public void onWebSocketDisconnect(SessionDisconnectEvent event) {
-        StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
+    @OnDisconnect
+    public void onSocketIODisconnect(SocketIOClient client) {
         log.info("Disconnecting from WebSocket session...");
 
-        String username = (String) headerAccessor.getSessionAttributes().get("username");
-        String sessionId = headerAccessor.getSessionId();
+        String sessionId = client.getSessionId().toString();
+        String username = sessionUsernameMap.get(sessionId);
 
         if (username == null) {
             log.debug("✖ On WebSocket Disconnect: User not found for this session");
-
             return;
         }
 
-        log.info("✔ User : {} has disconnected from chat", sessionId, username, connectedUsers);
+        log.info("✔ User : {} has disconnected from chat", username);
         removeConnectedUser(sessionId, username); // Remove the username from the connected users set
 
         var message = new JoinLeaveMessage(username, MessageType.LEAVE, connectedUsers);
 
-        messageTemplate.convertAndSend("/topic/public", message);
+        // Broadcast the message to all connected clients
+        socketIOServer.getBroadcastOperations().sendEvent("leave", message);
     }
 
     /**

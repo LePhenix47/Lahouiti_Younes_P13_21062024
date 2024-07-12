@@ -37,4 +37,8 @@ public class SocketServerRunner {
         socketIOServer.stop();
         System.out.println("Socket.io server stopped.");
     }
+
+    public SocketIOServer getServer() {
+        return socketIOServer;
+    }
 }

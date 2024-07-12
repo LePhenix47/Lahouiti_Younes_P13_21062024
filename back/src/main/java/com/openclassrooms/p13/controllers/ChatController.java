@@ -2,16 +2,14 @@ package com.openclassrooms.p13.controllers;
 
 import java.util.Set;
 
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Controller;
 
+import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.annotation.OnEvent;
 import com.openclassrooms.p13.payload.request.ChatMessage;
 import com.openclassrooms.p13.payload.request.JoinLeaveMessage;
 import com.openclassrooms.p13.utils.enums.MessageType;
-import com.openclassrooms.p13.configurations.WebSocketEventListener; // Import WebSocketEventListener
+import com.openclassrooms.p13.configurations.WebSocketEventListener;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,49 +24,44 @@ public class ChatController {
     }
 
     /**
-     * Sends a chat message to all subscribers of the "/topic/public" destination.
+     * Handles incoming chat messages and broadcasts them to all clients.
      *
+     * @param client  the client sending the message
      * @param message the chat message to be sent
-     * @return the sent chat message
      */
-    @MessageMapping("/chat.sendMessage")
-    @SendTo("/topic/public")
-    public ChatMessage sendMessage(@Payload ChatMessage message) {
+    @OnEvent("chat.sendMessage")
+    public void sendMessage(SocketIOClient client, ChatMessage message) {
         log.info("New message has been sent : {}", message);
 
-        return message;
+        // Broadcast the chat message to all connected clients
+        client.getNamespace().getBroadcastOperations().sendEvent(MessageType.CHAT.name(), message);
     }
 
     /**
-     * Adds a user to the chat and sends the chat message to all subscribers of the
-     * "/topic/public" destination along with the list of connected users.
+     * Adds a user to the chat and notifies all clients.
      *
-     * @param message        the chat message to be sent
-     * @param headerAccessor the accessor for the message headers
-     * @return the sent chat message
+     * @param client  the client sending the message
+     * @param message the chat message containing the user's name
      */
-    @MessageMapping("/chat.addUser")
-    @SendTo("/topic/public")
-    public JoinLeaveMessage addUser(@Payload ChatMessage message, SimpMessageHeaderAccessor headerAccessor) {
+    @OnEvent("chat.addUser")
+    public void addUser(SocketIOClient client, ChatMessage message) {
         log.info("New user has arrived : {}", message);
 
-        // Retrieve username from the message record
+        // Retrieve username from the message
         String username = message.sender();
-        String sessionId = headerAccessor.getSessionId();
+        String sessionId = client.getSessionId().toString();
 
-        // Set username in session attributes
-        headerAccessor.getSessionAttributes().put("username", username);
-
-        // Add the user to connected users set
+        // Add the user to the connected users set
         webSocketEventListener.addConnectedUser(sessionId, username);
 
         // Retrieve the current list of connected users
         Set<String> connectedUsers = webSocketEventListener.getConnectedUsers();
-        log.info("Connected users: {}", sessionId, connectedUsers);
+        log.info("Connected users: {}", connectedUsers);
 
+        // Create a join message
         JoinLeaveMessage joinLeaveMessage = new JoinLeaveMessage(username, MessageType.JOIN, connectedUsers);
 
-        return joinLeaveMessage;
+        // Notify all clients about the new user
+        client.getNamespace().getBroadcastOperations().sendEvent(MessageType.JOIN.name(), joinLeaveMessage);
     }
-
 }
