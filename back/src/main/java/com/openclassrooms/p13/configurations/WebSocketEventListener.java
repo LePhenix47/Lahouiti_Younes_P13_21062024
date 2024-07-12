@@ -36,6 +36,8 @@ public class WebSocketEventListener {
     private final Map<String, String> sessionUsernameMap = new ConcurrentHashMap<>();
 
     public WebSocketEventListener(SocketIOServer socketIOServer) {
+
+        log.info("WebSocketEventListener");
         this.socketIOServer = socketIOServer;
 
         this.addEventListeners();
@@ -44,8 +46,8 @@ public class WebSocketEventListener {
     }
 
     public void addEventListeners() {
-        socketIOServer.addConnectListener(this::onSocketIOConnect);
-        socketIOServer.addDisconnectListener(this::onSocketIODisconnect);
+        socketIOServer.addConnectListener((client) -> this.onSocketIOConnect(client));
+        socketIOServer.addDisconnectListener((client) -> this.onSocketIODisconnect(client));
     }
 
     /**
