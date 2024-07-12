@@ -88,7 +88,7 @@ export class ChatWebRtcService extends WebRTCService {
 
     // Subscribe to the signaling topic specific to the user
     const signalingTopic = `/signaling`;
-    this.stompClient.subscribe(signalingTopic, (message) => {
+    this.stompClient.subscribe(signalingTopic, (message: any) => {
       const signalMessage = JSON.parse(message.body);
 
       if (username === signalMessage.fromUsername) {
