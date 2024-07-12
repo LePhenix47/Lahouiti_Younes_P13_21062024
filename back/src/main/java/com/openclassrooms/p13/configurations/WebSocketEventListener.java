@@ -13,16 +13,13 @@ import com.corundumstudio.socketio.annotation.OnDisconnect;
 import com.openclassrooms.p13.payload.request.JoinLeaveMessage;
 import com.openclassrooms.p13.utils.enums.MessageType;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
-@RequiredArgsConstructor
 @Slf4j
 public class WebSocketEventListener {
 
     private final SocketIOServer socketIOServer;
-    private final SocketServerRunner socketServerHandler;
 
     // Concurrent set to store usernames of connected users
     /**
@@ -38,10 +35,8 @@ public class WebSocketEventListener {
      */
     private final Map<String, String> sessionUsernameMap = new ConcurrentHashMap<>();
 
-    public WebSocketEventListener(SocketServerRunner socketServerRunner) {
-        this.socketServerHandler = socketServerRunner;
-
-        this.socketIOServer = this.socketServerHandler.getServer();
+    public WebSocketEventListener(SocketIOServer socketIOServer) {
+        this.socketIOServer = socketIOServer;
 
         this.addEventListeners();
 
@@ -87,7 +82,7 @@ public class WebSocketEventListener {
         var message = new JoinLeaveMessage(username, MessageType.LEAVE, connectedUsers);
 
         // Broadcast the message to all connected clients
-        socketIOServer.getBroadcastOperations().sendEvent("leave", message);
+        socketIOServer.getBroadcastOperations().sendEvent(MessageType.LEAVE.name(), message);
     }
 
     /**
