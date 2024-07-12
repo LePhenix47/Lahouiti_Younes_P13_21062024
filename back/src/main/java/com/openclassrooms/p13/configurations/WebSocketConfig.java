@@ -1,34 +1,28 @@
 package com.openclassrooms.p13.configurations;
 
-import org.springframework.context.annotation.Configuration;
-import org.springframework.messaging.simp.config.MessageBrokerRegistry;
-import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
-import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
-import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.beans.factory.annotation.Value;
 
-@Configuration
-@EnableWebSocketMessageBroker
-public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
-    /**
-     * Registers a STOMP endpoint with the given registry, using SockJS as the
-     * transport.
-     *
-     * @param registry the registry to add the endpoint to
-     */
-    @Override
-    public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws").setAllowedOriginPatterns("*").withSockJS();
+import com.corundumstudio.socketio.Configuration; // * Import for netty-socket.io
+import com.corundumstudio.socketio.SocketIOServer;
+
+@org.springframework.context.annotation.Configuration // * Fully qualified name for Spring Configuration annotation
+public class WebSocketConfig {
+
+    @Value("${socket.host}")
+    private String host;
+
+    @Value("${socket.port}")
+    private int port;
+
+    public SocketIOServer setUpSocketIoServer() throws Exception {
+        Configuration socketConfig = new Configuration(); // Using fully qualified name
+
+        socketConfig.setHostname(host);
+        socketConfig.setPort(port);
+        socketConfig.setOrigin("*");
+
+        return new SocketIOServer(socketConfig);
     }
 
-    /**
-     * Configures the message broker for the application.
-     *
-     * @param registry the registry to configure the message broker with
-     */
-
-    @Override
-    public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.setApplicationDestinationPrefixes("/app");
-        registry.enableSimpleBroker("/topic", "/signaling");
-    }
+    // Other methods and configurations
 }
