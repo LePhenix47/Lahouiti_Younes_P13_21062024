@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { WebSocketsService } from '../websockets/websockets.service';
-import Stomp, { Frame, Message, over } from 'stompjs';
 
 @Injectable({
   providedIn: 'root',
@@ -95,11 +94,7 @@ export class ChatWebSocketsService extends WebSocketsService {
    * @throws {Error} If the client is not defined or not connected.
    */
   protected isClientInitializedAndConnected = (): void => {
-    if (!this.stompClient) {
-      throw new Error(
-        `Stomp client is not defined (value: ${this.stompClient})`
-      );
-    }
+    this.checkSocket();
 
     if (!this.connected) {
       throw new Error('User is not connected to the websockets of the server');
@@ -118,10 +113,10 @@ export class ChatWebSocketsService extends WebSocketsService {
   /**
    * Handles the connection with the server.
    *
-   * @param {Frame | undefined} frame - The frame containing the connection details.
+   * @param {any | undefined} frame - The frame containing the connection details.
    * @return {void}
    */
-  protected handleOnConnect = (frame: Frame | undefined): void => {
+  protected handleOnConnect = (frame: any | undefined): void => {
     console.log(
       '%cConnected:',
       'background: green; color: white; padding: 5px',
@@ -137,10 +132,10 @@ export class ChatWebSocketsService extends WebSocketsService {
   /**
    * Handles errors that occur during the connection.
    *
-   * @param {string | Frame} error - The error that occurred.
+   * @param {string | any} error - The error that occurred.
    * @return {void}
    */
-  protected handleOnError = (error: string | Frame): void => {
+  protected handleOnError = (error: string | any): void => {
     console.error('WebSocket connection error:', error);
     this.connected = false;
     this.hasError = true;
@@ -172,10 +167,10 @@ export class ChatWebSocketsService extends WebSocketsService {
   private subscribeToTopicWebSocket = (): void => {
     this.isClientInitializedAndConnected();
 
-    this.stompClient!.subscribe(
-      '/topic/public',
-      this.handleTopicWebSocketMessage
-    );
+    // this.stompClient!.subscribe(
+    //   '/topic/public',
+    //   this.handleTopicWebSocketMessage
+    // );
   };
 
   /**
@@ -184,7 +179,7 @@ export class ChatWebSocketsService extends WebSocketsService {
    *
    * @param {Stomp.Message} stompMessage - The message received from the WebSocket topic.
    */
-  private handleTopicWebSocketMessage = (stompMessage: Stomp.Message): void => {
+  private handleTopicWebSocketMessage = (stompMessage: any): void => {
     const { body } = stompMessage!;
 
     const parsedBody = JSON.parse(body);
@@ -233,7 +228,7 @@ export class ChatWebSocketsService extends WebSocketsService {
    * @return {void} This function does not return anything.
    */
   private unsubscribeFromTopicWebSocket = (): void => {
-    if (!this.stompClient || !this.connected) {
+    if (!this.socketio || !this.connected) {
       console.error(
         'Cannot disconnect as Stomp client is not initialized or  client is not connected'
       );
@@ -241,7 +236,7 @@ export class ChatWebSocketsService extends WebSocketsService {
       return;
     }
 
-    this.stompClient.unsubscribe('/topic/public');
+    // this.stompClient.unsubscribe('/topic/public');
   };
 
   /**
@@ -254,11 +249,11 @@ export class ChatWebSocketsService extends WebSocketsService {
   public sendMessage = (sender: string, message: string): void => {
     this.isClientInitializedAndConnected();
 
-    this.stompClient!.send(
-      '/app/chat.sendMessage',
-      {},
-      JSON.stringify({ message, sender, type: 'CHAT' })
-    );
+    // this.stompClient!.send(
+    //   '/app/chat.sendMessage',
+    //   {},
+    //   JSON.stringify({ message, sender, type: 'CHAT' })
+    // );
   };
 
   /**
@@ -283,14 +278,14 @@ export class ChatWebSocketsService extends WebSocketsService {
       this.currentUserNickname
     );
 
-    this.stompClient!.send(
-      '/app/chat.addUser',
-      {},
-      JSON.stringify({
-        sender: this.currentUserNickname,
-        type: 'JOIN',
-        message: '',
-      })
-    );
+    // this.stompClient!.send(
+    //   '/app/chat.addUser',
+    //   {},
+    //   JSON.stringify({
+    //     sender: this.currentUserNickname,
+    //     type: 'JOIN',
+    //     message: '',
+    //   })
+    // );
   };
 }

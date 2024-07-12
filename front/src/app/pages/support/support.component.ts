@@ -2,7 +2,6 @@ import { Component, inject } from '@angular/core';
 import { ChatModuleComponent } from '@components/common/support/chat-module/chat-module.component';
 import { Username } from '@core/ngrx/actions/chat-info.actions';
 import { Store } from '@ngrx/store';
-import Stomp, { Frame } from 'stompjs';
 
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ChatRoomMediaComponent } from '@components/common/support/chat-room-media/chat-room-media.component';
@@ -24,7 +23,7 @@ export class SupportComponent {
     this.store.select('chatUserInfo')
   )()!.username;
 
-  protected sharedStompClient: Stomp.Client | null = null;
+  protected sharedStompClient: any | null = null;
 
   protected usersList: string[] = [];
 
@@ -38,7 +37,7 @@ export class SupportComponent {
     this.usersList = arrayOfUsers;
   };
 
-  setStompClient = (stompClient: Stomp.Client | null) => {
+  setStompClient = (stompClient: any | null) => {
     console.log('setStompClient', stompClient);
     this.sharedStompClient = stompClient;
   };

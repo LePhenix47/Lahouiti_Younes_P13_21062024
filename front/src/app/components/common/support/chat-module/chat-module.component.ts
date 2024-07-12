@@ -13,7 +13,6 @@ import {
   ChatWebSocketJoinLeaveResponse,
   ChatWebSocketResponse,
 } from '@core/types/chat/chat.types';
-import Stomp, { Frame } from 'stompjs';
 
 @Component({
   selector: 'app-chat-module',
@@ -54,8 +53,7 @@ export class ChatModuleComponent {
 
   public readonly usersPresenceOutput = output<string[]>();
 
-  public readonly groupChatUsersStompClientOutput =
-    output<Stomp.Client | null>();
+  public readonly groupChatUsersStompClientOutput = output<any | null>();
 
   ngOnInit() {
     console.log('chatmodule ngOnInit');

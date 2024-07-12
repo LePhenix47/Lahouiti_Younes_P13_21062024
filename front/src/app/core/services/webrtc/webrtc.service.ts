@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import Stomp from 'stompjs';
 
 /**
  * A base service class for interacting with WebRTC.
@@ -61,17 +60,17 @@ export abstract class WebRTCService {
    * STOMP client for signaling.
    * Can be `null` if no client has been set.
    */
-  protected stompClient: Stomp.Client | null = null;
+  protected stompClient: any | null = null;
 
   /**
    * Sets the STOMP client for signaling.
-   * @param {Stomp.Client} stompClient - The STOMP client.
+   * @param {any} stompClient - The STOMP client.
    */
-  public setStompClient(stompClient: Stomp.Client): void {
+  public setStompClient(stompClient: any): void {
     this.stompClient = stompClient;
   }
 
-  public geStompClient(): Stomp.Client | null {
+  public geStompClient(): any | null {
     return this.stompClient;
   }
 

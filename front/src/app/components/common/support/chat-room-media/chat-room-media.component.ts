@@ -10,7 +10,6 @@ import {
   WritableSignal,
 } from '@angular/core';
 import { ChatWebRtcService } from '@core/services/video-chat/chat-webrtc.service';
-import Stomp from 'stompjs';
 
 @Component({
   selector: 'app-chat-room-media',
@@ -26,7 +25,7 @@ export class ChatRoomMediaComponent {
   /**
    * The Stomp client for the WebSocket connection.
    */
-  public readonly stompClient = input.required<Stomp.Client | null>();
+  public readonly stompClient = input.required<any | null>();
 
   /**
    * An array of user names in the chat.
