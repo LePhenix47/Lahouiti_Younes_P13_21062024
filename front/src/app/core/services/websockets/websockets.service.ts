@@ -30,22 +30,30 @@ export abstract class WebSocketsService {
       const socket: Socket = io(this.serverUrl);
       this.socketio = socket;
 
-      this.socketio!.on('connect', () => {
-        console.log('Connecting to WS');
+      this.socketio.on('test.sendMessage', () => {
+        console.log('Connected to WS');
+        this.handleOnConnect(); // Call abstract method when connected
+      });
+
+      this.socketio.emit('test.sendMessage', 'test');
+
+      this.socketio.on('connect', () => {
+        console.log('Connected to WS');
+        this.handleOnConnect(); // Call abstract method when connected
+      });
+
+      this.socketio.on('disconnect', () => {
+        console.log('Disconnected from WS');
+        this.handleOnDisconnect(); // Call abstract method when disconnected
+      });
+
+      this.socketio.on('error', (error: any) => {
+        console.error('WebSocket error:', error);
+        this.handleOnError(error); // Call abstract method on error
       });
     } catch (error) {
       console.error(error);
-    }
-  };
-
-  /**
-   * Initializes the WebSocket connection.
-   */
-  public initializeWebSocketConnection = () => {
-    try {
-    } catch (error) {
-      console.error('WebSocket connection error:', error);
-      this.handleOnError('WebSocket connection error: ' + error);
+      this.handleOnError(error);
     }
   };
 
@@ -63,6 +71,7 @@ export abstract class WebSocketsService {
       this.resetSocketIO();
     } catch (error) {
       console.error(error);
+      this.handleOnError(error);
     }
   };
 
@@ -90,7 +99,7 @@ export abstract class WebSocketsService {
   /**
    * Handles the connection with the server.
    */
-  protected abstract handleOnConnect(frame: any): void;
+  protected abstract handleOnConnect(): void;
 
   /**
    * Handles errors that occur during the connection.

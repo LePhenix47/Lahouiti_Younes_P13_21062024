@@ -23,7 +23,7 @@ export class SupportComponent {
     this.store.select('chatUserInfo')
   )()!.username;
 
-  protected sharedStompClient: any | null = null;
+  protected sharedSocket: any | null = null;
 
   protected usersList: string[] = [];
 
@@ -37,9 +37,9 @@ export class SupportComponent {
     this.usersList = arrayOfUsers;
   };
 
-  setStompClient = (stompClient: any | null) => {
-    console.log('setStompClient', stompClient);
-    this.sharedStompClient = stompClient;
+  setSocket = (socket: any | null) => {
+    console.log('setSocket', socket);
+    this.sharedSocket = socket;
   };
 
   ngOnInit() {

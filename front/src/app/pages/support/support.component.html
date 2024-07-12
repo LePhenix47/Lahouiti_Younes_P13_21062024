@@ -1,5 +1,5 @@
 <app-chat-module [ownUsername]="ownUsername" (usersPresenceOutput)="setUsersArray($event)"
-  (groupChatUsersStompClientOutput)="setStompClient($event)"></app-chat-module>
+  (groupChatUsersStompClientOutput)="setSocket($event)"></app-chat-module>
 
-<!-- <app-chat-room-media [stompClient]="sharedStompClient" [ownUsername]="ownUsername"
+<!-- <app-chat-room-media [stompClient]="sharedSocket" [ownUsername]="ownUsername"
   [usersList]="usersList"></app-chat-room-media> -->
