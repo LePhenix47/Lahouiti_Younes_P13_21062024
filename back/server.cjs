@@ -91,17 +91,19 @@ const io = socketio(server, {
 });
 
 io.on("connection", (socket) => {
-  chatSocketListener(io, socket);
   testSocketListener(io, socket);
+
+  chatSocketListener(io, socket);
   webRtcSocketListener(io, socket);
   const userName = socket.handshake.auth.userName;
-  socket.emit("connected", userName);
   console.log("A user connected to the WS", userName);
 });
 
 io.engine.on("connection_error", (err) => {
+  console.group("Connection error");
   console.log(err.req); // the request object
   console.log(err.code); // the error code, for example 1
   console.log(err.message); // the error message, for example "Session ID unknown"
   console.log(err.context); // some additional error context
+  console.groupEnd();
 });
