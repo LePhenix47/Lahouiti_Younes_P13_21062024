@@ -83,8 +83,8 @@ const connectedSockets = [
 const io = socketio(server, {
   cors: {
     origin: [
-      "https://localhost:3001",
-      `https://${process.env.LOCAL_IP}`, //if using a phone or another computer
+      "http://localhost:4200",
+      `http://${process.env.LOCAL_IP}`, //if using a phone or another computer
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
   },

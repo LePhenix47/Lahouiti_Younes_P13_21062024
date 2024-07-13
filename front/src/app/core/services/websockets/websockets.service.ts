@@ -10,7 +10,7 @@ import { io, Socket } from 'socket.io-client';
 })
 export abstract class WebSocketsService {
   protected readonly serverUrl: URL = new URL(
-    `http://${environment.webSocketsUrl}` // * localhost:3002
+    environment.webSocketsUrl // * localhost:3000
   );
 
   protected socketio: Socket | null = null;
@@ -27,7 +27,9 @@ export abstract class WebSocketsService {
         'background: teal; color: white; padding: 5px; font: 1em'
       );
 
-      const socket: Socket = io(this.serverUrl);
+      const socket: Socket = io(this.serverUrl.href);
+      console.log('%cSocket', 'background: maroon', { socket });
+
       this.socketio = socket;
 
       this.socketio.on('test.sendMessage', () => {

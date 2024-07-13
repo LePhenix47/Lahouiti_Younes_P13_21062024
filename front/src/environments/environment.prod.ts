@@ -1,5 +1,5 @@
 export const environment = {
   baseUrl: 'localhost:3001',
-  webSocketsUrl: 'localhost:3002',
+  webSocketsUrl: 'https://localhost:3000',
   production: true,
 };
