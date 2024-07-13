@@ -96,6 +96,11 @@ io.on("connection", (socket) => {
   webRtcSocketListener(io, socket, connectedUsersSet);
   const userName = socket.handshake.auth.userName;
   console.log("A user connected to the WS", userName);
+
+  socket.on("disconnect", () => {
+    console.log(`User disconnected: ${socket.id}`);
+    // Additional logic for cleanup or logging goes here
+  });
 });
 
 io.engine.on("connection_error", (err) => {
