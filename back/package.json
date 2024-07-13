@@ -2,10 +2,10 @@
   "name": "back",
   "version": "1.0.0",
   "description": "NodeJS Back-end server for the Proof of Concept with WebSockets and WebRTC",
-  "main": "server.js",
+  "main": "server.cjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node --watch server.js"
+    "start": "node --env-file=.env --watch server.cjs"
   },
   "keywords": [],
   "author": "",
