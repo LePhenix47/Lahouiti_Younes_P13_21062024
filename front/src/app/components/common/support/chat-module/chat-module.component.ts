@@ -59,10 +59,18 @@ export class ChatModuleComponent {
     console.log('chatmodule ngOnInit');
 
     this.connectToWebSocket();
+
+    window.addEventListener('beforeunload', (event) => {
+      this.disconnectFromWebSocket();
+    });
   }
 
   ngOnDestroy() {
     this.disconnectFromWebSocket();
+
+    window.removeEventListener('beforeunload', (event) => {
+      this.disconnectFromWebSocket();
+    });
   }
 
   /**
