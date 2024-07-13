@@ -36,11 +36,6 @@ export abstract class WebSocketsService {
 
       this.socketio = socket;
 
-      this.socketio.on('test.sendMessage', () => {
-        console.log('Connected to WS');
-        this.handleOnConnect(); // Call abstract method when connected
-      });
-
       this.socketio.emit('test', 'test (client)');
       this.socketio.on('test', (msg) => {
         console.log('TEST response from server:', msg);
@@ -86,7 +81,7 @@ export abstract class WebSocketsService {
 
   protected checkSocket = () => {
     if (!this.socketio) {
-      throw new Error('Cannot disconnect as Stomp client is not initialized');
+      throw new Error('Cannot disconnect as socket.io is not initialized');
     }
   };
 
