@@ -3,8 +3,9 @@ const router = express.Router();
 
 const testController = require("../controllers/test.controller.cjs");
 
-const { test } = testController;
+const { test, testPost } = testController;
 
 router.get("/", test);
+router.post("/", testPost);
 
 module.exports = router;
