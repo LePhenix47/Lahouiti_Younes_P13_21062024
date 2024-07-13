@@ -1,6 +1,9 @@
-module.exports = (io, socket) => {
+module.exports = (io, socket, connectedUsersSet) => {
   socket.on("join", (msg) => {
-    console.log("join", msg);
+    const { sender } = msg;
+    connectedUsersSet.add(sender);
+    console.log("join", msg, connectedUsersSet);
+
     io.emit("join", msg);
   });
 
@@ -10,7 +13,9 @@ module.exports = (io, socket) => {
   });
 
   socket.on("leave", (msg) => {
-    console.log("leave", msg);
+    const { sender } = msg;
+    connectedUsersSet.delete(sender);
+    console.log("leave", msg, connectedUsersSet);
     io.emit("leave", msg);
   });
 };

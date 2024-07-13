@@ -76,9 +76,8 @@ const offers = [
   // answer
   // answererIceCandidates
 ];
-const connectedSockets = [
-  //username, socketId
-];
+
+const connectedUsersSet = new Set();
 
 const io = socketio(server, {
   cors: {
@@ -93,8 +92,8 @@ const io = socketio(server, {
 io.on("connection", (socket) => {
   testSocketListener(io, socket);
 
-  chatSocketListener(io, socket);
-  webRtcSocketListener(io, socket);
+  chatSocketListener(io, socket, connectedUsersSet);
+  webRtcSocketListener(io, socket, connectedUsersSet);
   const userName = socket.handshake.auth.userName;
   console.log("A user connected to the WS", userName);
 });
