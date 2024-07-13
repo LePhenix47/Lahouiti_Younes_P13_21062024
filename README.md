@@ -18,7 +18,7 @@ __STUN/TURN:__ STUN (Session Traversal Utilities for NAT) helps in discovering t
 
 __Audio-video P2P:__ Direct peer-to-peer communication for audio and video streams.
 
-__UDP and TCP streams:__ Protocols for data transmission. UDP is preferred for real-time communication.
+__UDP and TCP streams:__ Protocols for data transmission. UDP is preferred for real-time communication (audio and video) and TCP for WebSockets.
 
 __Websockets:__ Protocol for two-way communication between a client and a server.
 
