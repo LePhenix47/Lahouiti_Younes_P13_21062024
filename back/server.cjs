@@ -90,20 +90,14 @@ const io = socketio(server, {
   },
 });
 
-io.on(
-  "connection",
-  (socket) => {
-    chatSocketListener(io, socket);
-    testSocketListener(io, socket);
-    webRtcSocketListener(io, socket);
-    const userName = socket.handshake.auth.userName;
-    socket.emit("connected", userName);
-    console.log("A user connected to the WS", userName);
-  },
-  (err) => {
-    console.error(err);
-  }
-);
+io.on("connection", (socket) => {
+  chatSocketListener(io, socket);
+  testSocketListener(io, socket);
+  webRtcSocketListener(io, socket);
+  const userName = socket.handshake.auth.userName;
+  socket.emit("connected", userName);
+  console.log("A user connected to the WS", userName);
+});
 
 io.engine.on("connection_error", (err) => {
   console.log(err.req); // the request object
