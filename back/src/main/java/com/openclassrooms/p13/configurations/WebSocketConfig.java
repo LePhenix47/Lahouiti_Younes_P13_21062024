@@ -7,11 +7,16 @@ import com.corundumstudio.socketio.SocketIOServer;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * 
+ * https://medium.com/geekculture/socket-io-with-springboot-application-5a59358f7d48
+ */
+
 @org.springframework.context.annotation.Configuration // * Fully qualified name for Spring Configuration annotation
 @Slf4j
 public class WebSocketConfig {
 
-    private String host = "0.0.0.0";
+    private String host = "localhost";
 
     private int port = 3002;
 

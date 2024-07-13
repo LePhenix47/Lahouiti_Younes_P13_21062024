@@ -14,7 +14,6 @@ public class TestWebSocket {
 
     private final SocketIOServer socketIOServer;
 
-    @Autowired
     public TestWebSocket(SocketIOServer socketIOServer) {
         this.socketIOServer = socketIOServer;
     }
