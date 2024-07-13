@@ -27,7 +27,11 @@ export abstract class WebSocketsService {
         'background: teal; color: white; padding: 5px; font: 1em'
       );
 
-      const socket: Socket = io(this.serverUrl.href);
+      const socket: Socket = io(this.serverUrl.href, {
+        auth: {
+          userName: 'test',
+        },
+      });
       console.log('%cSocket', 'background: maroon', { socket });
 
       this.socketio = socket;
@@ -37,7 +41,10 @@ export abstract class WebSocketsService {
         this.handleOnConnect(); // Call abstract method when connected
       });
 
-      this.socketio.emit('test.sendMessage', 'test');
+      this.socketio.emit('test', 'test (client)');
+      this.socketio.on('test', (msg) => {
+        console.log('TEST response from server:', msg);
+      });
 
       this.socketio.on('connect', () => {
         console.log('Connected to WS');
@@ -94,7 +101,7 @@ export abstract class WebSocketsService {
    * Returns the Stomp.Client instance used for the websocket connection.
    *
    */
-  public getStompClient(): Socket | null {
+  public getSocketObject(): Socket | null {
     return this.socketio;
   }
 

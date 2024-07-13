@@ -33,7 +33,7 @@ export class ChatWebSocketsService extends WebSocketsService {
     this.onChatMessage = callback;
   }
 
-  protected isClientInitializedAndConnected(): void {
+  protected isClientInitializedAndConnected = (): void => {
     if (!this.socketio) {
       throw new Error('WebSocket client is not initialized');
     }
@@ -41,11 +41,11 @@ export class ChatWebSocketsService extends WebSocketsService {
     if (!this.connected) {
       throw new Error('User is not connected to the WebSocket server');
     }
-  }
+  };
 
-  public isConnected(): boolean {
+  public isConnected = (): boolean => {
     return this.connected;
-  }
+  };
 
   protected handleOnConnect(): void {
     console.log(
@@ -59,28 +59,29 @@ export class ChatWebSocketsService extends WebSocketsService {
     this.onChatConnection();
   }
 
-  protected handleOnError(error: string | any): void {
+  protected handleOnError = (error: string | any): void => {
     console.error('WebSocket connection error:', error);
     this.connected = false;
     this.hasError = true;
-  }
+  };
 
-  protected handleOnDisconnect(): void {
+  protected handleOnDisconnect = (): void => {
     console.log(
       '%cDisconnected!',
       'background: red; color: white; padding: 5px'
     );
+
     this.unsubscribeFromTopicWebSocket();
     this.connected = false;
-  }
+  };
 
-  private subscribeToTopicWebSocket(): void {
+  private subscribeToTopicWebSocket = (): void => {
     this.isClientInitializedAndConnected();
 
     this.socketio!.on('join', this.handleJoin);
+    this.socketio!.on('chat', this.handleChatMessage);
     this.socketio!.on('leave', this.handleLeave);
-    this.socketio!.on('chat.message', this.handleChatMessage);
-  }
+  };
 
   private handleJoin = (message: any): void => {
     const { sender, users } = message;
@@ -125,7 +126,7 @@ export class ChatWebSocketsService extends WebSocketsService {
     this.onChatMessage({ sender, message: chatMessage, date });
   };
 
-  private unsubscribeFromTopicWebSocket(): void {
+  private unsubscribeFromTopicWebSocket = (): void => {
     if (!this.socketio || !this.connected) {
       console.error(
         'Cannot disconnect as socket client is not initialized or client is not connected'
@@ -134,17 +135,17 @@ export class ChatWebSocketsService extends WebSocketsService {
     }
 
     this.socketio.off('join', this.handleJoin);
+    this.socketio.off('chat', this.handleChatMessage);
     this.socketio.off('leave', this.handleLeave);
-    this.socketio.off('chat.message', this.handleChatMessage);
-  }
+  };
 
-  public sendMessage(sender: string, message: string): void {
+  public sendMessage = (sender: string, message: string): void => {
     this.isClientInitializedAndConnected();
 
-    this.socketio!.emit('chat.message', { sender, message });
-  }
+    this.socketio!.emit('chat', { sender, message });
+  };
 
-  public addUser(): void {
+  public addUser = (): void => {
     this.isClientInitializedAndConnected();
 
     if (!this.currentUserNickname) {
@@ -156,10 +157,19 @@ export class ChatWebSocketsService extends WebSocketsService {
       'background: #3f51b5; color: white; padding: 5px',
       this.currentUserNickname
     );
+
     this.socketio!.emit('join', {
       sender: this.currentUserNickname,
       type: 'JOIN',
       message: '',
     });
-  }
+  };
+
+  public removeUser = (): void => {
+    this.socketio!.emit('leave', {
+      sender: this.currentUserNickname,
+      type: 'LEAVE',
+      message: '',
+    });
+  };
 }

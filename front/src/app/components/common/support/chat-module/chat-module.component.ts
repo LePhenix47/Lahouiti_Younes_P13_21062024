@@ -72,7 +72,7 @@ export class ChatModuleComponent {
     this.chatWebSocketsService.connect();
 
     this.groupChatUsersStompClientOutput.emit(
-      this.chatWebSocketsService.getStompClient()
+      this.chatWebSocketsService.getSocketObject()
     );
 
     // * Set the event listeners callbacks
@@ -86,6 +86,7 @@ export class ChatModuleComponent {
    * Disconnects from the WebSocket service.
    */
   private disconnectFromWebSocket = (): void => {
+    this.chatWebSocketsService.removeUser();
     this.chatWebSocketsService.disconnect();
   };
 
