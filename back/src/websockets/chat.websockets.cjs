@@ -4,7 +4,7 @@ module.exports = (io, socket, connectedUsersSet) => {
     connectedUsersSet.add(sender);
     console.log("join", msg, connectedUsersSet);
 
-    io.emit("join", msg);
+    io.emit("join", { ...msg, users: Array.from(connectedUsersSet) });
   });
 
   socket.on("chat", (msg) => {
@@ -16,6 +16,6 @@ module.exports = (io, socket, connectedUsersSet) => {
     const { sender } = msg;
     connectedUsersSet.delete(sender);
     console.log("leave", msg, connectedUsersSet);
-    io.emit("leave", msg);
+    io.emit("leave", { ...msg, users: Array.from(connectedUsersSet) });
   });
 };
