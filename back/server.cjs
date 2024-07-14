@@ -83,6 +83,7 @@ const io = socketio(server, {
   cors: {
     origin: [
       "http://localhost:4200",
+      "https://localhost:4200",
       `http://${process.env.LOCAL_IP}`, //if using a phone or another computer
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
