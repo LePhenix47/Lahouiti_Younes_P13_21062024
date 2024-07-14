@@ -1,6 +1,8 @@
 #!/bin/bash
 
 # Create the certificate.cnf file with the specified content
+cd ./certificates
+
 cat <<EOL > certificate.cnf
 
 [req]
