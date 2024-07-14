@@ -145,15 +145,15 @@ peerConnection.ontrack = (event) => {
 __Outgoing Events:__
 
 1. __Send SDP offer:__
-   \`\`\`javascript
+   ```ts
    socket.emit('offer', {
      type: 'offer',
      sdp: peerConnection.localDescription
    });
-   \`\`\`
+   ```
 
 2. __Send ICE candidates:__
-   \`\`\`javascript
+   ```ts
    peerConnection.onicecandidate = (event) => {
      if (event.candidate) {
        socket.emit('ice-candidate', {
@@ -161,19 +161,19 @@ __Outgoing Events:__
        });
      }
    };
-   \`\`\`
+   ```
 
 __Incoming Events:__
 
 1. __Receive SDP answer:__
-   \`\`\`javascript
+   ```ts
    socket.on('answer', async (message) => {
      await peerConnection.setRemoteDescription(new RTCSessionDescription(message));
    });
-   \`\`\`
+   ```
 
 2. __Receive ICE candidates:__
-   \`\`\`javascript
+   ```ts
    socket.on('ice-candidate', async (message) => {
      try {
        await peerConnection.addIceCandidate(new RTCIceCandidate(message.candidate));
@@ -181,22 +181,22 @@ __Incoming Events:__
        console.error('Error adding received ice candidate', e);
      }
    });
-   \`\`\`
+   ```
 
 ##### Receiving Peer
 
 __Outgoing Events:__
 
 1. __Send SDP answer:__
-   \`\`\`javascript
+   ```ts
    socket.emit('answer', {
      type: 'answer',
      sdp: peerConnection.localDescription
    });
-   \`\`\`
+   ```
 
 2. __Send ICE candidates:__
-   \`\`\`javascript
+   ```ts
    peerConnection.onicecandidate = (event) => {
      if (event.candidate) {
        socket.emit('ice-candidate', {
@@ -204,20 +204,20 @@ __Outgoing Events:__
        });
      }
    };
-   \`\`\`
+   ```
 
 __Incoming Events:__
 
 1. __Receive SDP offer:__
-   \`\`\`javascript
+   ```ts
    socket.on('offer', async (message) => {
      await peerConnection.setRemoteDescription(new RTCSessionDescription(message));
      const answer = await peerConnection.createAnswer();
    });
-   \`\`\`
+   ```
 
 2. __Receive ICE candidates:__
-   \`\`\`javascript
+   ```ts
    socket.on('ice-candidate', async (message) => {
      try {
        await peerConnection.addIceCandidate(new RTCIceCandidate(message.candidate));
@@ -225,7 +225,7 @@ __Incoming Events:__
        console.error('Error adding received ice candidate', e);
      }
    });
-   \`\`\`
+   ```
 
 ## Conclusion
 
