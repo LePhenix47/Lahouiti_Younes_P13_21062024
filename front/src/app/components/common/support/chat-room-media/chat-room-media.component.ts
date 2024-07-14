@@ -56,11 +56,6 @@ export class ChatRoomMediaComponent {
     this.chatWebRtcService.setStompClient(this.stompClient()!);
 
     console.log(this.chatWebRtcService.geStompClient(), this.stompClient());
-
-    this.chatWebRtcService.startWebRTCSession(
-      this.ownUsername(),
-      this.usersList()
-    );
     console.groupEnd();
   }
 
@@ -75,6 +70,7 @@ export class ChatRoomMediaComponent {
     );
     console.log(this.chatWebRtcService.getPeerConnections());
   };
+  public checkIncomingConnections = () => {};
 
   private updateLocalStream = async () => {
     console.log(

@@ -5,23 +5,7 @@ import { Injectable } from '@angular/core';
  *
  * When implementing WebRTC with this class, this is the order of operations:
  *
- * 1. Set up STOMP client for signaling (if not inherited).
- *
- * 2. Set up local media stream.
- *
- * 3. Add a peer connection for each user.
- *
- * 4. Subscribe to the signaling topic specific to the user to receive offers, answers, and ICE candidates.
- *
- * 5. Handle incoming offers from remote peers.
- *
- * 6. Handle incoming answers from remote peers.
- *
- * 7. Handle incoming ICE candidates from remote peers.
- *
- * 8. Exchange signaling messages with peers.
- *
- * 9. Manage peer connections and clean up resources.
+ * Initial peer:
  */
 @Injectable({
   providedIn: 'root',
@@ -53,7 +37,7 @@ export abstract class WebRTCService {
       { urls: 'stun:stun1.l.google.com:19302' },
       { urls: 'stun:stun2.l.google.com:19302' },
     ],
-    iceCandidatePoolSize: 10,
+    iceCandidatePoolSize: 1,
   };
 
   /**
@@ -77,29 +61,6 @@ export abstract class WebRTCService {
   public getPeerConnections(): Map<string, RTCPeerConnection> {
     return this.peerConnections;
   }
-
-  /**
-   * Sends a signaling message through STOMP.
-   * @param {string} destination - The destination path.
-   * @param {any} message - The message to send.
-   */
-  protected sendSignalingMessage = (
-    destination: string,
-    message: any
-  ): void => {
-    if (!this.stompClient) {
-      console.error(
-        Boolean(this.stompClient)
-          ? "STOMP client isn't initialized, please connect to the WebSockets."
-          : 'STOMP client is not connected.',
-        this.stompClient
-      );
-
-      return;
-    }
-
-    this.stompClient.send(destination, {}, JSON.stringify(message));
-  };
 
   /**
    * Sets the local media stream.
@@ -209,6 +170,12 @@ export abstract class WebRTCService {
     return this.setScreenShareStream();
   };
 
+  public getPeerConnectionByUsername = (
+    userId: string
+  ): RTCPeerConnection | null => {
+    return this.peerConnections.get(userId) || null;
+  };
+
   /**
    * Adds a peer connection for a specific user.
    * @param {string} userId - The ID of the user.
@@ -242,16 +209,28 @@ export abstract class WebRTCService {
     userId: string,
     peerConnection: RTCPeerConnection
   ): void => {
-    peerConnection.onicecandidate = (event: RTCPeerConnectionIceEvent) => {
-      if (!event.candidate) {
-        console.error('Could not send ICE candidate as it was null.');
-        return;
+    peerConnection.addEventListener(
+      'icecandidate',
+      (event: RTCPeerConnectionIceEvent) => {
+        console.log('icecandidate', event);
+        if (!event.candidate) {
+          console.error('Could not send ICE candidate as it was null.');
+          return;
+        }
+
+        this.handleIceCandidate(userId, event.candidate);
       }
+    );
+    peerConnection.addEventListener('icecandidateerror', (event: Event) => {
+      // * Angular throws an error if you set the event type to RTCPeerConnectionIceErrorEvent
 
-      this.handleIceCandidate(userId, event.candidate);
-    };
+      const iceErrorEvent = event as RTCPeerConnectionIceErrorEvent;
+      console.log('icecandidateerror', iceErrorEvent);
 
-    peerConnection.ontrack = (event: RTCTrackEvent) => {
+      this.handleIceCandidateError(iceErrorEvent);
+    });
+
+    peerConnection.addEventListener('track', (event: RTCTrackEvent) => {
       if (!this.remoteStreams) {
         console.warn('Could not add remote stream as it was null.');
         return;
@@ -260,7 +239,12 @@ export abstract class WebRTCService {
       this.addRemoteTracksToPeerConnection(event);
 
       this.handleTrackEvent(userId, event);
-    };
+    });
+
+    peerConnection.addEventListener('signalingstatechange', (event: Event) => {
+      console.log(event);
+      console.log(peerConnection.signalingState);
+    });
   };
 
   /**
@@ -301,6 +285,14 @@ export abstract class WebRTCService {
   public abstract handleIceCandidate(
     userId: string,
     candidate: RTCIceCandidate
+  ): void;
+
+  /**
+   * Handles ICE candidate events.
+   * @param {RTCPeerConnectionIceErrorEvent} candidate - The ICE candidate.
+   */
+  public abstract handleIceCandidateError(
+    error: RTCPeerConnectionIceErrorEvent
   ): void;
   /**
    * Handles track events.
