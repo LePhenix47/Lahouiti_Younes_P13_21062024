@@ -145,6 +145,7 @@ peerConnection.ontrack = (event) => {
 __Outgoing Events:__
 
 1. __Send SDP offer:__
+
    ```ts
    socket.emit('offer', {
      type: 'offer',
@@ -153,6 +154,7 @@ __Outgoing Events:__
    ```
 
 2. __Send ICE candidates:__
+
    ```ts
    peerConnection.onicecandidate = (event) => {
      if (event.candidate) {
@@ -166,6 +168,7 @@ __Outgoing Events:__
 __Incoming Events:__
 
 1. __Receive SDP answer:__
+
    ```ts
    socket.on('answer', async (message) => {
      await peerConnection.setRemoteDescription(new RTCSessionDescription(message));
@@ -173,6 +176,7 @@ __Incoming Events:__
    ```
 
 2. __Receive ICE candidates:__
+
    ```ts
    socket.on('ice-candidate', async (message) => {
      try {
@@ -188,6 +192,7 @@ __Incoming Events:__
 __Outgoing Events:__
 
 1. __Send SDP answer:__
+
    ```ts
    socket.emit('answer', {
      type: 'answer',
@@ -196,6 +201,7 @@ __Outgoing Events:__
    ```
 
 2. __Send ICE candidates:__
+
    ```ts
    peerConnection.onicecandidate = (event) => {
      if (event.candidate) {
@@ -209,14 +215,18 @@ __Outgoing Events:__
 __Incoming Events:__
 
 1. __Receive SDP offer:__
+
    ```ts
    socket.on('offer', async (message) => {
      await peerConnection.setRemoteDescription(new RTCSessionDescription(message));
      const answer = await peerConnection.createAnswer();
+
+     // Emit the answer, see "Send SDP answer"
    });
    ```
 
 2. __Receive ICE candidates:__
+
    ```ts
    socket.on('ice-candidate', async (message) => {
      try {
