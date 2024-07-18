@@ -28,105 +28,119 @@ __SDP:__ Session Description Protocol, a format for describing multimedia commun
 
 __Signaling server:__ A server that helps in establishing connections between peers by exchanging signaling messages (e.g., offers, answers, and ICE candidates).
 
-## WebRTC steps
+## WebRTC Peer-to-Peer Connection Setup
 
-### Initiating Peer
+This document outlines the process of setting up a peer-to-peer connection using WebRTC. The flow includes steps for both the initiator (sender) and the receiver of the connection.
 
-1. Get User Media (G.U.M.):
-Use `navigator.mediaDevices.getUserMedia` to get local media stream.
+### Get User Media (G.U.M.)
 
-```ts
-    const localStream: MediaStream =
-        await navigator.mediaDevices.getUserMedia({
-          audio,
-          video,
-        });
+Use `getUserMedia()` to access the user's camera and microphone, and `getDisplayMedia()` to access the user's screen.
+
+```js
+const ls1 = await navigator.mediaDevices.getUserMedia({ video: true, audio: true }); // User's webcam and microphone
+const ls2 = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false  }); // User's screen
 ```
 
-2. Create RTCPeerConnection with STUN-TURN servers:  
+### Create Peer Connection
 
-```ts
-const peerConnection = new RTCPeerConnection(stunTurnConfig);
- ```
+Create an `RTCPeerConnection` object.
 
-3. Add local stream tracks to that connection:
-
-```ts
- localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream)); 
+```js
+const pc = new RTCPeerConnection(turnOrStunConfig);
 ```
 
-4. Listen to onicecandidate and onsignalingstatechange events:
-Send the ICE candidates via WebSocket as they are generated.
+### Add Local Tracks to the Connection
 
-```ts
-peerConnection.onicecandidate = (event) => {
-  if (event.candidate) {
-    // Send ICE candidate via WebSocket
-  }
+Add local media tracks to the peer connection.
+
+```js
+ls1.getTracks().forEach(track => pc.addTrack(track));
+ls2.getTracks().forEach(track => pc.addTrack(track));
+```
+
+### Add Event Listeners to Peer Connection
+
+Listen for various events on the peer connection.
+
+```js
+pc.onicecandidate = (event) => { /* Handle ICE candidates */ };
+pc.ontrack = (event) => { /* Handle remote track */ };
+pc.onnegotiationneeded = (event) => { /* Handle negotiation */ };
+pc.onsignalingstatechange = (event) => { /* Debug signaling state */ };
+```
+
+### ICE Candidate Event
+
+When an ICE candidate is found, send it to the other peer via the signaling server.
+
+```js
+socket.emit("ice-candidate", event.candidate);
+```
+
+### ICE Candidate WebSocket Response
+
+When receiving an ICE candidate from the signaling server, add it to the peer connection.
+
+```js
+socket.on("ice-candidate", (candidate) => pc.addIceCandidate(candidate));
+```
+
+### Initiator (Sender)
+
+#### User Wants to Initiate Call
+
+Create an offer, set the local description, and send the offer via the signaling server.
+
+```js
+const offer = await pc.createOffer();
+await pc.setLocalDescription(offer);
+socket.emit("offer", offer);
+```
+
+#### Set Remote Description (Answer)
+
+When receiving an answer, set the remote description.
+
+```js
+socket.on("answer", async (answer) => {
+    await pc.setRemoteDescription(answer);
+});
+```
+
+### Receiver
+
+#### Set Remote Description (Offer)
+
+When receiving an offer, set the remote description.
+
+```js
+socket.on("offer", async (offer) => {
+    await pc.setRemoteDescription(offer);
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    socket.emit("answer", answer);
+});
+```
+
+#### Create Answer and Set Local Description
+
+Create an answer, set the local description, and send the answer via the signaling server.
+
+### On Track Event
+
+When a remote media track is added, handle it by creating a new MediaStream and adding the track to it.
+
+```js
+pc.ontrack = (event) => {
+    const remoteStream = new MediaStream();
+    event.streams[0].getTracks().forEach(track => remoteStream.addTrack(track));
+    remoteVideoElement.srcObject = remoteStream;
 };
 ```
 
-5. Create offer and set the local description:
+### On Negotiation Needed Event
 
-```ts
-const offer = await peerConnection.createOffer();
-await peerConnection.setLocalDescription(offer);
-```
-
-6. Send the offer (SDP + type) to the receiving peer via WebSocket.
-
-### Signaling Server
-
-Incoming from Initiating Peer:
-SDP + type
-ICE candidates
-Outgoing Broadcast to Receiving Peer:
-SDP + type
-ICE candidates
-
-### Receiving Peer
-
-Create RTCPeerConnection with STUN-TURN servers:
-
-```ts
-const peerConnection = new RTCPeerConnection(stunTurnConfig);
-```
-
-Set remote SDP offer from WebSocket:
-
-```ts
-await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
-```
-
-Listen for incoming ICE candidates via WebSocket and add them to the peer connection:
-
-```ts
-peerConnection.onicecandidate = (event) => {
-  if (!event.candidate) {
-     return
-  }
-    // Send ICE candidate via WebSocket
-  await peerConnection.addIceCandidate(event.candidate);
-};
-```
-
-Create answer and set the local description:
-
-```ts
-const answer = await peerConnection.createAnswer();
-await peerConnection.setLocalDescription(answer);
-```
-
-Send the answer (SDP + type) and ICE candidates to the initiating peer via WebSocket.
-Handle incoming media streams:
-
-```ts
-peerConnection.ontrack = (event) => {
-  // Attach event.streams[0] to a media element
-};
-```
-
-### WebSocket Events
+When negotiation is needed, handle it appropriately (e.g., create and send a new offer if necessary).
 
 #### Frontend (FE)
 
@@ -146,7 +160,7 @@ __Outgoing Events:__
 
 1. __Send SDP offer:__
 
-   ```ts
+   ```js
    socket.emit('offer', {
      type: 'offer',
      sdp: peerConnection.localDescription
@@ -155,7 +169,7 @@ __Outgoing Events:__
 
 2. __Send ICE candidates:__
 
-   ```ts
+   ```js
    peerConnection.onicecandidate = (event) => {
      if (event.candidate) {
        socket.emit('ice-candidate', {
@@ -169,7 +183,7 @@ __Incoming Events:__
 
 1. __Receive SDP answer:__
 
-   ```ts
+   ```js
    socket.on('answer', async (message) => {
      await peerConnection.setRemoteDescription(new RTCSessionDescription(message));
    });
@@ -177,7 +191,7 @@ __Incoming Events:__
 
 2. __Receive ICE candidates:__
 
-   ```ts
+   ```js
    socket.on('ice-candidate', async (message) => {
      try {
        await peerConnection.addIceCandidate(new RTCIceCandidate(message.candidate));
@@ -193,7 +207,7 @@ __Outgoing Events:__
 
 1. __Send SDP answer:__
 
-   ```ts
+   ```js
    socket.emit('answer', {
      type: 'answer',
      sdp: peerConnection.localDescription
@@ -202,7 +216,7 @@ __Outgoing Events:__
 
 2. __Send ICE candidates:__
 
-   ```ts
+   ```js
    peerConnection.onicecandidate = (event) => {
      if (event.candidate) {
        socket.emit('ice-candidate', {
@@ -216,7 +230,7 @@ __Incoming Events:__
 
 1. __Receive SDP offer:__
 
-   ```ts
+   ```js
    socket.on('offer', async (message) => {
      await peerConnection.setRemoteDescription(new RTCSessionDescription(message));
      const answer = await peerConnection.createAnswer();
@@ -227,7 +241,7 @@ __Incoming Events:__
 
 2. __Receive ICE candidates:__
 
-   ```ts
+   ```js
    socket.on('ice-candidate', async (message) => {
      try {
        await peerConnection.addIceCandidate(new RTCIceCandidate(message.candidate));
