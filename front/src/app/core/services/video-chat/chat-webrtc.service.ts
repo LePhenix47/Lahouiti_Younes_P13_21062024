@@ -8,23 +8,22 @@ import { SignalMessage } from '@core/types/chat/chat.types';
 export class ChatWebRtcService extends WebRTCService {
   public rtcConnected: boolean = false;
 
-  public handleTrackEvent = (username: string, event: RTCTrackEvent): void => {
+  public handleTrackEvent = (event: RTCTrackEvent): void => {
     // Handle incoming tracks from remote peers
-    console.log(`Received tracks from ${username}`, event);
+    console.log(`Received tracks from remote peer`, event);
     // Example: Display incoming video/audio to the user interface
   };
 
-  public handleOffer = async (
-    username: string,
+  public createOffer = async (
     offer: RTCSessionDescriptionInit
   ): Promise<void> => {
     // * If Peer 1 initializes WebRTC, Peer 2 should respond with an offer
 
     // Handle incoming offer from remote peer
-    console.log(`Received offer from ${username}`, offer);
+    console.log(`Received offer from remote peer`, offer);
     // Example: Respond with an answer
 
-    const peerConnection: RTCPeerConnection = this.addPeerConnection(username);
+    const peerConnection: RTCPeerConnection = this.createPeerConnection();
 
     const answer: RTCSessionDescriptionInit =
       await peerConnection.createAnswer();
@@ -34,16 +33,15 @@ export class ChatWebRtcService extends WebRTCService {
     // TODO: Handle offer to start WebRTC session
   };
 
-  public handleAnswer = async (
-    username: string,
+  public createAnswer = async (
     answer: RTCSessionDescriptionInit
   ): Promise<void> => {
     // * If Peer 2 initializes WebRTC, Peer 1 should respond with an offer
 
     // Handle incoming answer from remote peer
-    console.log(`Received answer from ${username}`, answer);
+    console.log(`Received answer from remote peer`, answer);
     // Set remote description for peer connection
-    const peerConnection = this.peerConnections.get(username);
+    const peerConnection = this.peerConnection;
     if (!peerConnection) {
       return;
     }
@@ -53,24 +51,29 @@ export class ChatWebRtcService extends WebRTCService {
     await peerConnection.setRemoteDescription(sessionDescription);
   };
 
+  public onReceiveAnswer = async (answer: RTCSessionDescriptionInit) => {};
+
+  public onReceiveIce = async (iceCandidate: RTCIceCandidate) => {};
+
+  public onReceiveOffer = async (offer: RTCSessionDescriptionInit) => {};
+
   public handleIceCandidate = async (
-    username: string,
     candidate: RTCIceCandidate
   ): Promise<void> => {
     try {
       // Handle incoming ICE candidate from remote peer
       // Add ICE candidate to peer connection
-      const peerConnection = this.peerConnections.get(username);
+      const peerConnection = this.peerConnection;
       if (!peerConnection) {
         return;
       }
       console.log(
-        `Received ICE candidate from ${username}`,
+        `Received ICE candidate from remote peer`,
         peerConnection,
         candidate
       );
 
-      // await peerConnection.addIceCandidate(candidate);
+      await peerConnection.addIceCandidate(candidate);
     } catch (error) {
       console.error('Error adding ICE candidate:', error);
     }
@@ -90,9 +93,9 @@ export class ChatWebRtcService extends WebRTCService {
 
   // Method to subscribe to signaling topic and handle incoming messages
   public subscribeToSignalTopic = (username: string): void => {
-    if (!this.stompClient?.connected) {
+    if (!this.socketio?.connected) {
       this.rtcConnected = false;
-      console.error('STOMP client is not set.', this.stompClient);
+      console.error('STOMP client is not set.', this.socketio);
       return;
     }
 
@@ -106,7 +109,7 @@ export class ChatWebRtcService extends WebRTCService {
     username: string,
     usersList: string[]
   ): Promise<void> => {
-    const peerConnection: RTCPeerConnection = this.addPeerConnection(username);
+    const peerConnection: RTCPeerConnection = this.createPeerConnection();
 
     const offer: RTCSessionDescriptionInit = await peerConnection.createOffer();
 
@@ -132,7 +135,7 @@ export class ChatWebRtcService extends WebRTCService {
   // Example method for ending a WebRTC session with a specific user
   public endWebRTCSession = (username: string): void => {
     // Close peer connection and clean up resources
-    this.closePeerConnection(username);
+    this.closePeerConnection();
     // Optionally, send a signaling message or perform cleanup actions
   };
 }

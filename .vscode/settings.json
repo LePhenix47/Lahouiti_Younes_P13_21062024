@@ -11,5 +11,9 @@
         ".vscode": true,
         ".next": true,
         "**/node_modules": true
-    }
+    },
+    "cSpell.words": [
+        "socketio",
+        "webrtc"
+    ]
 }

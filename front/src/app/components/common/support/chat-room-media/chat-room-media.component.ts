@@ -25,7 +25,7 @@ export class ChatRoomMediaComponent {
   /**
    * The Stomp client for the WebSocket connection.
    */
-  public readonly stompClient = input.required<any | null>();
+  public readonly socketIO = input.required<any | null>();
 
   /**
    * An array of user names in the chat.
@@ -53,9 +53,8 @@ export class ChatRoomMediaComponent {
 
   ngOnInit() {
     console.group('ngOnInit()');
-    this.chatWebRtcService.setStompClient(this.stompClient()!);
+    this.chatWebRtcService.setSocketIO(this.socketIO()!);
 
-    console.log(this.chatWebRtcService.geStompClient(), this.stompClient());
     console.groupEnd();
   }
 
@@ -68,7 +67,6 @@ export class ChatRoomMediaComponent {
       this.ownUsername(),
       this.usersList()
     );
-    console.log(this.chatWebRtcService.getPeerConnections());
   };
   public checkIncomingConnections = () => {};
 
@@ -88,7 +86,7 @@ export class ChatRoomMediaComponent {
 
     const ownVideoElement = this.ownWebCamVideoRef
       ?.nativeElement as HTMLVideoElement;
-    ownVideoElement.srcObject = this.chatWebRtcService.getLocalStream();
+    ownVideoElement.srcObject = this.chatWebRtcService.localStream;
   };
 
   private updateScreenCastStream = async () => {
