@@ -1,10 +1,16 @@
-module.exports = (io, socket, connectedUsersSet) => {
+// chatSocketListener.js
+const { getUniqueConnectedUsers } = require("../utils/map.utils.cjs");
+
+module.exports = (io, socket, connectedUsersMap) => {
   socket.on("join", (msg) => {
     const { sender } = msg;
-    connectedUsersSet.add(sender);
-    console.log("join", msg, connectedUsersSet);
+    connectedUsersMap.set(sender, socket.id); // Store username and socket.id in the map
+    console.log("join", msg, connectedUsersMap);
 
-    io.emit("join", { ...msg, users: Array.from(connectedUsersSet) });
+    io.emit("join", {
+      ...msg,
+      users: getUniqueConnectedUsers(connectedUsersMap),
+    });
   });
 
   socket.on("chat", (msg) => {
@@ -14,8 +20,11 @@ module.exports = (io, socket, connectedUsersSet) => {
 
   socket.on("leave", (msg) => {
     const { sender } = msg;
-    connectedUsersSet.delete(sender);
-    console.log("leave", msg, connectedUsersSet);
-    io.emit("leave", { ...msg, users: Array.from(connectedUsersSet) });
+    connectedUsersMap.delete(sender); // Remove user from map on leave
+    console.log("leave", msg, connectedUsersMap);
+    io.emit("leave", {
+      ...msg,
+      users: getUniqueConnectedUsers(connectedUsersMap),
+    });
   });
 };
