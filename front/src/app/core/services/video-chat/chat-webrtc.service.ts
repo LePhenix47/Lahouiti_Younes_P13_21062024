@@ -12,6 +12,9 @@ export class ChatWebRtcService extends WebRTCService {
     // Handle incoming tracks from remote peers
     console.log(`Received tracks from remote peer`, event);
     // Example: Display incoming video/audio to the user interface
+    for (const stream of event.streams) {
+      console.log({ stream });
+    }
   };
 
   public createOffer = async (
