@@ -20,7 +20,13 @@ import { ChatWebRtcService } from '@core/services/video-chat/chat-webrtc.service
 })
 export class ChatRoomMediaComponent {
   @ViewChild('ownWebCamVideoRef') ownWebCamVideoRef: ElementRef | null = null;
-  @ViewChild('screenCastVideoRef') screenCastVideoRef: ElementRef | null = null;
+  @ViewChild('ownScreenCastVideoRef') ownScreenCastVideoRef: ElementRef | null =
+    null;
+
+  @ViewChild('remoteWebCamVideoRef') remoteWebCamVideoRef: ElementRef | null =
+    null;
+  @ViewChild('remoteScreenCastVideoRef')
+  remoteScreenCastVideoRef: ElementRef | null = null;
 
   /**
    * The Stomp client for the WebSocket connection.
@@ -99,7 +105,7 @@ export class ChatRoomMediaComponent {
 
       const screenStream = await this.chatWebRtcService.setScreenShareStream();
 
-      const screenVideoElement = this.screenCastVideoRef
+      const screenVideoElement = this.ownScreenCastVideoRef
         ?.nativeElement as HTMLVideoElement;
       screenVideoElement.srcObject = screenStream;
     } catch (error) {
