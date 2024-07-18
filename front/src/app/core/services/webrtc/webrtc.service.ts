@@ -271,6 +271,8 @@ export abstract class WebRTCService {
     this.peerConnection = null;
   };
 
+  // ? ===========  ABSTRACT METHODS =========== ?
+
   /**
    * Sets the local video element for the user's webcam
    *
