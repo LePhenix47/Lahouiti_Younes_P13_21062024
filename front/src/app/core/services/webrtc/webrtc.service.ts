@@ -1,32 +1,33 @@
 import { Injectable } from '@angular/core';
+import { Socket } from 'socket.io-client';
 
 /**
- * A base service class for interacting with WebRTC.
- *
- * When implementing WebRTC with this class, this is the order of operations:
- *
- * Initial peer:
+ * A service class for interacting with WebRTC in a two-person chat.
  */
 @Injectable({
   providedIn: 'root',
 })
 export abstract class WebRTCService {
   /**
-   * Map of peer connections, where the key is the peer user ID.
+   * The single peer connection between the local and remote users.
    */
-  protected peerConnections: Map<string, RTCPeerConnection> = new Map();
+  protected peerConnection: RTCPeerConnection | null = null;
 
   /**
-   * Local media stream, own webcam, audio or screen casts.
-   * Can be `null` if no stream has been set.
+   * Local media streams, either webcam or screen casts.
    */
-  protected localStream: MediaStream | null = null;
-  protected screenStream: MediaStream | null = null;
+  public localStream: MediaStream | null = null;
+  public screenStream: MediaStream | null = null;
 
   /**
-   * Set of remote media streams, streams from other peers.
+   * Remote media stream from the other peer.
    */
-  protected remoteStreams: Set<MediaStream> = new Set();
+  protected remoteStream: MediaStream = new MediaStream();
+
+  protected localVideoElement: HTMLVideoElement | null = null;
+  protected localScreenElement: HTMLVideoElement | null = null;
+  protected remoteVideoElement: HTMLVideoElement | null = null;
+  protected remoteScreenElement: HTMLVideoElement | null = null;
 
   /**
    * RTC configuration with ICE servers for STUN/TURN servers.
@@ -41,32 +42,28 @@ export abstract class WebRTCService {
   };
 
   /**
-   * STOMP client for signaling.
+   * Socket.io client for signaling.
    * Can be `null` if no client has been set.
    */
-  protected stompClient: any | null = null;
+  protected socketio: Socket | null = null;
 
   /**
-   * Sets the STOMP client for signaling.
-   * @param {any} stompClient - The STOMP client.
+   * Sets the Socket.io client for signaling.
+   * @param {Socket} socketio - The Socket.io client.
    */
-  public setStompClient(stompClient: any): void {
-    this.stompClient = stompClient;
+  public setSocketIO(socketio: Socket): void {
+    this.socketio = socketio;
   }
 
-  public geStompClient(): any | null {
-    return this.stompClient;
-  }
-
-  public getPeerConnections(): Map<string, RTCPeerConnection> {
-    return this.peerConnections;
+  public getSocketIO(): Socket | null {
+    return this.socketio;
   }
 
   /**
    * Sets the local media stream.
    * @param {boolean} audio - Whether to capture audio.
    * @param {boolean} video - Whether to capture video.
-   * @returns {Promise<MediaStream>}
+   * @returns {Promise<MediaStream | null>}
    */
   public setLocalStream = async (
     audio: boolean = true,
@@ -88,7 +85,6 @@ export abstract class WebRTCService {
         });
 
       this.localStream = localStream;
-
       return localStream;
     } catch (error) {
       console.error('Error accessing media devices.', error);
@@ -112,22 +108,10 @@ export abstract class WebRTCService {
   };
 
   /**
-   * Returns the local media stream.
-   *
-   * @return {MediaStream | null} The local media stream, or `null` if it has not been set.
+   * Sets the screen share stream.
+   * @param {boolean} withInnerDeviceAudio - Whether to capture audio.
+   * @returns {Promise<MediaStream>}
    */
-  public getLocalStream = (): MediaStream | null => {
-    return this.localStream;
-  };
-
-  public updateLocalStream = async (
-    audio: boolean = true,
-    video: boolean = false
-  ): Promise<MediaStream | null> => {
-    this.resetLocalStream();
-    return this.setLocalStream(audio, video);
-  };
-
   public setScreenShareStream = async (
     withInnerDeviceAudio: boolean = false
   ): Promise<MediaStream> => {
@@ -143,7 +127,6 @@ export abstract class WebRTCService {
         });
 
       this.screenStream = screenStream;
-
       return screenStream;
     } catch (error) {
       console.error('Error accessing display media.', error);
@@ -151,6 +134,9 @@ export abstract class WebRTCService {
     }
   };
 
+  /**
+   * Stops all tracks of the current screen share stream and resets it to null.
+   */
   public resetScreenShareStream = (): void => {
     if (!this.screenStream) {
       console.warn('No screen stream to reset.');
@@ -161,66 +147,45 @@ export abstract class WebRTCService {
       screenTrack.stop();
     }
 
-    // Set the screenStream to null
     this.screenStream = null;
   };
 
-  public updateScreenShareStream = async () => {
-    this.resetScreenShareStream();
-    return this.setScreenShareStream();
-  };
-
-  public getPeerConnectionByUsername = (
-    userId: string
-  ): RTCPeerConnection | null => {
-    return this.peerConnections.get(userId) || null;
-  };
-
   /**
-   * Adds a peer connection for a specific user.
-   * @param {string} userId - The ID of the user.
+   * Creates a new peer connection and adds event listeners.
    * @returns {RTCPeerConnection}
    */
-  public addPeerConnection = (userId: string): RTCPeerConnection => {
-    if (this.peerConnections.has(userId)) {
-      console.warn(
-        'Peer connection already exists for user.',
-        userId,
-        this.peerConnections.get(userId)
-      );
-      return this.peerConnections.get(userId)!;
+  public createPeerConnection = (): RTCPeerConnection => {
+    if (this.peerConnection) {
+      console.warn('Peer connection already exists.');
+      return this.peerConnection;
     }
 
-    const peerConnection = new RTCPeerConnection(this.iceStunServers);
+    this.peerConnection = new RTCPeerConnection(this.iceStunServers);
+    this.addPeerConnectionEventListeners(this.peerConnection);
+    this.addSocketEventListeners();
+    this.addLocalTracksToPeerConnection(this.peerConnection);
 
-    this.addPeerConnectionEventListeners(userId, peerConnection);
-    this.addLocalTracksToPeerConnection(peerConnection);
-
-    this.peerConnections.set(userId, peerConnection);
-    return peerConnection;
+    return this.peerConnection;
   };
 
   /**
-   * Adds event listeners to a peer connection.
-   * @param {string} userId - The ID of the user.
+   * Adds event listeners to the peer connection.
    * @param {RTCPeerConnection} peerConnection - The peer connection instance.
    */
   private addPeerConnectionEventListeners = (
-    userId: string,
     peerConnection: RTCPeerConnection
   ): void => {
     peerConnection.addEventListener(
       'icecandidate',
       (event: RTCPeerConnectionIceEvent) => {
-        console.log('icecandidate', event);
         if (!event.candidate) {
-          console.error('Could not send ICE candidate as it was null.');
           return;
         }
 
-        this.handleIceCandidate(userId, event.candidate);
+        this.handleIceCandidate(event.candidate);
       }
     );
+
     peerConnection.addEventListener('icecandidateerror', (event: Event) => {
       // * Angular throws an error if you set the event type to RTCPeerConnectionIceErrorEvent
 
@@ -231,34 +196,18 @@ export abstract class WebRTCService {
     });
 
     peerConnection.addEventListener('track', (event: RTCTrackEvent) => {
-      if (!this.remoteStreams) {
-        console.warn('Could not add remote stream as it was null.');
-        return;
-      }
+      this.remoteStream.addTrack(event.track);
 
-      this.addRemoteTracksToPeerConnection(event);
-
-      this.handleTrackEvent(userId, event);
+      this.handleTrackEvent(event);
     });
 
-    peerConnection.addEventListener('signalingstatechange', (event: Event) => {
-      console.log(event);
-      console.log(peerConnection.signalingState);
+    peerConnection.addEventListener('signalingstatechange', () => {
+      console.log('Signaling state:', peerConnection.signalingState);
     });
   };
 
   /**
-   * Adds remote tracks to the remote streams.
-   * @param {RTCTrackEvent} event - The RTCTrackEvent instance.
-   */
-  protected addRemoteTracksToPeerConnection = (event: RTCTrackEvent): void => {
-    for (const stream of event.streams) {
-      this.remoteStreams.add(stream);
-    }
-  };
-
-  /**
-   * Adds local tracks to a peer connection.
+   * Adds local tracks to the peer connection.
    * @param {RTCPeerConnection} peerConnection - The peer connection instance.
    */
   protected addLocalTracksToPeerConnection = (
@@ -278,62 +227,143 @@ export abstract class WebRTCService {
   };
 
   /**
-   * Handles ICE candidate events.
-   * @param {string} userId - The ID of the user.
+   * Adds websocket event listeners for handling ICE candidates, offers, and answers
+   */
+  public addSocketEventListeners() {
+    if (!this.socketio) {
+      return;
+    }
+
+    this.socketio.on('ice-candidate', async (remotePeerIceCandidate) => {
+      await this.peerConnection!.addIceCandidate(remotePeerIceCandidate);
+      console.log('ice-candidate', remotePeerIceCandidate);
+
+      this.onReceiveIce(remotePeerIceCandidate);
+    });
+
+    // * If the user is the RECEIVER
+    this.socketio.on('offer', async (remoteOffer) => {
+      await this.peerConnection!.setRemoteDescription(remoteOffer);
+      console.log('offer', remoteOffer);
+
+      this.onReceiveOffer(remoteOffer);
+    });
+
+    // * If the user is the SENDER
+    this.socketio.on('answer', async (remoteAnswer) => {
+      await this.peerConnection!.setRemoteDescription(remoteAnswer);
+      console.log('answer', remoteAnswer);
+
+      this.onReceiveAnswer(remoteAnswer);
+    });
+  }
+
+  /**
+   * Closes the peer connection.
+   */
+  public closePeerConnection = (): void => {
+    if (!this.peerConnection) {
+      console.error("Peer connection doesn't exist.");
+      return;
+    }
+
+    this.peerConnection.close();
+    this.peerConnection = null;
+  };
+
+  /**
+   * Sets the local video element for the user's webcam
+   *
+   * @param {HTMLVideoElement | null} element - The video element to set as the local video.
+   * @return {void} This function does not return a value.
+   */
+  public setLocalVideoElement(element: HTMLVideoElement | null): void {
+    this.localVideoElement = element;
+  }
+
+  /**
+   * Sets the local screen element for the user's screen cast
+   *
+   * @param {HTMLVideoElement | null} element - The video element to set as the local screen.
+   * @return {void} This function does not return a value.
+   */
+  public setLocalScreenElement(element: HTMLVideoElement | null): void {
+    this.localScreenElement = element;
+  }
+
+  /**
+   * Sets the remote video element for the user's webcam
+   *
+   * @param {HTMLVideoElement | null} element - The video element to set as the local video.
+   * @return {void} This function does not return a value.
+   */
+  public setRemoteVideoElement(element: HTMLVideoElement | null): void {
+    this.remoteVideoElement = element;
+  }
+
+  /**
+   * Sets the remote screen element for the user's screen cast
+   *
+   * @param {HTMLVideoElement | null} element - The video element to set as the local screen.
+   * @return {void} This function does not return a value.
+   */
+  public setRemoteScreenElement(element: HTMLVideoElement | null): void {
+    this.remoteScreenElement = element;
+  }
+
+  /**
+   * Handles ICE candidate events to emit the ICE candidate to the remote peer
    * @param {RTCIceCandidate} candidate - The ICE candidate.
    */
-  public abstract handleIceCandidate(
-    userId: string,
-    candidate: RTCIceCandidate
-  ): void;
+  public abstract handleIceCandidate(candidate: RTCIceCandidate): void;
 
   /**
    * Handles ICE candidate events.
-   * @param {RTCPeerConnectionIceErrorEvent} candidate - The ICE candidate.
+   * @param {RTCIceCandidate} candidate - The ICE candidate.
    */
   public abstract handleIceCandidateError(
-    error: RTCPeerConnectionIceErrorEvent
+    candidate: RTCPeerConnectionIceErrorEvent
   ): void;
+
   /**
    * Handles track events.
-   * @param {string} userId - The ID of the user.
    * @param {RTCTrackEvent} event - The track event.
    */
-  public abstract handleTrackEvent(userId: string, event: RTCTrackEvent): void;
+  public abstract handleTrackEvent(event: RTCTrackEvent): void;
 
   /**
-   * Handles incoming offers from remote peers.
-   * @param {string} userId - The ID of the user.
-   * @param {RTCSessionDescriptionInit} offer - The offer from the remote peer.
+   * Handles the creation of an offer.
+   * @param {RTCSessionDescriptionInit} offer - The offer to be created.
    */
-  public abstract handleOffer(
-    userId: string,
-    offer: RTCSessionDescriptionInit
-  ): Promise<void>;
+  public abstract createOffer(offer: RTCSessionDescriptionInit): Promise<void>;
 
   /**
-   * Handles incoming answers from remote peers.
-   * @param {string} userId - The ID of the user.
-   * @param {RTCSessionDescriptionInit} answer - The answer from the remote peer.
+   * Handles the creation of an answer.
+   * @param {RTCSessionDescriptionInit} answer - The answer to be created.
    */
-  public abstract handleAnswer(
-    userId: string,
+  public abstract createAnswer(
     answer: RTCSessionDescriptionInit
   ): Promise<void>;
 
   /**
-   * Closes the peer connection for a specific user.
-   * @param {string} userId - The ID of the user.
+   * Websocket callback for receiving an "offer" event from a remote peer.
+   * @param {RTCSessionDescriptionInit} offer - The received offer.
    */
-  protected closePeerConnection = (userId: string): void => {
-    if (!this.peerConnections.has(userId)) {
-      console.error("Peer connection doesn't exist for user", userId);
+  public abstract onReceiveOffer(
+    offer: RTCSessionDescriptionInit
+  ): Promise<void>;
 
-      return;
-    }
+  /**
+   * Websocket callback for receiving an "answer" event from a remote peer.
+   * @param {RTCSessionDescriptionInit} answer - The received answer.
+   */
+  public abstract onReceiveAnswer(
+    answer: RTCSessionDescriptionInit
+  ): Promise<void>;
 
-    this.peerConnections.get(userId)!.close();
-
-    this.peerConnections.delete(userId);
-  };
+  /**
+   * Websocket callback for receiving an "ce-candidate" event from a remote peer.
+   * @param {RTCIceCandidate} icecandidate - The received answer.
+   */
+  public abstract onReceiveIce(icecandidate: RTCIceCandidate): Promise<void>;
 }
