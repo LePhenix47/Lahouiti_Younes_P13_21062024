@@ -56,8 +56,6 @@ export class ChatModuleComponent {
   public readonly groupChatUsersStompClientOutput = output<any | null>();
 
   ngOnInit() {
-    console.log('chatmodule ngOnInit');
-
     this.connectToWebSocket();
 
     window.addEventListener('beforeunload', (event) => {
@@ -136,8 +134,6 @@ export class ChatModuleComponent {
    * @param {ChatWebSocketResponse} data - The data of the new chat message event.
    */
   onChatNewMessage = (data: ChatWebSocketResponse): void => {
-    console.log('onChatNewMessage', data);
-
     this.addNewMessageLog({ ...data, type: 'CHAT' });
   };
 
@@ -146,8 +142,6 @@ export class ChatModuleComponent {
    * @param {ChatWebSocketResponse} data - The data of the chat member leave event.
    */
   onChatMemberLeave = (data: ChatWebSocketJoinLeaveResponse): void => {
-    console.log('onChatLeave', data);
-
     const { users } = data;
     this.addNewMessageLog({
       type: 'LEAVE',
@@ -196,8 +190,6 @@ export class ChatModuleComponent {
     event.preventDefault();
 
     const formValues = this.sendMessageForm.value;
-    console.log('Form Values:', formValues);
-
     const { message } = formValues;
 
     this.chatWebSocketsService.sendMessage(this.ownUsername(), message!);

@@ -48,10 +48,6 @@ export class ChatWebSocketsService extends WebSocketsService {
   };
 
   protected handleOnConnect(): void {
-    console.log(
-      '%cConnected:',
-      'background: green; color: white; padding: 5px'
-    );
     this.connected = true;
     this.hasError = false;
 
@@ -66,11 +62,6 @@ export class ChatWebSocketsService extends WebSocketsService {
   };
 
   protected handleOnDisconnect = (): void => {
-    console.log(
-      '%cDisconnected!',
-      'background: red; color: white; padding: 5px'
-    );
-
     this.unsubscribeFromTopicWebSocket();
     this.connected = false;
   };
@@ -89,11 +80,6 @@ export class ChatWebSocketsService extends WebSocketsService {
       throw new Error('Sender is not defined in the received message');
     }
 
-    console.log(
-      '%cUser joined:',
-      'background: blue; color: white; padding: 5px',
-      { message }
-    );
     this.onJoin({ sender, users });
   };
 
@@ -103,11 +89,6 @@ export class ChatWebSocketsService extends WebSocketsService {
       throw new Error('Sender is not defined in the received message');
     }
 
-    console.log(
-      '%cUser left:',
-      'background: blue; color: white; padding: 5px',
-      { message }
-    );
     this.onLeave({ sender, users });
   };
 
@@ -118,11 +99,6 @@ export class ChatWebSocketsService extends WebSocketsService {
     }
 
     const date = new Date();
-    console.log(
-      '%cReceived message:',
-      'background: blue; color: white; padding: 5px',
-      { message }
-    );
     this.onChatMessage({ sender, message: chatMessage, date });
   };
 
@@ -151,12 +127,6 @@ export class ChatWebSocketsService extends WebSocketsService {
     if (!this.currentUserNickname) {
       throw new Error('No current user nickname is set');
     }
-
-    console.log(
-      '%cAdd user',
-      'background: #3f51b5; color: white; padding: 5px',
-      this.currentUserNickname
-    );
 
     this.socketio!.emit('join', {
       sender: this.currentUserNickname,

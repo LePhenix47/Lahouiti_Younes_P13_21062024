@@ -32,17 +32,11 @@ export abstract class WebSocketsService {
         throw new Error('No username provided');
       }
 
-      console.log(
-        '%cConnecting to WebSocket on server...',
-        'background: teal; color: white; padding: 5px; font: 1em'
-      );
-
       const socket: Socket = io(this.serverUrl.href, {
         auth: {
           userName: this.ownUsername,
         },
       });
-      console.log('%cSocket', 'background: maroon', { socket });
 
       this.socketio = socket;
 
@@ -52,12 +46,10 @@ export abstract class WebSocketsService {
       });
 
       this.socketio.on('connect', () => {
-        console.log('Connected to WS');
         this.handleOnConnect(); // Call abstract method when connected
       });
 
       this.socketio.on('disconnect', () => {
-        console.log('Disconnected from WS');
         this.handleOnDisconnect(); // Call abstract method when disconnected
       });
 

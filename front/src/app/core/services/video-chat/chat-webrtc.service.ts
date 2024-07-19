@@ -8,6 +8,53 @@ import { SignalMessage } from '@core/types/chat/chat.types';
 export class ChatWebRtcService extends WebRTCService {
   public rtcConnected: boolean = false;
 
+  /**
+   * Adds websocket event listeners for handling ICE candidates, offers, and answers
+   */
+  public addSocketEventListeners() {
+    if (!this.socketio) {
+      return;
+    }
+
+    console.log('Adding socket listeners !!!');
+
+    this.socketio.on('ice-candidate', async (remotePeerIceCandidate) => {
+      await this.peerConnection!.addIceCandidate(remotePeerIceCandidate);
+      console.log('ice-candidate', remotePeerIceCandidate);
+
+      this.onReceiveIce(remotePeerIceCandidate);
+    });
+
+    // * If the user is the RECEIVER
+    this.socketio.on('offer', async (remoteOffer) => {
+      await this.peerConnection!.setRemoteDescription(remoteOffer);
+      console.log('offer', remoteOffer);
+
+      this.onReceiveOffer(remoteOffer);
+    });
+
+    // * If the user is the SENDER
+    this.socketio.on('answer', async (remoteAnswer) => {
+      await this.peerConnection!.setRemoteDescription(remoteAnswer);
+      console.log('answer', remoteAnswer);
+
+      this.onReceiveAnswer(remoteAnswer);
+    });
+  }
+
+  /**
+   * Closes the peer connection.
+   */
+  public closePeerConnection = (): void => {
+    if (!this.peerConnection) {
+      console.error("Peer connection doesn't exist.");
+      return;
+    }
+
+    this.peerConnection.close();
+    this.peerConnection = null;
+  };
+
   public handleTrackEvent = (event: RTCTrackEvent): void => {
     // Handle incoming tracks from remote peers
     console.log(`Received tracks from remote peer`, event);
