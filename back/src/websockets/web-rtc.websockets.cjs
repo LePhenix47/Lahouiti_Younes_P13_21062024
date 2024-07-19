@@ -5,14 +5,18 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
 
     if (!connectedUsersMap.has(userName)) {
       console.warn(`Username ${userName} is not connected`);
-      socket.emit("room-error", { message: "User does not exist" });
+      socket.emit("room-error", {
+        message: "Cannot create room because user does not exist",
+      });
       return;
     }
 
     if (roomsMap.has(roomName)) {
       // Check if the room already exists
       console.warn(`Room ${roomName} already exists`);
-      socket.emit("room-error", { message: "Room already exists" });
+      socket.emit("room-error", {
+        message: "Cannot create new room because it already exists",
+      });
       return;
     }
 
@@ -24,6 +28,22 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
     // Emit a success message back to the creator and update the room list
     socket.emit("room-created", { roomName });
     io.emit("room-list", Array.from(roomsMap.keys()));
+  });
+
+  socket.on("room-deleted", (roomName) => {
+    if (!roomsMap.has(roomName)) {
+      // Check if the room already exists
+      console.warn(`Room ${roomName} does not exist`);
+      socket.emit("room-error", {
+        message: "Cannot delete room because it doesn't exist",
+      });
+      return;
+    }
+
+    roomsMap.delete(roomName);
+    io.emit("room-list", Array.from(roomsMap.keys()));
+    io.emit("room-deleted", true);
+    console.log(`Room deleted: ${roomName}`, roomsMap);
   });
 
   // Handle a user joining a room
