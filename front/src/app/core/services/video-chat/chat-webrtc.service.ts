@@ -7,11 +7,15 @@ import { SignalMessage } from '@core/types/chat/chat.types';
 })
 export class ChatWebRtcService extends WebRTCService {
   public rtcConnected: boolean = false;
+  public currentRoom: string | null = null;
+  private roomList: string[] = []; // To keep track of available rooms
 
   /**
-   * Adds websocket event listeners for handling ICE candidates, offers, and answers
+   * Adds websocket event listeners related to WebRTC for handling ICE candidates, offers, and answers
    */
-  public addSocketEventListeners() {
+  public addWebRtcSocketEventListeners = (): void => {
+    this.addRoomSocketEventListeners();
+
     if (!this.socketio) {
       return;
     }
@@ -40,7 +44,91 @@ export class ChatWebRtcService extends WebRTCService {
 
       this.onReceiveAnswer(remoteAnswer);
     });
+  };
+
+  /**
+   * Adds websocket event listeners for handling room management.
+   * @return {void}
+   */
+  public addRoomSocketEventListeners = (): void => {
+    if (!this.socketio) {
+      return;
+    }
+
+    console.log('Adding socket listeners for room management !!!');
+
+    this.socketio.on('room-list', (rooms: string[]) => {
+      this.roomList = rooms;
+      console.log('Updated room list:', rooms);
+      this.onRoomListUpdate(rooms);
+    });
+
+    this.socketio.on('room-created', (data: { roomName: string }) => {
+      console.log(`Room created: ${data.roomName}`);
+      this.onRoomCreated(data.roomName);
+    });
+
+    this.socketio.on(
+      'room-joined',
+      (data: { roomName: string; userName: string }) => {
+        console.log(`Room joined: ${data.roomName} by ${data.userName}`);
+        this.onRoomJoined(data.roomName, data.userName);
+      }
+    );
+
+    this.socketio.on('room-deleted', (data: { roomName: string }) => {
+      console.log(`Room deleted: ${data.roomName}`);
+      this.onRoomDeleted(data.roomName);
+    });
+
+    this.socketio.on('room-error', (error: { message: string }) => {
+      console.error(`Room error: ${error.message}`);
+      this.onRoomError(error.message);
+    });
+  };
+
+  private onRoomListUpdate(rooms: string[]): void {
+    // Implement room list update logic
   }
+
+  private onRoomCreated(roomName: string): void {
+    // Implement room created logic
+  }
+
+  private onRoomJoined(roomName: string, userName: string): void {
+    // Implement room joined logic
+  }
+
+  private onRoomDeleted(roomName: string): void {
+    // Implement room deleted logic
+  }
+
+  private onRoomError(errorMessage: string): void {
+    // Implement room error handling logic
+  }
+
+  public createRoom = (roomName: string): void => {
+    if (!this.socketio) {
+      return;
+    }
+    this.socketio.emit('create-room', roomName);
+  };
+
+  public joinRoom = (roomName: string): void => {
+    if (!this.socketio) {
+      return;
+    }
+    this.socketio.emit('join-room', roomName);
+  };
+
+  public leaveRoom = (): void => {
+    if (!this.currentRoom || !this.socketio) {
+      return;
+    }
+
+    this.currentRoom = null;
+    this.socketio.emit('leave-room', this.currentRoom);
+  };
 
   /**
    * Closes the peer connection.
@@ -186,6 +274,6 @@ export class ChatWebRtcService extends WebRTCService {
   public endWebRTCSession = (username: string): void => {
     // Close peer connection and clean up resources
     this.closePeerConnection();
-    // Optionally, send a signaling message or perform cleanup actions
+    this.leaveRoom(); // Ensure to leave the room when ending the session
   };
 }
