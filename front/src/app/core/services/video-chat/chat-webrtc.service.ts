@@ -10,6 +10,15 @@ export class ChatWebRtcService extends WebRTCService {
   public currentRoom: string | null = null;
   protected roomList: string[] = []; // To keep track of available rooms
 
+  // Callbacks for room-related events
+  private onRoomListUpdateCallback: ((rooms: string[]) => void) | null = null;
+  private onRoomCreatedCallback: ((roomName: string) => void) | null = null;
+  private onRoomJoinedCallback:
+    | ((roomName: string, userName: string) => void)
+    | null = null;
+  private onRoomDeletedCallback: ((roomName: string) => void) | null = null;
+  private onRoomErrorCallback: ((errorMessage: string) => void) | null = null;
+
   /**
    * Adds websocket event listeners related to WebRTC for handling ICE candidates, offers, and answers
    */
@@ -60,52 +69,68 @@ export class ChatWebRtcService extends WebRTCService {
     this.socketio.on('room-list', (rooms: string[]) => {
       this.roomList = rooms;
       console.log('Updated room list:', rooms);
-      this.onRoomListUpdate(rooms);
+
+      this.onRoomListUpdateCallback?.(rooms);
     });
 
     this.socketio.on('room-created', (data: { roomName: string }) => {
       console.log(`Room created: ${data.roomName}`);
-      this.onRoomCreated(data.roomName);
+
+      this.onRoomCreatedCallback?.(data.roomName);
     });
 
     this.socketio.on(
       'room-joined',
       (data: { roomName: string; userName: string }) => {
         console.log(`Room joined: ${data.roomName} by ${data.userName}`);
-        this.onRoomJoined(data.roomName, data.userName);
+
+        this.onRoomJoinedCallback?.(data.roomName, data.userName);
       }
     );
 
     this.socketio.on('room-deleted', (data: { roomName: string }) => {
       console.log(`Room deleted: ${data.roomName}`);
-      this.onRoomDeleted(data.roomName);
+
+      this.onRoomDeletedCallback?.(data.roomName);
     });
 
     this.socketio.on('room-error', (error: { message: string }) => {
       console.error(`Room error: ${error.message}`);
-      this.onRoomError(error.message);
+
+      this.onRoomErrorCallback?.(error.message);
     });
   };
 
-  private onRoomListUpdate(rooms: string[]): void {
-    // Implement room list update logic
-  }
+  // Methods to set callbacks
+  public setOnRoomListUpdateCallback = (
+    callback: (rooms: string[]) => void
+  ): void => {
+    this.onRoomListUpdateCallback = callback;
+  };
 
-  private onRoomCreated(roomName: string): void {
-    // Implement room created logic
-  }
+  public setOnRoomCreatedCallback = (
+    callback: (roomName: string) => void
+  ): void => {
+    this.onRoomCreatedCallback = callback;
+  };
 
-  private onRoomJoined(roomName: string, userName: string): void {
-    // Implement room joined logic
-  }
+  public setOnRoomJoinedCallback = (
+    callback: (roomName: string, userName: string) => void
+  ): void => {
+    this.onRoomJoinedCallback = callback;
+  };
 
-  private onRoomDeleted(roomName: string): void {
-    // Implement room deleted logic
-  }
+  public setOnRoomDeletedCallback = (
+    callback: (roomName: string) => void
+  ): void => {
+    this.onRoomDeletedCallback = callback;
+  };
 
-  private onRoomError(errorMessage: string): void {
-    // Implement room error handling logic
-  }
+  public setOnRoomErrorCallback = (
+    callback: (errorMessage: string) => void
+  ): void => {
+    this.onRoomErrorCallback = callback;
+  };
 
   public createRoom = (roomName: string): void => {
     if (!this.socketio) {
