@@ -113,9 +113,15 @@ io.on("connection", (socket) => {
     userName
   );
 
+  io.emit("room-list", Array.from(roomsMap.keys()));
+
   socket.on("disconnect", () => {
-    console.log(`User disconnected: ${socket.id}`);
     // Additional logic for cleanup or logging goes here
+    connectedUsersMap.delete(userName);
+    roomsMap.delete(userName);
+
+    io.emit("room-list", Array.from(roomsMap.keys()));
+    console.log(`User disconnected: ${socket.id}`, connectedUsersMap, roomsMap);
   });
 });
 
