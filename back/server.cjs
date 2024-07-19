@@ -29,7 +29,7 @@ app.set("port", port);
  * @param {Error} error - The error object.
  * @return {void} This function does not return a value.
  */
-const errorSocketListener = (error) => {
+const errorHandler = (error) => {
   if (error.sycall !== "listen") {
     throw error;
   }
@@ -58,7 +58,7 @@ const options = { key, cert };
 
 const server = https.createServer(options, app);
 
-server.on("error", errorSocketListener);
+server.on("error", errorHandler);
 
 server.on("listening", () => {
   const address = server.address();
