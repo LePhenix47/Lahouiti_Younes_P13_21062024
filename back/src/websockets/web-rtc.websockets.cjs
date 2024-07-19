@@ -68,7 +68,7 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
     }
 
     const room = roomsMap.get(roomName);
-    const receiver = room[1];
+    let receiver = room[1];
     if (receiver !== null) {
       console.warn(`Room ${roomName} is already full`);
       socket.emit("room-error", { message: "Room is already full" });
@@ -83,6 +83,7 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
 
     // Emit a success message back to the joiner and update the room list
     socket.emit("room-joined", { roomName, userName });
+    socket.to(roomName).emit("room-joined", { roomName, userName });
     io.emit("room-list", Array.from(roomsMap.keys()));
   });
 
