@@ -77,6 +77,7 @@ export class ChatModuleComponent {
    * Connects to the WebSocket service and sets up event listeners for various chat events.
    */
   private connectToWebSocket = (): void => {
+    this.chatWebSocketsService.setOwnUsername(this.ownUsername());
     this.chatWebSocketsService.connect();
 
     this.groupChatUsersStompClientOutput.emit(

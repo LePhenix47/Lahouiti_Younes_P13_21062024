@@ -15,6 +15,12 @@ export abstract class WebSocketsService {
 
   protected socketio: Socket | null = null;
 
+  protected ownUsername: string | null = null;
+
+  public setOwnUsername = (ownUsername: string): void => {
+    this.ownUsername = ownUsername;
+  };
+
   /**
    * Establishes a WebSocket connection to the server and invokes the callback when connected.
    *
@@ -22,6 +28,10 @@ export abstract class WebSocketsService {
    */
   public connect = (): void => {
     try {
+      if (!this.ownUsername) {
+        throw new Error('No username provided');
+      }
+
       console.log(
         '%cConnecting to WebSocket on server...',
         'background: teal; color: white; padding: 5px; font: 1em'
@@ -29,7 +39,7 @@ export abstract class WebSocketsService {
 
       const socket: Socket = io(this.serverUrl.href, {
         auth: {
-          userName: 'test',
+          userName: this.ownUsername,
         },
       });
       console.log('%cSocket', 'background: maroon', { socket });

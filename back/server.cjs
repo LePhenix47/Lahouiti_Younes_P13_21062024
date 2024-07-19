@@ -107,8 +107,11 @@ io.on("connection", (socket) => {
 
   chatSocketListener(io, socket, connectedUsersMap);
   webRtcSocketListener(io, socket, connectedUsersMap, roomsMap);
-  const userName = socket.handshake.auth.userName;
-  console.log("A user connected to the WS", userName);
+  const { userName } = socket.handshake.auth;
+  console.log(
+    "A user connected to the WS, with username from handshake: ",
+    userName
+  );
 
   socket.on("disconnect", () => {
     console.log(`User disconnected: ${socket.id}`);
