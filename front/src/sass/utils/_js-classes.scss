@@ -18,6 +18,9 @@
 
     border-radius: 100vmax;
 
+    &:disabled {
+      filter: contrast(55%)
+    }
 
     &--1 {
       background-color: var(--color-ycyw-1);
