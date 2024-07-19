@@ -49,17 +49,34 @@ export class ChatRoomMediaComponent {
   public openMicrophone = signal<boolean>(false);
   public showScreenCast = signal<boolean>(false);
 
+  public roomsList = signal<string[]>([]);
+
+  public currentRoom = signal<string | null>(null);
+
   public userChange = effect(() => {
     console.log('effect');
 
-    this.updateLocalStream();
+    if (this.ownWebCamVideoRef) {
+      this.updateLocalStream();
+    }
 
-    this.updateScreenCastStream();
+    if (this.ownScreenCastVideoRef) {
+      this.updateScreenCastStream();
+    }
   });
 
   ngOnInit() {
     console.group('ngOnInit()');
     this.chatWebRtcService.setSocketIO(this.socketIO()!);
+    this.chatWebRtcService.addRoomSocketEventListeners();
+
+    this.chatWebRtcService.setOnRoomListUpdateCallback(this.updateRoomsList);
+    this.chatWebRtcService.setOnRoomCreatedCallback(this.roomCreatedCallback);
+    this.chatWebRtcService.setOnRoomDeletedCallback(this.roomDeletedCallback);
+
+    this.roomsList.update(() => {
+      return [...this.chatWebRtcService.getRoomList()];
+    });
 
     console.groupEnd();
   }
@@ -67,6 +84,40 @@ export class ChatRoomMediaComponent {
   ngOnDestroy() {
     this.chatWebRtcService.endWebRTCSession(this.ownUsername());
   }
+
+  private roomCreatedCallback = (roomName: string) => {
+    this.currentRoom.update(() => {
+      return roomName;
+    });
+  };
+
+  private roomDeletedCallback = () => {
+    console.log('roomDeletedCallback');
+
+    this.currentRoom.update(() => {
+      return null;
+    });
+  };
+
+  private updateRoomsList = (rooms: string[]) => {
+    this.roomsList.update(() => {
+      return rooms;
+    });
+  };
+
+  public connectToRoom = (roomName: string) => {
+    console.log('connectToRoom', roomName);
+  };
+
+  public disconnectFromRoom = (roomName: string) => {};
+
+  public createRoom = () => {
+    this.chatWebRtcService.createRoom(this.ownUsername());
+  };
+
+  public deleteRoom = () => {
+    this.chatWebRtcService.deleteRoom(this.ownUsername());
+  };
 
   public initializeConnection = () => {
     this.chatWebRtcService.startWebRTCSession(

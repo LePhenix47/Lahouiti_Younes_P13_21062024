@@ -20,9 +20,21 @@
     <h3 class="chat-room-media__local-stream-title">
       Awaiting calls
     </h3>
-    <li class="chat-room-media____calls-item"></li>
+    @if(!roomsList().length){
+    <p>No calls have been made yet</p>
+    }
+
+    @for(room of roomsList(); let index = $index; track index){
+    <li class="chat-room-media____calls-item">
+      Incoming call request from: {{room}}
+      <button type="button" class="ycyw__button ycyw__button--2" (click)="connectToRoom(room)"
+        [disabled]="room === ownUsername()">Join</button>
+    </li>
+    }
+
   </ul>
 
+  @if(currentRoom()){
   <section class="chat-room-media__local-stream">
     <h3 class="chat-room-media__local-stream-title">
       Local stream
@@ -53,8 +65,14 @@
         (change)="toggleScreenCast($event)" /> Screen
       cast</label>
 
-    <!-- <button type="button" class="chat-room-media__button ycyw__button ycyw__button--1"
-      (click)="initializeConnection()">Connect to group
-      chat</button> -->
   </form>
+  }
+
+  @if(currentRoom()){
+  <button type="button" class="chat-room-media__button ycyw__button ycyw__button--2" (click)="deleteRoom()">Delete
+    room</button>
+  } @else {
+  <button type="button" class="chat-room-media__button ycyw__button ycyw__button--1" (click)="createRoom()">Create new
+    room</button>
+  }
 </aside>
