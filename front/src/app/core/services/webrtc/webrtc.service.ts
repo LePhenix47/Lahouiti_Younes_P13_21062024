@@ -273,7 +273,7 @@ export abstract class WebRTCService {
    *
    * @return {void} This function does not return a value.
    */
-  public abstract addWebRtcSocketEventListeners(): void;
+  protected abstract addWebRtcSocketEventListeners(): void;
 
   /**
    * Handles ICE candidate events to emit the ICE candidate to the remote peer

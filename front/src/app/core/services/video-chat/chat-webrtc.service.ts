@@ -7,6 +7,7 @@ import { SignalMessage } from '@core/types/chat/chat.types';
 })
 export class ChatWebRtcService extends WebRTCService {
   public rtcConnected: boolean = false;
+  public hasCreatedRoom: boolean = false;
   public currentRoom: string | null = null;
   protected roomList: string[] = []; // To keep track of available rooms
 
@@ -22,9 +23,7 @@ export class ChatWebRtcService extends WebRTCService {
   /**
    * Adds websocket event listeners related to WebRTC for handling ICE candidates, offers, and answers
    */
-  public addWebRtcSocketEventListeners = (): void => {
-    this.addRoomSocketEventListeners();
-
+  protected addWebRtcSocketEventListeners = (): void => {
     if (!this.socketio) {
       return;
     }
@@ -101,6 +100,12 @@ export class ChatWebRtcService extends WebRTCService {
     });
   };
 
+  // * Getters
+
+  public getRoomList() {
+    return this.roomList;
+  }
+
   // * Methods to set callbacks
   public setOnRoomListUpdateCallback = (
     callback: (rooms: string[]) => void
@@ -143,6 +148,14 @@ export class ChatWebRtcService extends WebRTCService {
       return;
     }
     this.socketio.emit('create-room', roomName);
+  };
+
+  public deleteRoom = (roomName: string): void => {
+    if (!this.socketio) {
+      return;
+    }
+
+    this.socketio.emit('room-deleted', roomName);
   };
 
   /**
