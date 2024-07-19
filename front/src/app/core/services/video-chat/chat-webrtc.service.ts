@@ -8,7 +8,7 @@ import { SignalMessage } from '@core/types/chat/chat.types';
 export class ChatWebRtcService extends WebRTCService {
   public rtcConnected: boolean = false;
   public currentRoom: string | null = null;
-  private roomList: string[] = []; // To keep track of available rooms
+  protected roomList: string[] = []; // To keep track of available rooms
 
   /**
    * Adds websocket event listeners related to WebRTC for handling ICE candidates, offers, and answers
@@ -20,7 +20,7 @@ export class ChatWebRtcService extends WebRTCService {
       return;
     }
 
-    console.log('Adding socket listeners !!!');
+    console.log('Adding WebRTC socket listeners !!!');
 
     this.socketio.on('ice-candidate', async (remotePeerIceCandidate) => {
       await this.peerConnection!.addIceCandidate(remotePeerIceCandidate);
