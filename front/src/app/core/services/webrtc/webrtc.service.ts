@@ -162,7 +162,7 @@ export abstract class WebRTCService {
 
     this.peerConnection = new RTCPeerConnection(this.iceStunServers);
     this.addPeerConnectionEventListeners(this.peerConnection);
-    this.addSocketEventListeners();
+    this.addWebRtcSocketEventListeners();
     this.addLocalTracksToPeerConnection(this.peerConnection);
 
     return this.peerConnection;
@@ -268,7 +268,12 @@ export abstract class WebRTCService {
     this.remoteScreenElement = element;
   }
 
-  public abstract addSocketEventListeners(): void;
+  /**
+   * Adds event listeners for WebRTC socket events.
+   *
+   * @return {void} This function does not return a value.
+   */
+  public abstract addWebRtcSocketEventListeners(): void;
 
   /**
    * Handles ICE candidate events to emit the ICE candidate to the remote peer
