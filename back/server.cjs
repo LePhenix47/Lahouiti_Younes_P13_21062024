@@ -77,7 +77,19 @@ const offers = [
   // answererIceCandidates
 ];
 
+/**
+ * Map to store username and socket.id
+ *
+ * @type {Map<string, string>}
+ */
 const connectedUsersMap = new Map();
+
+/**
+ * Map to store room details, with the key the initializer and the value a tuple with 2 elements: [initializer, otherPeer]
+ *
+ * @type {Map<string, [string, string|null]>}
+ */
+const roomsMap = new Map();
 
 const io = socketio(server, {
   cors: {
@@ -94,7 +106,7 @@ io.on("connection", (socket) => {
   testSocketListener(io, socket);
 
   chatSocketListener(io, socket, connectedUsersMap);
-  webRtcSocketListener(io, socket, connectedUsersMap);
+  webRtcSocketListener(io, socket, connectedUsersMap, roomsMap);
   const userName = socket.handshake.auth.userName;
   console.log("A user connected to the WS", userName);
 
