@@ -101,7 +101,7 @@ export class ChatWebRtcService extends WebRTCService {
     });
   };
 
-  // Methods to set callbacks
+  // * Methods to set callbacks
   public setOnRoomListUpdateCallback = (
     callback: (rooms: string[]) => void
   ): void => {
@@ -132,6 +132,12 @@ export class ChatWebRtcService extends WebRTCService {
     this.onRoomErrorCallback = callback;
   };
 
+  /**
+   * Creates a room with the given name. The room name will be shared with the
+   * backend and will be used to identify the room.
+   *
+   * @param roomName The name of the room to be created.
+   */
   public createRoom = (roomName: string): void => {
     if (!this.socketio) {
       return;
@@ -139,6 +145,12 @@ export class ChatWebRtcService extends WebRTCService {
     this.socketio.emit('create-room', roomName);
   };
 
+  /**
+   * Joins the room with the given name. The room name will be shared with the
+   * backend and will be used to identify the room.
+   *
+   * @param {string} roomName The name of the room to be joined.
+   */
   public joinRoom = (roomName: string): void => {
     if (!this.socketio) {
       return;
@@ -146,6 +158,10 @@ export class ChatWebRtcService extends WebRTCService {
     this.socketio.emit('join-room', roomName);
   };
 
+  /**
+   * Leaves the current room. This will cause the user to be disconnected from
+   * the room.
+   */
   public leaveRoom = (): void => {
     if (!this.currentRoom || !this.socketio) {
       return;
