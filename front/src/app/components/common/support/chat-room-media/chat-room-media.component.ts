@@ -52,17 +52,11 @@ export class ChatRoomMediaComponent {
   public roomsList = signal<string[]>([]);
 
   public currentRoom = signal<string | null>(null);
+  public isReceiver = signal<boolean>(false);
+  public otherPeerUserName = signal<string | null>(null);
 
   public userChange = effect(() => {
     console.log('effect');
-
-    if (this.ownWebCamVideoRef) {
-      this.updateLocalStream();
-    }
-
-    if (this.ownScreenCastVideoRef) {
-      this.updateScreenCastStream();
-    }
   });
 
   ngOnInit() {
@@ -72,6 +66,7 @@ export class ChatRoomMediaComponent {
 
     this.chatWebRtcService.setOnRoomListUpdateCallback(this.updateRoomsList);
     this.chatWebRtcService.setOnRoomCreatedCallback(this.roomCreatedCallback);
+    this.chatWebRtcService.setOnRoomJoinedCallback(this.roomJoinedCallback);
     this.chatWebRtcService.setOnRoomDeletedCallback(this.roomDeletedCallback);
 
     this.roomsList.update(() => {
@@ -89,6 +84,27 @@ export class ChatRoomMediaComponent {
     this.currentRoom.update(() => {
       return roomName;
     });
+
+    this.isReceiver.update(() => {
+      return true;
+    });
+  };
+
+  private roomJoinedCallback = (
+    roomName: string,
+    otherPeerUsername: string
+  ) => {
+    console.log('roomJoinedCallback', roomName);
+
+    this.currentRoom.update(() => {
+      return roomName;
+    });
+
+    this.isReceiver.update(() => {
+      return otherPeerUsername === this.ownUsername();
+    });
+
+    console.log(`Currently in a room (${roomName}) with ${otherPeerUsername}`);
   };
 
   private roomDeletedCallback = () => {
@@ -96,6 +112,10 @@ export class ChatRoomMediaComponent {
 
     this.currentRoom.update(() => {
       return null;
+    });
+
+    this.isReceiver.update(() => {
+      return false;
     });
   };
 
@@ -105,12 +125,6 @@ export class ChatRoomMediaComponent {
     });
   };
 
-  public connectToRoom = (roomName: string) => {
-    console.log('connectToRoom', roomName);
-  };
-
-  public disconnectFromRoom = (roomName: string) => {};
-
   public createRoom = () => {
     this.chatWebRtcService.createRoom(this.ownUsername());
   };
@@ -119,13 +133,23 @@ export class ChatRoomMediaComponent {
     this.chatWebRtcService.deleteRoom(this.ownUsername());
   };
 
+  public connectToRoom = (roomName: string) => {
+    console.log('connectToRoom', roomName);
+    this.chatWebRtcService.joinRoom(roomName);
+  };
+
+  public disconnectFromRoom = () => {
+    console.log('disconnectFromRoom method (NOT IMPLEMENTED)');
+  };
+
+  public sendTestMessage = () => {};
+
   public initializeConnection = () => {
     this.chatWebRtcService.startWebRTCSession(
       this.ownUsername(),
       this.usersList()
     );
   };
-  public checkIncomingConnections = () => {};
 
   private updateLocalStream = async () => {
     console.log(
@@ -193,6 +217,8 @@ export class ChatRoomMediaComponent {
    */
   public toggleWebcam = (event: Event): void => {
     this.updateSignal(this.showWebcam, event);
+
+    this.updateLocalStream();
   };
 
   /**
@@ -202,6 +228,8 @@ export class ChatRoomMediaComponent {
    */
   public toggleAudio = (event: Event): void => {
     this.updateSignal(this.openMicrophone, event);
+
+    this.updateLocalStream();
   };
 
   /**
@@ -211,5 +239,7 @@ export class ChatRoomMediaComponent {
    */
   public toggleScreenCast = (event: Event): void => {
     this.updateSignal(this.showScreenCast, event);
+
+    this.updateScreenCastStream();
   };
 }

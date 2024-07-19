@@ -69,8 +69,14 @@
   }
 
   @if(currentRoom()){
+  @if(isReceiver()){
   <button type="button" class="chat-room-media__button ycyw__button ycyw__button--2" (click)="deleteRoom()">Delete
     room</button>
+  }@else {
+  <button type="button" class="chat-room-media__button ycyw__button ycyw__button--2"
+    (click)="disconnectFromRoom()">Disconnect from
+    room</button>
+  }
   } @else {
   <button type="button" class="chat-room-media__button ycyw__button ycyw__button--1" (click)="createRoom()">Create new
     room</button>
