@@ -27,18 +27,12 @@ export class ChatWebRtcService extends WebRTCService {
     if (!this.socketio) {
       return;
     }
-
     console.log(
       '%cAdding WebRTC socket listeners !!!',
       'background: white; color: black; padding: 1rem'
     );
 
     this.socketio.on('ice-candidate', async (remotePeerIceCandidate) => {
-      console.log(
-        '%cOn Socket ice-candidate',
-        'background: teal; padding: 1rem;',
-        remotePeerIceCandidate
-      );
       await this.peerConnection!.addIceCandidate(remotePeerIceCandidate);
 
       this.onReceiveIce(remotePeerIceCandidate);
@@ -48,13 +42,6 @@ export class ChatWebRtcService extends WebRTCService {
     this.socketio.on('offer', async (remoteOffer) => {
       const sessionDescription = new RTCSessionDescription(remoteOffer);
       await this.peerConnection!.setRemoteDescription(sessionDescription);
-      console.log(
-        '%cOn Socket offer for the RECEIVER',
-        'background: green; padding: 1rem;',
-        JSON.stringify(this.peerConnection?.localDescription),
-        JSON.stringify(this.peerConnection?.remoteDescription)
-      );
-
       this.onReceiveOffer(remoteOffer);
 
       this.createAnswer();
@@ -64,12 +51,6 @@ export class ChatWebRtcService extends WebRTCService {
     this.socketio.on('answer', async (remoteAnswer) => {
       const sessionDescription = new RTCSessionDescription(remoteAnswer);
       await this.peerConnection!.setRemoteDescription(sessionDescription);
-      console.log(
-        '%cOn Socket answer for the SENDER',
-        'background: blue; padding: 1rem;',
-        JSON.stringify(this.peerConnection?.localDescription),
-        JSON.stringify(this.peerConnection?.remoteDescription)
-      );
 
       this.onReceiveAnswer(remoteAnswer);
     });
@@ -84,11 +65,6 @@ export class ChatWebRtcService extends WebRTCService {
       return;
     }
 
-    console.log(
-      '%cAdding socket listeners for room management !!!',
-      'background: black; color: white; padding: 1rem'
-    );
-
     this.socketio.on('room-list', (rooms: string[]) => {
       this.roomList = rooms;
 
@@ -96,23 +72,17 @@ export class ChatWebRtcService extends WebRTCService {
     });
 
     this.socketio.on('room-created', (data: { roomName: string }) => {
-      // console.log(`Room created: ${data.roomName}`);
-
       this.onRoomCreatedCallback?.(data.roomName);
     });
 
     this.socketio.on(
       'room-joined',
       (data: { roomName: string; userName: string }) => {
-        // console.log(`Room joined: ${data.roomName} by ${data.userName}`);
-
         this.onRoomJoinedCallback?.(data.roomName, data.userName);
       }
     );
 
     this.socketio.on('room-deleted', (data: { roomName: string }) => {
-      // console.log(`Room deleted: ${data.roomName}`);
-
       this.onRoomDeletedCallback?.(data.roomName);
     });
 
@@ -241,12 +211,9 @@ export class ChatWebRtcService extends WebRTCService {
 
     this.setDataChannelAsOffer(this.currentRoom!);
 
-    console.log('Local stream', this.localStream);
-
     const offer: RTCSessionDescriptionInit = await peerConnection.createOffer();
 
     // Handle incoming offer from remote peer
-    // console.log(`createOffer`, offer);
 
     await peerConnection.setLocalDescription(offer);
 
@@ -276,7 +243,6 @@ export class ChatWebRtcService extends WebRTCService {
       await peerConnection.createAnswer();
 
     // Handle incoming answer from remote peer
-    // console.log(`createAnswer`, answer);
 
     await peerConnection.setLocalDescription(answer);
 
@@ -299,18 +265,48 @@ export class ChatWebRtcService extends WebRTCService {
   };
 
   public handleTrackEvent = (event: RTCTrackEvent): void => {
-    // Handle incoming tracks from remote peers
     console.log(`Received tracks from remote peer`, event);
-    // Example: Display incoming video/audio to the user interface
-    for (const stream of event.streams) {
-      console.log({ stream });
+
+    // Check if we have any streams from the event
+    if (!event.streams.length) {
+      console.error(`No streams from remote peer`, event);
+      return;
+    }
+    // * Since only 2 people can make a call, we only need one stream
+    const stream = event.streams[0];
+    console.log({ stream });
+
+    // Handle the stream based on its type
+    for (const track of stream.getTracks()) {
+      switch (track.kind) {
+        case 'video': {
+          if (!this.remoteVideoElement) {
+            return;
+          }
+          this.remoteVideoElement!.srcObject = stream;
+          break;
+        }
+        case 'screen': {
+          if (!this.remoteScreenElement) {
+            return;
+          }
+          this.remoteScreenElement!.srcObject = stream;
+          break;
+        }
+        case 'audio': {
+          if (!this.remoteVideoElement) {
+            return;
+          }
+          this.remoteVideoElement!.srcObject = stream;
+          break;
+        }
+      }
     }
   };
 
   public handleIceCandidate = async (
     candidate: RTCIceCandidate
   ): Promise<void> => {
-    // console.log(
     //   `%cGENERATED Ice candidate to send to remote peer`,
     //   'background: yellow; color: black; padding: 1rem',
     //   candidate
@@ -326,9 +322,7 @@ export class ChatWebRtcService extends WebRTCService {
   };
 
   // Example method for starting a WebRTC session with a specific user
-  public startWebRTCSession = (): void => {
-    // console.log(this);
-  };
+  public startWebRTCSession = (): void => {};
 
   // Example method for ending a WebRTC session with a specific user
   public endWebRTCSession = (username: string): void => {

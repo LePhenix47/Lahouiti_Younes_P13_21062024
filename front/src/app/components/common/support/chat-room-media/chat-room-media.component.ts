@@ -73,12 +73,36 @@ export class ChatRoomMediaComponent {
       return [...this.chatWebRtcService.getRoomList()];
     });
 
+    this.socketIO()!.on(
+      'wrtc-test',
+      (data: { roomName: string; message: string }) => {
+        console.log('wrtc-test', { data });
+      }
+    );
     console.groupEnd();
   }
 
   ngOnDestroy() {
     this.chatWebRtcService.endWebRTCSession(this.ownUsername());
   }
+
+  private setWebRtcVideoElements = () => {
+    // * Local webcam, audio and screen cast
+    this.chatWebRtcService.setLocalVideoElement(
+      this.ownWebCamVideoRef!.nativeElement
+    );
+    this.chatWebRtcService.setLocalScreenElement(
+      this.ownScreenCastVideoRef!.nativeElement
+    );
+
+    // * Remote webcam, audio and screen cast
+    this.chatWebRtcService.setRemoteVideoElement(
+      this.remoteWebCamVideoRef!.nativeElement
+    );
+    this.chatWebRtcService.setRemoteScreenElement(
+      this.remoteScreenCastVideoRef!.nativeElement
+    );
+  };
 
   private roomCreatedCallback = (roomName: string) => {
     this.currentRoom.update(() => {
@@ -127,6 +151,9 @@ export class ChatRoomMediaComponent {
 
   public createRoom = () => {
     this.chatWebRtcService.createRoom(this.ownUsername());
+    this.chatWebRtcService.createPeerConnection();
+
+    this.setWebRtcVideoElements();
   };
 
   public deleteRoom = () => {
@@ -135,20 +162,31 @@ export class ChatRoomMediaComponent {
 
   public connectToRoom = (roomName: string) => {
     console.log('connectToRoom', roomName);
+    this.chatWebRtcService.createPeerConnection();
     this.chatWebRtcService.joinRoom(roomName);
+
+    this.setWebRtcVideoElements();
   };
 
   public disconnectFromRoom = () => {
     console.log('disconnectFromRoom method (NOT IMPLEMENTED)');
   };
 
-  public sendTestMessage = () => {};
+  public sendTestMessage = () => {
+    this.socketIO()!.emit('wrtc-test', {
+      roomName: this.currentRoom(),
+      message: 'test',
+    });
+  };
 
-  public initializeConnection = () => {
-    this.chatWebRtcService.startWebRTCSession(
-      this.ownUsername(),
-      this.usersList()
-    );
+  public initializeConnection = async () => {
+    this.chatWebRtcService.createPeerConnection();
+
+    await this.chatWebRtcService.createOffer();
+  };
+
+  public joinConnection = async () => {
+    await this.chatWebRtcService.createAnswer();
   };
 
   private updateLocalStream = async () => {
@@ -157,8 +195,6 @@ export class ChatRoomMediaComponent {
       this.openMicrophone(),
       this.showScreenCast()
     );
-
-    this.chatWebRtcService.resetLocalStream();
 
     await this.chatWebRtcService.setLocalStream(
       this.openMicrophone(),

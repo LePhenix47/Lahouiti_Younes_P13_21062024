@@ -48,4 +48,11 @@
   &__webcam-video {
     scale: -100% 100%;
   }
+
+  video {
+    width: 300px;
+    height: 150px;
+
+    @include fit-image(contain);
+  }
 }

@@ -34,7 +34,6 @@
 
   </ul>
 
-  @if(currentRoom()){
   <section class="chat-room-media__local-stream">
     <h3 class="chat-room-media__local-stream-title">
       Local stream
@@ -50,6 +49,8 @@
     <video autoplay playsInline #remoteWebCamVideoRef class="chat-room-media__webcam-video"></video>
     <video autoplay playsInline #remoteScreenCastVideoRef class="chat-room-media__screen-cast-video"></video>
   </section>
+  @if(currentRoom()){
+  }
 
   <form class="chat-room-media__controls">
     <label class="chat-room-media__label chat-room-media__control">
@@ -66,18 +67,25 @@
       cast</label>
 
   </form>
-  }
 
-  @if(currentRoom()){
+  @if(!!(currentRoom())){
   @if(isReceiver()){
-  <button type="button" class="chat-room-media__button ycyw__button ycyw__button--2" (click)="deleteRoom()">Delete
-    room</button>
-  }@else {
   <button type="button" class="chat-room-media__button ycyw__button ycyw__button--2"
     (click)="disconnectFromRoom()">Disconnect from
     room</button>
+  <button type="button" class="chat-room-media__button ycyw__button ycyw__button--1"
+    (click)="joinConnection()">Join</button>
+  }@else {
+  <button type="button" class="chat-room-media__button ycyw__button ycyw__button--2" (click)="deleteRoom()">Delete
+    room</button>
+  <button type="button" class="chat-room-media__button ycyw__button ycyw__button--1"
+    (click)="initializeConnection()">Start</button>
+
   }
+  <!-- <button type="button" class="chat-room-media__button ycyw__button ycyw__button--1" (click)="sendTestMessage()">Send
+    test message</button> -->
   } @else {
+
   <button type="button" class="chat-room-media__button ycyw__button ycyw__button--1" (click)="createRoom()">Create new
     room</button>
   }

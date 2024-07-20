@@ -258,7 +258,7 @@ export abstract class WebRTCService {
       console.log('this.localStream', this.localStream.getTracks());
 
       for (const track of this.localStream.getTracks()) {
-        this.peerConnection.addTrack(track);
+        this.peerConnection.addTrack(track, this.localStream);
       }
     }
 
@@ -266,7 +266,7 @@ export abstract class WebRTCService {
       console.log('this.screenStream');
 
       for (const track of this.screenStream.getTracks()) {
-        this.peerConnection.addTrack(track);
+        this.peerConnection.addTrack(track, this.screenStream);
       }
     }
 
