@@ -47,6 +47,8 @@ export abstract class WebRTCService {
    */
   protected socketio: Socket | null = null;
 
+  protected dataChannel: RTCDataChannel | null = null;
+
   /**
    * Sets the Socket.io client for signaling.
    * @param {Socket} socketio - The Socket.io client.
@@ -163,9 +165,35 @@ export abstract class WebRTCService {
     this.peerConnection = new RTCPeerConnection(this.iceStunServers);
     this.addPeerConnectionEventListeners(this.peerConnection);
     this.addWebRtcSocketEventListeners();
-    this.addLocalTracksToPeerConnection(this.peerConnection);
 
     return this.peerConnection;
+  };
+
+  protected setDataChannelAsOffer = (channel: string): void => {
+    this.dataChannel = this.peerConnection!.createDataChannel(channel);
+
+    this.dataChannel.onmessage = (e) => {
+      console.log('New data channel msg:', e.data);
+    };
+
+    this.dataChannel.onopen = (e) => {
+      console.log('Connection opened:');
+    };
+  };
+
+  protected setDataChannelAsAnswer = (): void => {
+    this.peerConnection!.addEventListener('datachannel', (e) => {
+      console.log('Data dataChannel event', e);
+      this.dataChannel = e.channel;
+
+      this.dataChannel.addEventListener('message', (e) => {
+        console.log('new message', e.data);
+      });
+
+      this.dataChannel.addEventListener('open', (e) => {
+        console.log('Connected to other peer LETS GOOOO!!!!', e);
+      });
+    });
   };
 
   /**
@@ -179,6 +207,8 @@ export abstract class WebRTCService {
       'icecandidate',
       (event: RTCPeerConnectionIceEvent) => {
         if (!event.candidate) {
+          console.warn('No ICE candidate found.');
+
           return;
         }
 
@@ -186,11 +216,15 @@ export abstract class WebRTCService {
       }
     );
 
+    peerConnection.addEventListener('icegatheringstatechange', (event) => {
+      console.log(peerConnection.iceGatheringState, event);
+    });
+
     peerConnection.addEventListener('icecandidateerror', (event: Event) => {
       // * Angular throws an error if you set the event type to RTCPeerConnectionIceErrorEvent
 
       const iceErrorEvent = event as RTCPeerConnectionIceErrorEvent;
-      console.log('icecandidateerror', iceErrorEvent);
+      console.error('icecandidateerror', iceErrorEvent);
 
       this.handleIceCandidateError(iceErrorEvent);
     });
@@ -273,7 +307,7 @@ export abstract class WebRTCService {
    *
    * @return {void} This function does not return a value.
    */
-  protected abstract addWebRtcSocketEventListeners(): void;
+  public abstract addWebRtcSocketEventListeners(): void;
 
   /**
    * Handles ICE candidate events to emit the ICE candidate to the remote peer
