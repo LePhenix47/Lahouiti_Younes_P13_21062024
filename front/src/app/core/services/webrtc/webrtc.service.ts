@@ -163,22 +163,24 @@ export abstract class WebRTCService {
     }
 
     this.peerConnection = new RTCPeerConnection(this.iceStunServers);
-    this.addPeerConnectionEventListeners(this.peerConnection);
+    this.addPeerConnectionEventListeners();
+
     this.addWebRtcSocketEventListeners();
 
+    console.log('Creating peer connection');
     return this.peerConnection;
   };
 
   protected setDataChannelAsOffer = (channel: string): void => {
     this.dataChannel = this.peerConnection!.createDataChannel(channel);
 
-    this.dataChannel.onmessage = (e) => {
-      console.log('New data channel msg:', e.data);
-    };
+    this.dataChannel.addEventListener('message', (e) => {
+      console.log('new message', e.data);
+    });
 
-    this.dataChannel.onopen = (e) => {
-      console.log('Connection opened:');
-    };
+    this.dataChannel.addEventListener('open', (e) => {
+      console.log('(OFFER) Connected to other peer LETS GOOOO!!!!', e);
+    });
   };
 
   protected setDataChannelAsAnswer = (): void => {
@@ -191,7 +193,7 @@ export abstract class WebRTCService {
       });
 
       this.dataChannel.addEventListener('open', (e) => {
-        console.log('Connected to other peer LETS GOOOO!!!!', e);
+        console.log('(ANSWER) Connected to other peer LETS GOOOO!!!!', e);
       });
     });
   };
@@ -200,10 +202,16 @@ export abstract class WebRTCService {
    * Adds event listeners to the peer connection.
    * @param {RTCPeerConnection} peerConnection - The peer connection instance.
    */
-  private addPeerConnectionEventListeners = (
-    peerConnection: RTCPeerConnection
-  ): void => {
-    peerConnection.addEventListener(
+  private addPeerConnectionEventListeners = (): void => {
+    this.peerConnection!.addEventListener('track', (event: RTCTrackEvent) => {
+      console.log('TRACK', { event });
+
+      this.remoteStream.addTrack(event.track);
+
+      this.handleTrackEvent(event);
+    });
+
+    this.peerConnection!.addEventListener(
       'icecandidate',
       (event: RTCPeerConnectionIceEvent) => {
         if (!event.candidate) {
@@ -216,48 +224,58 @@ export abstract class WebRTCService {
       }
     );
 
-    peerConnection.addEventListener('icegatheringstatechange', (event) => {
-      console.log(peerConnection.iceGatheringState, event);
-    });
+    this.peerConnection!.addEventListener(
+      'icegatheringstatechange',
+      (event) => {
+        console.log(this.peerConnection!.iceGatheringState, event);
+      }
+    );
 
-    peerConnection.addEventListener('icecandidateerror', (event: Event) => {
-      // * Angular throws an error if you set the event type to RTCPeerConnectionIceErrorEvent
+    this.peerConnection!.addEventListener(
+      'icecandidateerror',
+      (event: Event) => {
+        // * Angular throws an error if you set the event type to RTCPeerConnectionIceErrorEvent
 
-      const iceErrorEvent = event as RTCPeerConnectionIceErrorEvent;
-      console.error('icecandidateerror', iceErrorEvent);
+        const iceErrorEvent = event as RTCPeerConnectionIceErrorEvent;
+        console.error('icecandidateerror', iceErrorEvent);
 
-      this.handleIceCandidateError(iceErrorEvent);
-    });
+        this.handleIceCandidateError(iceErrorEvent);
+      }
+    );
 
-    peerConnection.addEventListener('track', (event: RTCTrackEvent) => {
-      this.remoteStream.addTrack(event.track);
-
-      this.handleTrackEvent(event);
-    });
-
-    peerConnection.addEventListener('signalingstatechange', () => {
-      console.log('Signaling state:', peerConnection.signalingState);
+    this.peerConnection!.addEventListener('signalingstatechange', () => {
+      console.log('Signaling state:', this.peerConnection!.signalingState);
     });
   };
 
   /**
    * Adds local tracks to the peer connection.
-   * @param {RTCPeerConnection} peerConnection - The peer connection instance.
    */
-  protected addLocalTracksToPeerConnection = (
-    peerConnection: RTCPeerConnection
-  ): void => {
+  public addLocalTracksToPeerConnection = (): void => {
+    if (!this.peerConnection) {
+      console.error('The peer connection was not initiated');
+      return;
+    }
+
+    console.log('this.addLocalTracksToPeerConnection');
+
     if (this.localStream) {
+      console.log('this.localStream', this.localStream.getTracks());
+
       for (const track of this.localStream.getTracks()) {
-        peerConnection.addTrack(track, this.localStream);
+        this.peerConnection.addTrack(track, this.localStream);
       }
     }
 
     if (this.screenStream) {
+      console.log('this.screenStream');
+
       for (const track of this.screenStream.getTracks()) {
-        peerConnection.addTrack(track, this.screenStream);
+        this.peerConnection.addTrack(track, this.screenStream);
       }
     }
+
+    console.log(this.peerConnection.getConfiguration());
   };
 
   // ? ===========  ABSTRACT METHODS =========== ?
