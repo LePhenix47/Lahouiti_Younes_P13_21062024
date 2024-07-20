@@ -120,6 +120,11 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
     io.emit("room-list", Array.from(roomsMap.keys()));
   });
 
+  socket.on("wrtc-test", ({ roomName, message }) => {
+    console.log(`wrtc-test from ${socket.id} in room ${roomName}`, message);
+    socket.to(roomName).emit("wrtc-test", message);
+  });
+
   // Handle an offer event within a room
   socket.on("offer", (data) => {
     const { roomName, offer } = data;
