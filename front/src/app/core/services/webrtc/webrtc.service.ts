@@ -204,10 +204,6 @@ export abstract class WebRTCService {
    */
   private addPeerConnectionEventListeners = (): void => {
     this.peerConnection!.addEventListener('track', (event: RTCTrackEvent) => {
-      console.log('TRACK', { event });
-
-      this.remoteStream.addTrack(event.track);
-
       this.handleTrackEvent(event);
     });
 
@@ -237,7 +233,6 @@ export abstract class WebRTCService {
         // * Angular throws an error if you set the event type to RTCPeerConnectionIceErrorEvent
 
         const iceErrorEvent = event as RTCPeerConnectionIceErrorEvent;
-        console.error('icecandidateerror', iceErrorEvent);
 
         this.handleIceCandidateError(iceErrorEvent);
       }
@@ -263,7 +258,7 @@ export abstract class WebRTCService {
       console.log('this.localStream', this.localStream.getTracks());
 
       for (const track of this.localStream.getTracks()) {
-        this.peerConnection.addTrack(track, this.localStream);
+        this.peerConnection.addTrack(track);
       }
     }
 
@@ -271,11 +266,11 @@ export abstract class WebRTCService {
       console.log('this.screenStream');
 
       for (const track of this.screenStream.getTracks()) {
-        this.peerConnection.addTrack(track, this.screenStream);
+        this.peerConnection.addTrack(track);
       }
     }
 
-    console.log(this.peerConnection.getConfiguration());
+    console.log(this.peerConnection.connectionState);
   };
 
   // ? ===========  ABSTRACT METHODS =========== ?

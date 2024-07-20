@@ -46,23 +46,29 @@ export class ChatWebRtcService extends WebRTCService {
 
     // * If the user is the RECEIVER
     this.socketio.on('offer', async (remoteOffer) => {
-      await this.peerConnection!.setRemoteDescription(remoteOffer);
+      const sessionDescription = new RTCSessionDescription(remoteOffer);
+      await this.peerConnection!.setRemoteDescription(sessionDescription);
       console.log(
         '%cOn Socket offer for the RECEIVER',
         'background: green; padding: 1rem;',
-        remoteOffer
+        JSON.stringify(this.peerConnection?.localDescription),
+        JSON.stringify(this.peerConnection?.remoteDescription)
       );
 
       this.onReceiveOffer(remoteOffer);
+
+      this.createAnswer();
     });
 
     // * If the user is the SENDER
     this.socketio.on('answer', async (remoteAnswer) => {
-      await this.peerConnection!.setRemoteDescription(remoteAnswer);
+      const sessionDescription = new RTCSessionDescription(remoteAnswer);
+      await this.peerConnection!.setRemoteDescription(sessionDescription);
       console.log(
         '%cOn Socket answer for the SENDER',
         'background: blue; padding: 1rem;',
-        remoteAnswer
+        JSON.stringify(this.peerConnection?.localDescription),
+        JSON.stringify(this.peerConnection?.remoteDescription)
       );
 
       this.onReceiveAnswer(remoteAnswer);
@@ -78,17 +84,19 @@ export class ChatWebRtcService extends WebRTCService {
       return;
     }
 
-    console.log('Adding socket listeners for room management !!!');
+    console.log(
+      '%cAdding socket listeners for room management !!!',
+      'background: black; color: white; padding: 1rem'
+    );
 
     this.socketio.on('room-list', (rooms: string[]) => {
       this.roomList = rooms;
-      console.log('Updated room list:', rooms);
 
       this.onRoomListUpdateCallback?.(rooms);
     });
 
     this.socketio.on('room-created', (data: { roomName: string }) => {
-      console.log(`Room created: ${data.roomName}`);
+      // console.log(`Room created: ${data.roomName}`);
 
       this.onRoomCreatedCallback?.(data.roomName);
     });
@@ -96,14 +104,14 @@ export class ChatWebRtcService extends WebRTCService {
     this.socketio.on(
       'room-joined',
       (data: { roomName: string; userName: string }) => {
-        console.log(`Room joined: ${data.roomName} by ${data.userName}`);
+        // console.log(`Room joined: ${data.roomName} by ${data.userName}`);
 
         this.onRoomJoinedCallback?.(data.roomName, data.userName);
       }
     );
 
     this.socketio.on('room-deleted', (data: { roomName: string }) => {
-      console.log(`Room deleted: ${data.roomName}`);
+      // console.log(`Room deleted: ${data.roomName}`);
 
       this.onRoomDeletedCallback?.(data.roomName);
     });
@@ -217,6 +225,8 @@ export class ChatWebRtcService extends WebRTCService {
   };
 
   public createOffer = async (): Promise<void> => {
+    this.addLocalTracksToPeerConnection();
+
     if (!this.peerConnection) {
       console.error(
         "Cannot create offer because peer connection doesn't exist."
@@ -229,20 +239,14 @@ export class ChatWebRtcService extends WebRTCService {
 
     const peerConnection: RTCPeerConnection = this.peerConnection;
 
-    const dataChannel = peerConnection.createDataChannel(this.currentRoom!);
+    this.setDataChannelAsOffer(this.currentRoom!);
 
-    dataChannel.onmessage = (e) => {
-      console.log('New data channel msg:', e.data);
-    };
-
-    dataChannel.onopen = (e) => {
-      console.log('Connection opened:');
-    };
+    console.log('Local stream', this.localStream);
 
     const offer: RTCSessionDescriptionInit = await peerConnection.createOffer();
 
     // Handle incoming offer from remote peer
-    console.log(`createOffer`, offer);
+    // console.log(`createOffer`, offer);
 
     await peerConnection.setLocalDescription(offer);
 
@@ -262,27 +266,17 @@ export class ChatWebRtcService extends WebRTCService {
       return;
     }
 
+    this.addLocalTracksToPeerConnection();
+
     const peerConnection: RTCPeerConnection = this.peerConnection;
 
-    let dataChannel = null;
-    peerConnection.ondatachannel = (e) => {
-      console.log('Data dataChannel event', e);
-      dataChannel = e.channel;
-
-      dataChannel.onmessage = (e) => {
-        console.log('new message', e.data);
-      };
-
-      dataChannel.onopen = (e) => {
-        console.log('Connected to other peer LETS GOOOO!!!!', e);
-      };
-    };
+    this.setDataChannelAsAnswer();
 
     const answer: RTCSessionDescriptionInit =
       await peerConnection.createAnswer();
 
     // Handle incoming answer from remote peer
-    console.log(`createAnswer`, answer);
+    // console.log(`createAnswer`, answer);
 
     await peerConnection.setLocalDescription(answer);
 
@@ -295,13 +289,13 @@ export class ChatWebRtcService extends WebRTCService {
   };
 
   public onReceiveAnswer = async (answer: RTCSessionDescriptionInit) => {
-    this.addLocalTracksToPeerConnection(this.peerConnection!);
+    // this.addLocalTracksToPeerConnection();
   };
 
   public onReceiveIce = async (iceCandidate: RTCIceCandidate) => {};
 
   public onReceiveOffer = async (offer: RTCSessionDescriptionInit) => {
-    this.addLocalTracksToPeerConnection(this.peerConnection!);
+    // this.addLocalTracksToPeerConnection();
   };
 
   public handleTrackEvent = (event: RTCTrackEvent): void => {
@@ -316,11 +310,11 @@ export class ChatWebRtcService extends WebRTCService {
   public handleIceCandidate = async (
     candidate: RTCIceCandidate
   ): Promise<void> => {
-    console.log(
-      `%cGENERATED Ice candidate to send to remote peer`,
-      'background: yellow; color: black; padding: 1rem',
-      candidate
-    );
+    // console.log(
+    //   `%cGENERATED Ice candidate to send to remote peer`,
+    //   'background: yellow; color: black; padding: 1rem',
+    //   candidate
+    // );
 
     const candidatePayload = { roomName: this.currentRoom, candidate } as const;
 
@@ -328,12 +322,12 @@ export class ChatWebRtcService extends WebRTCService {
   };
 
   public handleIceCandidateError = (error: RTCPeerConnectionIceErrorEvent) => {
-    console.error('ICE candidate error:', error);
+    console.error('icecandidateerror', error.errorCode, error.errorText);
   };
 
   // Example method for starting a WebRTC session with a specific user
   public startWebRTCSession = (): void => {
-    console.log(this);
+    // console.log(this);
   };
 
   // Example method for ending a WebRTC session with a specific user
