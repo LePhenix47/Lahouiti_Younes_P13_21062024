@@ -132,8 +132,7 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
   socket.on("offer", (data) => {
     const { roomName, offer } = data;
     console.log(
-      `Offer from ${socket.handshake.auth.userName.toUpperCase()} in room ${roomName}`,
-      offer
+      `Offer from ${socket.handshake.auth.userName.toUpperCase()} in room ${roomName}`
     );
     socket.to(roomName).emit("offer", offer);
   });
@@ -142,8 +141,7 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
   socket.on("answer", (data) => {
     const { roomName, answer } = data;
     console.log(
-      `Answer from ${socket.handshake.auth.userName.toUpperCase()} in room ${roomName}`,
-      answer
+      `Answer from ${socket.handshake.auth.userName.toUpperCase()} in room ${roomName}`
     );
     socket.to(roomName).emit("answer", answer);
   });
@@ -152,8 +150,7 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
   socket.on("ice-candidate", (data) => {
     const { roomName, candidate } = data;
     console.log(
-      `ICE candidate from ${socket.handshake.auth.userName.toUpperCase()} in room ${roomName}`,
-      candidate
+      `ICE candidate from ${socket.handshake.auth.userName.toUpperCase()} in room ${roomName}`
     );
     socket.to(roomName).emit("ice-candidate", candidate);
   });
