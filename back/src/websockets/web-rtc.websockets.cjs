@@ -121,21 +121,30 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
   });
 
   socket.on("wrtc-test", ({ roomName, message }) => {
-    console.log(`wrtc-test from ${socket.id} in room ${roomName}`, message);
+    console.log(
+      `wrtc-test from ${socket.handshake.auth.userName.toUpperCase()} in room ${roomName}`,
+      message
+    );
     socket.to(roomName).emit("wrtc-test", message);
   });
 
   // Handle an offer event within a room
   socket.on("offer", (data) => {
     const { roomName, offer } = data;
-    console.log(`Offer from ${socket.id} in room ${roomName}`, offer);
+    console.log(
+      `Offer from ${socket.handshake.auth.userName.toUpperCase()} in room ${roomName}`,
+      offer
+    );
     socket.to(roomName).emit("offer", offer);
   });
 
   // Handle an answer event within a room
   socket.on("answer", (data) => {
     const { roomName, answer } = data;
-    console.log(`Answer from ${socket.id} in room ${roomName}`, answer);
+    console.log(
+      `Answer from ${socket.handshake.auth.userName.toUpperCase()} in room ${roomName}`,
+      answer
+    );
     socket.to(roomName).emit("answer", answer);
   });
 
@@ -143,7 +152,7 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
   socket.on("ice-candidate", (data) => {
     const { roomName, candidate } = data;
     console.log(
-      `ICE candidate from ${socket.id} in room ${roomName}`,
+      `ICE candidate from ${socket.handshake.auth.userName.toUpperCase()} in room ${roomName}`,
       candidate
     );
     socket.to(roomName).emit("ice-candidate", candidate);
