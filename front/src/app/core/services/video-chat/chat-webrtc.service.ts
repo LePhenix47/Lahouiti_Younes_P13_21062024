@@ -19,6 +19,9 @@ export class ChatWebRtcService extends WebRTCService {
   private onRoomJoinedCallback:
     | ((roomName: string, userName: string) => void)
     | null = null;
+  private onRoomLeftCallback:
+    | ((roomName: string, userName: string) => void)
+    | null = null;
   private onRoomDeletedCallback: ((roomName: string) => void) | null = null;
   private onRoomErrorCallback: ((errorMessage: string) => void) | null = null;
 
@@ -94,6 +97,13 @@ export class ChatWebRtcService extends WebRTCService {
       'room-joined',
       (data: { roomName: string; userName: string }) => {
         this.onRoomJoinedCallback?.(data.roomName, data.userName);
+      }
+    );
+
+    this.socketio.on(
+      'room-left',
+      (data: { roomName: string; userName: string }) => {
+        this.onRoomLeftCallback?.(data.roomName, data.userName);
       }
     );
 
@@ -190,12 +200,15 @@ export class ChatWebRtcService extends WebRTCService {
    * the room.
    */
   public leaveRoom = (): void => {
+    console.log(this.currentRoom);
+
     if (!this.currentRoom || !this.socketio) {
       return;
     }
 
-    this.currentRoom = null;
     this.socketio.emit('leave-room', this.currentRoom);
+
+    this.currentRoom = null;
   };
 
   /**
@@ -342,9 +355,11 @@ export class ChatWebRtcService extends WebRTCService {
   public startWebRTCSession = (): void => {};
 
   // Example method for ending a WebRTC session with a specific user
-  public endWebRTCSession = (username: string): void => {
+  public endWebRTCSession = (): void => {
     // Close peer connection and clean up resources
     this.closePeerConnection();
+
+    const hasCreatedRoom = this.currentRoom === 'this';
     this.leaveRoom(); // Ensure to leave the room when ending the session
   };
 }

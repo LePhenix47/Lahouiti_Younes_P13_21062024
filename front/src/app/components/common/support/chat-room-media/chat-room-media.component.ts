@@ -72,8 +72,6 @@ export class ChatRoomMediaComponent {
     this.chatWebRtcService.setOnRoomJoinedCallback(this.roomJoinedCallback);
     this.chatWebRtcService.setOnRoomDeletedCallback(this.roomDeletedCallback);
 
-    this.setWebRtcVideoElements();
-
     this.roomsList.update(() => {
       return [...this.chatWebRtcService.getRoomList()];
     });
@@ -87,8 +85,14 @@ export class ChatRoomMediaComponent {
     console.groupEnd();
   }
 
+  ngAfterViewInit(): void {
+    console.group('ngAfterViewInit()');
+    this.setWebRtcVideoElements();
+    console.groupEnd();
+  }
+
   ngOnDestroy() {
-    this.chatWebRtcService.endWebRTCSession(this.ownUsername());
+    this.chatWebRtcService.endWebRTCSession();
   }
 
   private setWebRtcVideoElements = () => {
@@ -192,13 +196,26 @@ export class ChatRoomMediaComponent {
   };
 
   public disconnectFromRoom = () => {
-    console.log('disconnectFromRoom method (NOT IMPLEMENTED)');
     if (this.webRtcSessionStarted) {
-      // TODO: Create a callback to close the WebRTC session
-      this.chatWebRtcService;
+      this.chatWebRtcService.endWebRTCSession();
     }
 
+    console.log(
+      '%cdisconnectFromRoom methodn, current room',
+      'background: red; padding: 10px',
+      this.currentRoom()
+    );
     this.chatWebRtcService.leaveRoom();
+
+    this.currentRoom.update(() => {
+      return null;
+    });
+    this.localPeerHasSharedLocalMedia = false;
+    this.remotePeerHasSharedLocalMedia = false;
+    this.webRtcSessionStarted = false;
+
+    this.otherPeerUserName = null;
+    this.isReceiver = false;
   };
 
   public sendTestMessage = () => {

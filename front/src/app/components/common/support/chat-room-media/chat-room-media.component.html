@@ -28,7 +28,7 @@
     <li class="chat-room-media__calls-item">
       Incoming call request from: {{room}}
       <button type="button" class="ycyw__button ycyw__button--2" (click)="connectToRoom(room)"
-        [disabled]="room === ownUsername()">Join</button>
+        [disabled]="room === ownUsername()" [disabled]="currentRoom()">Join</button>
     </li>
     }
 
