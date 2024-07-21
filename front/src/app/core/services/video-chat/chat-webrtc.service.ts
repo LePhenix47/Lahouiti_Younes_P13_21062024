@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { WebRTCService } from '../webrtc/webrtc.service';
-import { SignalMessage } from '@core/types/chat/chat.types';
 
 @Injectable({
   providedIn: 'root',
@@ -10,6 +9,9 @@ export class ChatWebRtcService extends WebRTCService {
   public hasCreatedRoom: boolean = false;
   public currentRoom: string | null = null;
   protected roomList: string[] = []; // To keep track of available rooms
+
+  private hasAddedRoomSocketListeners: boolean = false;
+  private hasAddedWebRtcSocketListeners: boolean = false;
 
   // Callbacks for room-related events
   private onRoomListUpdateCallback: ((rooms: string[]) => void) | null = null;
@@ -27,6 +29,12 @@ export class ChatWebRtcService extends WebRTCService {
     if (!this.socketio) {
       return;
     }
+
+    if (this.hasAddedWebRtcSocketListeners) {
+      console.warn('WebRTC socket listeners already added, skipping');
+      return;
+    }
+
     console.log(
       '%cAdding WebRTC socket listeners !!!',
       'background: white; color: black; padding: 1rem'
@@ -54,6 +62,8 @@ export class ChatWebRtcService extends WebRTCService {
 
       this.onReceiveAnswer(remoteAnswer);
     });
+
+    this.hasAddedWebRtcSocketListeners = true;
   };
 
   /**
@@ -62,6 +72,11 @@ export class ChatWebRtcService extends WebRTCService {
    */
   public addRoomSocketEventListeners = (): void => {
     if (!this.socketio) {
+      return;
+    }
+
+    if (this.hasAddedRoomSocketListeners) {
+      console.warn('WebRTC socket listeners already added, skipping');
       return;
     }
 
@@ -91,6 +106,8 @@ export class ChatWebRtcService extends WebRTCService {
 
       this.onRoomErrorCallback?.(error.message);
     });
+
+    this.hasAddedRoomSocketListeners = true;
   };
 
   // * Getters
@@ -264,7 +281,7 @@ export class ChatWebRtcService extends WebRTCService {
     // this.addLocalTracksToPeerConnection();
   };
 
-  public handleTrackEvent = (event: RTCTrackEvent): void => {
+  protected handleTrackEvent = (event: RTCTrackEvent): void => {
     console.log(`Received tracks from remote peer`, event);
 
     // Check if we have any streams from the event

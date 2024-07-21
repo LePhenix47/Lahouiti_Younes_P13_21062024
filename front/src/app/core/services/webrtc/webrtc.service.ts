@@ -340,7 +340,7 @@ export abstract class WebRTCService {
    * Handles track events.
    * @param {RTCTrackEvent} event - The track event.
    */
-  public abstract handleTrackEvent(event: RTCTrackEvent): void;
+  protected abstract handleTrackEvent(event: RTCTrackEvent): void;
 
   /**
    * Handles the creation of an offer.
