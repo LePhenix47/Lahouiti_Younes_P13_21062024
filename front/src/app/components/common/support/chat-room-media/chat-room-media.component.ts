@@ -45,19 +45,22 @@ export class ChatRoomMediaComponent {
 
   private readonly chatWebRtcService = inject(ChatWebRtcService);
 
-  public showWebcam = signal<boolean>(false);
-  public openMicrophone = signal<boolean>(false);
-  public showScreenCast = signal<boolean>(false);
+  public showWebcam: boolean = false;
+  public openMicrophone: boolean = false;
+  public showScreenCast: boolean = false;
 
   public roomsList = signal<string[]>([]);
-
   public currentRoom = signal<string | null>(null);
-  public isReceiver = signal<boolean>(false);
-  public otherPeerUserName = signal<string | null>(null);
 
-  public userChange = effect(() => {
+  public signalEffect = effect(() => {
     console.log('effect');
   });
+
+  public isReceiver: boolean = false;
+  public otherPeerUserName: string | null = null;
+  public localPeerHasSharedLocalMedia: boolean = false;
+  public remotePeerHasSharedLocalMedia: boolean = false;
+  public webRtcSessionStarted: boolean = false;
 
   ngOnInit() {
     console.group('ngOnInit()');
@@ -68,6 +71,8 @@ export class ChatRoomMediaComponent {
     this.chatWebRtcService.setOnRoomCreatedCallback(this.roomCreatedCallback);
     this.chatWebRtcService.setOnRoomJoinedCallback(this.roomJoinedCallback);
     this.chatWebRtcService.setOnRoomDeletedCallback(this.roomDeletedCallback);
+
+    this.setWebRtcVideoElements();
 
     this.roomsList.update(() => {
       return [...this.chatWebRtcService.getRoomList()];
@@ -109,14 +114,12 @@ export class ChatRoomMediaComponent {
       return roomName;
     });
 
-    this.isReceiver.update(() => {
-      return true;
-    });
+    this.isReceiver = false;
   };
 
   private roomJoinedCallback = (
     roomName: string,
-    otherPeerUsername: string
+    otherPeerUserName: string
   ) => {
     console.log('roomJoinedCallback', roomName);
 
@@ -124,11 +127,15 @@ export class ChatRoomMediaComponent {
       return roomName;
     });
 
-    this.isReceiver.update(() => {
-      return otherPeerUsername === this.ownUsername();
-    });
+    this.isReceiver = otherPeerUserName === this.ownUsername();
 
-    console.log(`Currently in a room (${roomName}) with ${otherPeerUsername}`);
+    this.otherPeerUserName = otherPeerUserName;
+
+    console.log(
+      `Currently in a room (${this.currentRoom()}) with ${
+        this.otherPeerUserName
+      }`
+    );
   };
 
   private roomDeletedCallback = () => {
@@ -138,9 +145,12 @@ export class ChatRoomMediaComponent {
       return null;
     });
 
-    this.isReceiver.update(() => {
-      return false;
-    });
+    this.isReceiver = false;
+
+    this.remotePeerHasSharedLocalMedia = false;
+    this.webRtcSessionStarted = false;
+
+    this.otherPeerUserName = null;
   };
 
   private updateRoomsList = (rooms: string[]) => {
@@ -150,10 +160,21 @@ export class ChatRoomMediaComponent {
   };
 
   public createRoom = () => {
-    this.chatWebRtcService.createRoom(this.ownUsername());
-    this.chatWebRtcService.createPeerConnection();
+    if (this.currentRoom()) {
+      console.warn(
+        `User already ${
+          this.currentRoom() === this.ownUsername() ? 'created' : 'joined'
+        } a room`
+      );
 
-    this.setWebRtcVideoElements();
+      return;
+    }
+
+    this.chatWebRtcService.createRoom(this.ownUsername());
+
+    this.chatWebRtcService.initializePeerConnection();
+
+    // ? See roomCreatedCallback for the rest (async callback)
   };
 
   public deleteRoom = () => {
@@ -162,14 +183,22 @@ export class ChatRoomMediaComponent {
 
   public connectToRoom = (roomName: string) => {
     console.log('connectToRoom', roomName);
-    this.chatWebRtcService.createPeerConnection();
+    this.chatWebRtcService.initializePeerConnection();
     this.chatWebRtcService.joinRoom(roomName);
 
     this.setWebRtcVideoElements();
+
+    // ? See roomJoinedCallback for the rest (async callback)
   };
 
   public disconnectFromRoom = () => {
     console.log('disconnectFromRoom method (NOT IMPLEMENTED)');
+    if (this.webRtcSessionStarted) {
+      // TODO: Create a callback to close the WebRTC session
+      this.chatWebRtcService;
+    }
+
+    this.chatWebRtcService.leaveRoom();
   };
 
   public sendTestMessage = () => {
@@ -180,25 +209,17 @@ export class ChatRoomMediaComponent {
   };
 
   public initializeConnection = async () => {
-    this.chatWebRtcService.createPeerConnection();
+    this.chatWebRtcService.initializePeerConnection();
 
     await this.chatWebRtcService.createOffer();
   };
 
-  public joinConnection = async () => {
-    await this.chatWebRtcService.createAnswer();
-  };
-
   private updateLocalStream = async () => {
-    console.log(
-      this.showWebcam(),
-      this.openMicrophone(),
-      this.showScreenCast()
-    );
+    console.log(this.showWebcam, this.openMicrophone, this.showScreenCast);
 
     await this.chatWebRtcService.setLocalStream(
-      this.openMicrophone(),
-      this.showWebcam()
+      this.openMicrophone,
+      this.showWebcam
     );
 
     const ownVideoElement = this.ownWebCamVideoRef
@@ -210,7 +231,7 @@ export class ChatRoomMediaComponent {
     try {
       this.chatWebRtcService.resetScreenShareStream();
 
-      if (!this.showScreenCast()) {
+      if (!this.showScreenCast) {
         return;
       }
 
@@ -223,9 +244,7 @@ export class ChatRoomMediaComponent {
       console.error('Error accessing screen stream.', error);
       alert(error);
 
-      this.showScreenCast.update(() => {
-        return false;
-      });
+      this.showScreenCast = false;
     }
   };
 
@@ -235,15 +254,10 @@ export class ChatRoomMediaComponent {
    * @param {WritableSignal<boolean>} signal - The signal to update.
    * @param {Event} event - The event that triggered the update.
    */
-  private updateSignal = (
-    signal: WritableSignal<boolean>,
-    event: Event
-  ): void => {
+  private updateSignal = (value: boolean, event: Event): void => {
     const input = event.currentTarget as HTMLInputElement;
 
-    signal.update(() => {
-      return input.checked;
-    });
+    value = input.checked;
   };
 
   /**

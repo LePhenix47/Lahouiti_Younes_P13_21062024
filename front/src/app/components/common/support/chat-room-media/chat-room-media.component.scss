@@ -55,4 +55,9 @@
 
     @include fit-image(contain);
   }
+
+  &__calls-item {
+    display: flex;
+
+  }
 }

@@ -25,7 +25,7 @@
     }
 
     @for(room of roomsList(); let index = $index; track index){
-    <li class="chat-room-media____calls-item">
+    <li class="chat-room-media__calls-item">
       Incoming call request from: {{room}}
       <button type="button" class="ycyw__button ycyw__button--2" (click)="connectToRoom(room)"
         [disabled]="room === ownUsername()">Join</button>
@@ -69,24 +69,23 @@
   </form>
 
   @if(!!(currentRoom())){
-  @if(isReceiver()){
+  @if(isReceiver){
   <button type="button" class="chat-room-media__button ycyw__button ycyw__button--2"
     (click)="disconnectFromRoom()">Disconnect from
     room</button>
-  <button type="button" class="chat-room-media__button ycyw__button ycyw__button--1"
-    (click)="joinConnection()">Join</button>
   }@else {
   <button type="button" class="chat-room-media__button ycyw__button ycyw__button--2" (click)="deleteRoom()">Delete
     room</button>
-  <button type="button" class="chat-room-media__button ycyw__button ycyw__button--1"
-    (click)="initializeConnection()">Start</button>
+  <button type="button" class="chat-room-media__button ycyw__button ycyw__button--1" (click)="initializeConnection()"
+    [disabled]="!otherPeerUserName">Start</button>
 
   }
   <!-- <button type="button" class="chat-room-media__button ycyw__button ycyw__button--1" (click)="sendTestMessage()">Send
     test message</button> -->
   } @else {
 
-  <button type="button" class="chat-room-media__button ycyw__button ycyw__button--1" (click)="createRoom()">Create new
+  <button type="button" class="chat-room-media__button ycyw__button ycyw__button--1" (click)="createRoom()"
+    [disabled]="!!(currentRoom())">Create new
     room</button>
   }
 </aside>
