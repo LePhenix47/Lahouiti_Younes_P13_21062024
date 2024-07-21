@@ -1,8 +1,7 @@
 module.exports = (io, socket, connectedUsersMap, roomsMap) => {
+  const { userName } = socket.handshake.auth;
   // Handle a user creating a room
   socket.on("create-room", (roomName) => {
-    const { userName } = socket.handshake.auth;
-
     if (!connectedUsersMap.has(userName)) {
       console.warn(`Username ${userName} is not connected`);
       socket.emit("room-error", {
@@ -48,8 +47,6 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
 
   // Handle a user joining a room
   socket.on("join-room", (roomName) => {
-    const { userName } = socket.handshake.auth;
-
     // Check if the user is already in a room
     for (const [name, participants] of roomsMap.entries()) {
       if (!participants.includes(userName)) {
@@ -68,18 +65,21 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
     }
 
     const room = roomsMap.get(roomName);
-    let receiver = room[1];
-    if (receiver !== null) {
+    if (room[1] !== null) {
       console.warn(`Room ${roomName} is already full`);
       socket.emit("room-error", { message: "Room is already full" });
       return;
     }
 
     // Join the room and update the room details
-    receiver = userName;
+    room[1] = userName;
     roomsMap.set(roomName, room);
     socket.join(roomName);
-    console.log(`User ${userName} (${socket.id}) joined room ${roomName}`);
+    console.log(
+      `User ${userName} (${socket.id}) joined room ${roomName}`,
+      room,
+      roomsMap.get(roomName)
+    );
 
     // Emit a success message back to the joiner and update the room list
     socket.emit("room-joined", { roomName, userName });
@@ -89,7 +89,11 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
 
   // Handle a user leaving a room
   socket.on("leave-room", (roomName) => {
-    const { userName } = socket.handshake.auth;
+    if (!roomName) {
+      console.warn(`Room ${roomName} has a falsy value`);
+      socket.emit("room-error", { message: "Room is falsy" });
+      return;
+    }
 
     if (!roomsMap.has(roomName)) {
       console.warn(`Room ${roomName} does not exist`);
@@ -102,7 +106,10 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
     const [initiator, receiver] = room;
 
     if (initiator !== userName && receiver !== userName) {
-      console.warn(`User ${userName} is not part of room ${roomName}`);
+      console.warn(`User ${userName} is not part of room ${roomName}`, [
+        initiator,
+        receiver,
+      ]);
       socket.emit("room-error", {
         message: "You are not part of this room",
       });
@@ -116,13 +123,13 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
     console.log(`User ${userName} (${socket.id}) left room ${roomName}`);
 
     // Notify both users that the room is deleted
-    socket.to(roomName).emit("room-deleted", { roomName });
+    socket.to(roomName).emit("room-deleted", { roomName, userName });
     io.emit("room-list", Array.from(roomsMap.keys()));
   });
 
   socket.on("wrtc-test", ({ roomName, message }) => {
     console.log(
-      `wrtc-test from ${socket.handshake.auth.userName.toUpperCase()} in room ${roomName}`,
+      `wrtc-test from ${userName.toUpperCase()} in room ${roomName}`,
       message
     );
     socket.to(roomName).emit("wrtc-test", message);
@@ -131,18 +138,14 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
   // Handle an offer event within a room
   socket.on("offer", (data) => {
     const { roomName, offer } = data;
-    console.log(
-      `Offer from ${socket.handshake.auth.userName.toUpperCase()} in room ${roomName}`
-    );
+    console.log(`Offer from ${userName.toUpperCase()} in room ${roomName}`);
     socket.to(roomName).emit("offer", offer);
   });
 
   // Handle an answer event within a room
   socket.on("answer", (data) => {
     const { roomName, answer } = data;
-    console.log(
-      `Answer from ${socket.handshake.auth.userName.toUpperCase()} in room ${roomName}`
-    );
+    console.log(`Answer from ${userName.toUpperCase()} in room ${roomName}`);
     socket.to(roomName).emit("answer", answer);
   });
 
@@ -150,7 +153,7 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
   socket.on("ice-candidate", (data) => {
     const { roomName, candidate } = data;
     console.log(
-      `ICE candidate from ${socket.handshake.auth.userName.toUpperCase()} in room ${roomName}`
+      `ICE candidate from ${userName.toUpperCase()} in room ${roomName}`
     );
     socket.to(roomName).emit("ice-candidate", candidate);
   });
