@@ -76,7 +76,7 @@ export class ChatWebRtcService extends WebRTCService {
     }
 
     if (this.hasAddedRoomSocketListeners) {
-      console.warn('WebRTC socket listeners already added, skipping');
+      console.warn('Room socket listeners already added, skipping');
       return;
     }
 

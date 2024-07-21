@@ -156,7 +156,7 @@ export abstract class WebRTCService {
    * Creates a new peer connection and adds event listeners.
    * @returns {RTCPeerConnection}
    */
-  public createPeerConnection = (): RTCPeerConnection => {
+  public initializePeerConnection = (): RTCPeerConnection => {
     if (this.peerConnection) {
       console.warn('Peer connection already exists.');
       return this.peerConnection;
