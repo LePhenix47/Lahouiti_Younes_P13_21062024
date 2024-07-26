@@ -53,7 +53,7 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
         continue;
       }
 
-      console.warn(`User ${userName} is already in room ${name}`);
+      console.warn(`User ${userName} is already (in room ${name})`);
       socket.emit("room-error", { message: "You are already in a room" });
       return;
     }
@@ -129,7 +129,7 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
 
   socket.on("wrtc-test", ({ roomName, message }) => {
     console.log(
-      `wrtc-test from ${userName.toUpperCase()} in room ${roomName}`,
+      `wrtc-test from ${userName.toUpperCase()} (in room ${roomName})`,
       message
     );
     socket.to(roomName).emit("wrtc-test", message);
@@ -137,7 +137,7 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
 
   socket.on("webrtc-session-start", ({ roomName }) => {
     console.log(
-      `webrtc-session-start from ${userName.toUpperCase()} in room ${roomName}`
+      `webrtc-session-start from ${userName.toUpperCase()} (in room ${roomName})`
     );
 
     socket.to(roomName).emit("webrtc-session-start");
@@ -147,7 +147,7 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
     "enabled-local-media",
     ({ roomName, remotePeerHasSharedLocalMedia }) => {
       console.log(
-        `enabled-local-media from ${userName.toUpperCase()} in room ${roomName}, have they shared their local media? ${
+        `enabled-local-media from ${userName.toUpperCase()} (in room ${roomName}), have they shared their local media? ${
           remotePeerHasSharedLocalMedia ? "YES" : "NO"
         }`
       );
@@ -161,14 +161,14 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
   // Handle an offer event within a room
   socket.on("offer", (data) => {
     const { roomName, offer } = data;
-    console.log(`Offer from ${userName.toUpperCase()} in room ${roomName}`);
+    console.log(`Offer from ${userName.toUpperCase()} (in room ${roomName})`);
     socket.to(roomName).emit("offer", offer);
   });
 
   // Handle an answer event within a room
   socket.on("answer", (data) => {
     const { roomName, answer } = data;
-    console.log(`Answer from ${userName.toUpperCase()} in room ${roomName}`);
+    console.log(`Answer from ${userName.toUpperCase()} (in room ${roomName})`);
     socket.to(roomName).emit("answer", answer);
   });
 
@@ -176,7 +176,7 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
   socket.on("ice-candidate", (data) => {
     const { roomName, candidate } = data;
     console.log(
-      `ICE candidate from ${userName.toUpperCase()} in room ${roomName}`
+      `ICE candidate from ${userName.toUpperCase()} (in room ${roomName})`
     );
     socket.to(roomName).emit("ice-candidate", candidate);
   });
