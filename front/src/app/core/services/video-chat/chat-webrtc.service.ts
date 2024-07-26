@@ -24,6 +24,9 @@ export class ChatWebRtcService extends WebRTCService {
     | null = null;
   private onRoomDeletedCallback: ((roomName: string) => void) | null = null;
   private onRoomErrorCallback: ((errorMessage: string) => void) | null = null;
+  private onReceiveEnabledLocalMedia:
+    | ((remotePeerHasSharedLocalMedia: boolean) => void)
+    | null = null;
 
   /**
    * Adds websocket event listeners related to WebRTC for handling ICE candidates, offers, and answers
@@ -117,6 +120,10 @@ export class ChatWebRtcService extends WebRTCService {
       this.onRoomErrorCallback?.(error.message);
     });
 
+    this.socketio.on('enabled-local-media', (remotePeerHasSharedLocalMedia) => {
+      this.onReceiveEnabledLocalMedia?.(remotePeerHasSharedLocalMedia);
+    });
+
     this.hasAddedRoomSocketListeners = true;
   };
 
@@ -155,6 +162,12 @@ export class ChatWebRtcService extends WebRTCService {
     callback: (errorMessage: string) => void
   ): void => {
     this.onRoomErrorCallback = callback;
+  };
+
+  public setOnReceiveEnabledLocalMediaCallback = (
+    callback: (remotePeerHasSharedLocalMedia: boolean) => void
+  ): void => {
+    this.onReceiveEnabledLocalMedia = callback;
   };
 
   /**
@@ -209,6 +222,19 @@ export class ChatWebRtcService extends WebRTCService {
     this.socketio.emit('leave-room', this.currentRoom);
 
     this.currentRoom = null;
+  };
+
+  public notifyRemotePeerOfLocalMediaShare = (
+    remotePeerHasSharedLocalMedia: boolean
+  ): void => {
+    if (!this.socketio) {
+      return;
+    }
+
+    this.socketio.emit('enabled-local-media', {
+      roomName: this.currentRoom,
+      remotePeerHasSharedLocalMedia,
+    });
   };
 
   /**

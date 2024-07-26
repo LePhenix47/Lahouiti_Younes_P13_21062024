@@ -65,7 +65,9 @@ export class ChatRoomMediaComponent {
     if (this.chatWebRtcService.currentRoom && this.webRtcSessionStarted) {
       // TODO: Call a method to set the "enabled" property of the local stream
     } else if (this.chatWebRtcService.currentRoom) {
-      // TODO: Send a Websocket signal to state that the user has shared local media
+      this.chatWebRtcService.notifyRemotePeerOfLocalMediaShare(
+        localPeerHasSharedLocalMedia
+      );
     }
 
     return localPeerHasSharedLocalMedia;
@@ -92,6 +94,9 @@ export class ChatRoomMediaComponent {
     this.chatWebRtcService.setOnRoomCreatedCallback(this.roomCreatedCallback);
     this.chatWebRtcService.setOnRoomJoinedCallback(this.roomJoinedCallback);
     this.chatWebRtcService.setOnRoomDeletedCallback(this.roomDeletedCallback);
+    this.chatWebRtcService.setOnReceiveEnabledLocalMediaCallback(
+      this.remotePeerHasSharedLocalMediaCallback
+    );
 
     this.roomsList.update(() => {
       return [...this.chatWebRtcService.getRoomList()];
@@ -113,8 +118,20 @@ export class ChatRoomMediaComponent {
   }
 
   ngOnDestroy() {
+    this.webRtcSessionStarted = false;
     this.chatWebRtcService.endWebRTCSession();
   }
+
+  private remotePeerHasSharedLocalMediaCallback = (
+    remotePeerHasSharedLocalMedia: boolean
+  ) => {
+    this.remotePeerHasSharedLocalMedia = remotePeerHasSharedLocalMedia;
+
+    console.log(
+      'remotePeerHasSharedLocalMediaCallback',
+      this.remotePeerHasSharedLocalMedia
+    );
+  };
 
   private setWebRtcVideoElements = () => {
     // * Local webcam, audio and screen cast
@@ -250,6 +267,8 @@ export class ChatRoomMediaComponent {
     this.chatWebRtcService.initializePeerConnection();
 
     await this.chatWebRtcService.createOffer();
+
+    this.webRtcSessionStarted = true;
   };
 
   private updateLocalStream = async () => {

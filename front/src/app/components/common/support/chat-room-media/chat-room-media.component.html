@@ -73,12 +73,35 @@
   <button type="button" class="chat-room-media__button ycyw__button ycyw__button--2"
     (click)="disconnectFromRoom()">Disconnect from
     room</button>
+
+  @if(!localPeerHasSharedLocalMedia()){
+  <p class="chat-room-media__error-message">You must share your local stream in to allow the other peer to start a
+    WebRTC session</p>
+  }
+
+
+  @if(otherPeerUserName && !remotePeerHasSharedLocalMedia){
+  <p class="chat-room-media__error-message">Waiting for other peer to share their stream</p>
+  }
   }@else {
   <button type="button" class="chat-room-media__button ycyw__button ycyw__button--2" (click)="deleteRoom()">Delete
     room</button>
   <button type="button" class="chat-room-media__button ycyw__button ycyw__button--1" (click)="initializeConnection()"
-    [disabled]="!otherPeerUserName">Start</button>
+    [disabled]="!otherPeerUserName || !remotePeerHasSharedLocalMedia || !localPeerHasSharedLocalMedia()">Start</button>
 
+
+  @if(!otherPeerUserName){
+  <p class="chat-room-media__error-message">Waiting for other peer to join the room</p>
+  }
+
+  @if(!localPeerHasSharedLocalMedia()){
+  <p class="chat-room-media__error-message">You must share your local stream in order to start a WebRTC session</p>
+  }
+
+
+  @if(!remotePeerHasSharedLocalMedia){
+  <p class="chat-room-media__error-message">Waiting for other peer to share their stream</p>
+  }
   }
   <!-- <button type="button" class="chat-room-media__button ycyw__button ycyw__button--1" (click)="sendTestMessage()">Send
     test message</button> -->
