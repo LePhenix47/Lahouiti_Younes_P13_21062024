@@ -246,7 +246,7 @@ export abstract class WebRTCService {
   /**
    * Adds local tracks to the peer connection.
    */
-  public addLocalTracksToPeerConnection = (): void => {
+  protected addLocalTracksToPeerConnection = (): void => {
     if (!this.peerConnection) {
       console.error('The peer connection was not initiated');
       return;

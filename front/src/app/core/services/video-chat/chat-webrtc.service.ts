@@ -284,15 +284,11 @@ export class ChatWebRtcService extends WebRTCService {
     this.socketio!.emit('answer', answerPayload);
   };
 
-  public onReceiveAnswer = async (answer: RTCSessionDescriptionInit) => {
-    // this.addLocalTracksToPeerConnection();
-  };
+  public onReceiveAnswer = async (answer: RTCSessionDescriptionInit) => {};
 
   public onReceiveIce = async (iceCandidate: RTCIceCandidate) => {};
 
-  public onReceiveOffer = async (offer: RTCSessionDescriptionInit) => {
-    // this.addLocalTracksToPeerConnection();
-  };
+  public onReceiveOffer = async (offer: RTCSessionDescriptionInit) => {};
 
   protected handleTrackEvent = (event: RTCTrackEvent): void => {
     console.log(`Received tracks from remote peer`, event);
