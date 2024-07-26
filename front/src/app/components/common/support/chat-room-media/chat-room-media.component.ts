@@ -271,10 +271,11 @@ export class ChatRoomMediaComponent {
       }
 
       // Check for permission-related errors
-      if (
+      const isNotPermissionRelated: boolean =
         !error.message.includes('NotAllowedError') &&
-        error.name !== 'NotAllowedError'
-      ) {
+        error.name !== 'NotAllowedError';
+
+      if (isNotPermissionRelated) {
         alert(`An unexpected error occurred: ${error.message}`);
 
         return;
@@ -315,6 +316,10 @@ export class ChatRoomMediaComponent {
       console.error('Error accessing screen stream.', error);
       alert(error);
 
+      const screenCastCheckbox: HTMLInputElement =
+        this.screenCastCheckboxRef!.nativeElement;
+
+      screenCastCheckbox.checked = false;
       this.showScreenCast = false;
     }
   };
