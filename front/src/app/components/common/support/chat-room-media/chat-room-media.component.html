@@ -55,15 +55,15 @@
   <form class="chat-room-media__controls">
     <label class="chat-room-media__label chat-room-media__control">
       <input type="checkbox" name="local-connection-control" class="chat-room-media__input"
-        (change)="toggleWebcam($event)" /> Webcam</label>
+        (change)="toggleWebcam($event)" #webcamCheckboxRef /> Webcam</label>
 
     <label class="chat-room-media__label chat-room-media__control">
       <input type="checkbox" name="local-connection-control" class="chat-room-media__input"
-        (change)="toggleAudio($event)" /> Audio</label>
+        (change)="toggleAudio($event)" #audioCheckboxRef /> Audio</label>
 
     <label class="chat-room-media__label chat-room-media__control">
       <input type="checkbox" name="local-connection-control" class="chat-room-media__input"
-        (change)="toggleScreenCast($event)" /> Screen
+        (change)="toggleScreenCast($event)" #screenCastCheckboxRef /> Screen
       cast</label>
 
   </form>

@@ -19,15 +19,24 @@ import { ChatWebRtcService } from '@core/services/video-chat/chat-webrtc.service
   styleUrl: './chat-room-media.component.scss',
 })
 export class ChatRoomMediaComponent {
-  @ViewChild('ownWebCamVideoRef') ownWebCamVideoRef: ElementRef | null = null;
-  @ViewChild('ownScreenCastVideoRef') ownScreenCastVideoRef: ElementRef | null =
-    null;
+  // * Refs for the video elements
+  @ViewChild('ownWebCamVideoRef')
+  ownWebCamVideoRef: ElementRef<HTMLVideoElement> | null = null;
+  @ViewChild('ownScreenCastVideoRef')
+  ownScreenCastVideoRef: ElementRef<HTMLVideoElement> | null = null;
 
-  @ViewChild('remoteWebCamVideoRef') remoteWebCamVideoRef: ElementRef | null =
-    null;
+  @ViewChild('remoteWebCamVideoRef')
+  remoteWebCamVideoRef: ElementRef<HTMLVideoElement> | null = null;
   @ViewChild('remoteScreenCastVideoRef')
-  remoteScreenCastVideoRef: ElementRef | null = null;
+  remoteScreenCastVideoRef: ElementRef<HTMLVideoElement> | null = null;
 
+  // * Refs for the controls
+  @ViewChild('webcamCheckboxRef')
+  webcamCheckboxRef: ElementRef<HTMLInputElement> | null = null;
+  @ViewChild('audioCheckboxRef')
+  audioCheckboxRef: ElementRef<HTMLInputElement> | null = null;
+  @ViewChild('screenCastCheckboxRef')
+  screenCastCheckboxRef: ElementRef<HTMLInputElement> | null = null;
   /**
    * The Stomp client for the WebSocket connection.
    */
@@ -232,30 +241,75 @@ export class ChatRoomMediaComponent {
   };
 
   private updateLocalStream = async () => {
-    console.log(this.showWebcam, this.openMicrophone, this.showScreenCast);
+    try {
+      const ownVideoElement: HTMLVideoElement =
+        this.ownWebCamVideoRef!.nativeElement;
 
-    await this.chatWebRtcService.setLocalStream(
-      this.openMicrophone,
-      this.showWebcam
-    );
+      console.log(this.showWebcam, this.openMicrophone, this.showScreenCast);
 
-    const ownVideoElement = this.ownWebCamVideoRef
-      ?.nativeElement as HTMLVideoElement;
-    ownVideoElement.srcObject = this.chatWebRtcService.localStream;
+      this.chatWebRtcService.resetLocalStream();
+
+      if (!this.showWebcam && !this.openMicrophone) {
+        ownVideoElement.srcObject = null;
+        return;
+      }
+
+      await this.chatWebRtcService.setLocalStream(
+        this.openMicrophone,
+        this.showWebcam
+      );
+
+      ownVideoElement.srcObject = this.chatWebRtcService.localStream;
+    } catch (error) {
+      const webcamCheckbox: HTMLInputElement =
+        this.webcamCheckboxRef!.nativeElement;
+      const audioCheckbox: HTMLInputElement =
+        this.audioCheckboxRef!.nativeElement;
+
+      if (!(error instanceof Error)) {
+        return;
+      }
+
+      // Check for permission-related errors
+      if (
+        !error.message.includes('NotAllowedError') &&
+        error.name !== 'NotAllowedError'
+      ) {
+        alert(`An unexpected error occurred: ${error.message}`);
+
+        return;
+      }
+
+      // Check if it was due to the webcam
+      if (this.showWebcam) {
+        webcamCheckbox.checked = false;
+        this.showWebcam = false;
+        alert('Webcam access denied.');
+      }
+
+      // Check if it was due to the microphone
+      if (this.openMicrophone) {
+        audioCheckbox.checked = false;
+        this.openMicrophone = false;
+        alert('Microphone access denied.');
+      }
+    }
   };
 
   private updateScreenCastStream = async () => {
     try {
+      const screenVideoElement: HTMLVideoElement =
+        this.ownScreenCastVideoRef!.nativeElement;
+
       this.chatWebRtcService.resetScreenShareStream();
 
       if (!this.showScreenCast) {
+        screenVideoElement.srcObject = null;
         return;
       }
 
       const screenStream = await this.chatWebRtcService.setScreenShareStream();
 
-      const screenVideoElement = this.ownScreenCastVideoRef
-        ?.nativeElement as HTMLVideoElement;
       screenVideoElement.srcObject = screenStream;
     } catch (error) {
       console.error('Error accessing screen stream.', error);
@@ -266,24 +320,19 @@ export class ChatRoomMediaComponent {
   };
 
   /**
-   * Updates the given signal with the current state of the input element.
-   *
-   * @param {WritableSignal<boolean>} signal - The signal to update.
-   * @param {Event} event - The event that triggered the update.
-   */
-  private updateSignal = (value: boolean, event: Event): void => {
-    const input = event.currentTarget as HTMLInputElement;
-
-    value = input.checked;
-  };
-
-  /**
    * Toggles the webcam state based on the given event.
    *
    * @param {Event} event - The event that triggered the toggle.
    */
   public toggleWebcam = (event: Event): void => {
-    this.updateSignal(this.showWebcam, event);
+    const input = event.currentTarget as HTMLInputElement;
+
+    if (this.webRtcSessionStarted) {
+      // TODO: Add the logic to get the media track and toggle the "enabled" property
+      return;
+    }
+
+    this.showWebcam = input.checked;
 
     this.updateLocalStream();
   };
@@ -294,7 +343,14 @@ export class ChatRoomMediaComponent {
    * @param {Event} event - The event that triggered the toggle.
    */
   public toggleAudio = (event: Event): void => {
-    this.updateSignal(this.openMicrophone, event);
+    const input = event.currentTarget as HTMLInputElement;
+
+    if (this.webRtcSessionStarted) {
+      // TODO: Add the logic to get the media track and toggle the "enabled" property
+      return;
+    }
+
+    this.openMicrophone = input.checked;
 
     this.updateLocalStream();
   };
@@ -305,7 +361,14 @@ export class ChatRoomMediaComponent {
    * @param {Event} event - The event that triggered the toggle.
    */
   public toggleScreenCast = (event: Event): void => {
-    this.updateSignal(this.showScreenCast, event);
+    const input = event.currentTarget as HTMLInputElement;
+
+    if (this.webRtcSessionStarted) {
+      // TODO: Add the logic to get the media track and toggle the "enabled" property
+      return;
+    }
+
+    this.showScreenCast = input.checked;
 
     this.updateScreenCastStream();
   };
