@@ -129,6 +129,11 @@ export abstract class WebRTCService {
         });
 
       this.screenStream = screenStream;
+
+      // Add an event listener for when the screen sharing ends
+      const track: MediaStreamTrack = screenStream.getVideoTracks()[0];
+      track.addEventListener('ended', this.screenStreamEndedHandler);
+
       return screenStream;
     } catch (error) {
       console.error('Error accessing display media.', error);
@@ -145,11 +150,21 @@ export abstract class WebRTCService {
       return;
     }
 
+    // Remove the ended event listener if it exists
+    if (this.screenStreamEndedHandler) {
+      const track = this.screenStream.getVideoTracks()[0];
+      track.removeEventListener('ended', this.screenStreamEndedHandler);
+    }
+
     for (const screenTrack of this.screenStream.getTracks()) {
       screenTrack.stop();
     }
 
     this.screenStream = null;
+  };
+
+  private screenStreamEndedHandler = (e: Event) => {
+    console.log('screenStreamEndedHandler', e);
   };
 
   /**
@@ -203,44 +218,83 @@ export abstract class WebRTCService {
    * @param {RTCPeerConnection} peerConnection - The peer connection instance.
    */
   private addPeerConnectionEventListeners = (): void => {
-    this.peerConnection!.addEventListener('track', (event: RTCTrackEvent) => {
-      this.handleTrackEvent(event);
-    });
+    this.peerConnection!.addEventListener('track', this.onTrackEvent);
 
     this.peerConnection!.addEventListener(
       'icecandidate',
-      (event: RTCPeerConnectionIceEvent) => {
-        if (!event.candidate) {
-          console.warn('No ICE candidate found.');
-
-          return;
-        }
-
-        this.handleIceCandidate(event.candidate);
-      }
+      this.onIceCandidateEvent
     );
 
     this.peerConnection!.addEventListener(
       'icegatheringstatechange',
-      (event) => {
-        console.log(this.peerConnection!.iceGatheringState, event);
-      }
+      this.onIceGatheringStateChangeEvent
     );
 
     this.peerConnection!.addEventListener(
       'icecandidateerror',
-      (event: Event) => {
-        // * Angular throws an error if you set the event type to RTCPeerConnectionIceErrorEvent
-
-        const iceErrorEvent = event as RTCPeerConnectionIceErrorEvent;
-
-        this.handleIceCandidateError(iceErrorEvent);
-      }
+      this.onIceCandidateErrorEvent
     );
 
-    this.peerConnection!.addEventListener('signalingstatechange', () => {
-      console.log('Signaling state:', this.peerConnection!.signalingState);
-    });
+    this.peerConnection!.addEventListener(
+      'signalingstatechange',
+      this.onSignalingStateChangeEvent
+    );
+  };
+
+  /**
+   * Adds event listeners to the peer connection.
+   * @param {RTCPeerConnection} peerConnection - The peer connection instance.
+   */
+  private removePeerConnectionEventListeners = (): void => {
+    this.peerConnection!.removeEventListener('track', this.onTrackEvent);
+
+    this.peerConnection!.removeEventListener(
+      'icecandidate',
+      this.onIceCandidateEvent
+    );
+
+    this.peerConnection!.removeEventListener(
+      'icegatheringstatechange',
+      this.onIceGatheringStateChangeEvent
+    );
+
+    this.peerConnection!.removeEventListener(
+      'icecandidateerror',
+      this.onIceCandidateErrorEvent
+    );
+
+    this.peerConnection!.removeEventListener(
+      'signalingstatechange',
+      this.onSignalingStateChangeEvent
+    );
+  };
+
+  private onTrackEvent = (event: RTCTrackEvent): void => {
+    this.handleTrackEvent(event);
+  };
+
+  private onIceCandidateEvent = (event: RTCPeerConnectionIceEvent): void => {
+    if (!event.candidate) {
+      console.warn('No ICE candidate found.');
+
+      return;
+    }
+
+    this.handleIceCandidate(event.candidate);
+  };
+
+  private onIceCandidateErrorEvent = (event: Event): void => {
+    const iceErrorEvent = event as RTCPeerConnectionIceErrorEvent;
+
+    this.handleIceCandidateError(iceErrorEvent);
+  };
+
+  private onIceGatheringStateChangeEvent = (event: Event): void => {
+    console.log(this.peerConnection!.iceGatheringState, event);
+  };
+
+  private onSignalingStateChangeEvent = (): void => {
+    console.log('Signaling state:', this.peerConnection!.signalingState);
   };
 
   /**
