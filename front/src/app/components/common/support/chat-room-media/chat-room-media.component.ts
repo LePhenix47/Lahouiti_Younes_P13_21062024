@@ -1,13 +1,12 @@
 import {
   Component,
+  computed,
   effect,
   ElementRef,
   inject,
   input,
   signal,
-  SimpleChanges,
   ViewChild,
-  WritableSignal,
 } from '@angular/core';
 import { ChatWebRtcService } from '@core/services/video-chat/chat-webrtc.service';
 
@@ -54,20 +53,33 @@ export class ChatRoomMediaComponent {
 
   private readonly chatWebRtcService = inject(ChatWebRtcService);
 
-  public showWebcam: boolean = false;
-  public openMicrophone: boolean = false;
-  public showScreenCast: boolean = false;
+  public showWebcam = signal<boolean>(false);
+  public openMicrophone = signal<boolean>(false);
+  public showScreenCast = signal<boolean>(false);
+  public localPeerHasSharedLocalMedia = computed(() => {
+    console.log('localPeerHasSharedLocalMedia signal updated!');
+
+    const localPeerHasSharedLocalMedia: boolean =
+      this.showWebcam() || this.openMicrophone() || this.showScreenCast();
+
+    if (this.chatWebRtcService.currentRoom && this.webRtcSessionStarted) {
+      // TODO: Call a method to set the "enabled" property of the local stream
+    } else if (this.chatWebRtcService.currentRoom) {
+      // TODO: Send a Websocket signal to state that the user has shared local media
+    }
+
+    return localPeerHasSharedLocalMedia;
+  });
 
   public roomsList = signal<string[]>([]);
   public currentRoom = signal<string | null>(null);
 
   public signalEffect = effect(() => {
-    console.log('effect');
+    console.log('effect', this.localPeerHasSharedLocalMedia());
   });
 
   public isReceiver: boolean = false;
   public otherPeerUserName: string | null = null;
-  public localPeerHasSharedLocalMedia: boolean = false;
   public remotePeerHasSharedLocalMedia: boolean = false;
   public webRtcSessionStarted: boolean = false;
 
@@ -219,7 +231,7 @@ export class ChatRoomMediaComponent {
     this.currentRoom.update(() => {
       return null;
     });
-    this.localPeerHasSharedLocalMedia = false;
+
     this.remotePeerHasSharedLocalMedia = false;
     this.webRtcSessionStarted = false;
 
@@ -245,18 +257,22 @@ export class ChatRoomMediaComponent {
       const ownVideoElement: HTMLVideoElement =
         this.ownWebCamVideoRef!.nativeElement;
 
-      console.log(this.showWebcam, this.openMicrophone, this.showScreenCast);
+      console.log(
+        this.showWebcam(),
+        this.openMicrophone(),
+        this.showScreenCast()
+      );
 
       this.chatWebRtcService.resetLocalStream();
 
-      if (!this.showWebcam && !this.openMicrophone) {
+      if (!this.showWebcam() && !this.openMicrophone()) {
         ownVideoElement.srcObject = null;
         return;
       }
 
       await this.chatWebRtcService.setLocalStream(
-        this.openMicrophone,
-        this.showWebcam
+        this.openMicrophone(),
+        this.showWebcam()
       );
 
       ownVideoElement.srcObject = this.chatWebRtcService.localStream;
@@ -282,16 +298,16 @@ export class ChatRoomMediaComponent {
       }
 
       // Check if it was due to the webcam
-      if (this.showWebcam) {
+      if (this.showWebcam()) {
         webcamCheckbox.checked = false;
-        this.showWebcam = false;
+        this.showWebcam.update(() => false);
         alert('Webcam access denied.');
       }
 
       // Check if it was due to the microphone
-      if (this.openMicrophone) {
+      if (this.openMicrophone()) {
         audioCheckbox.checked = false;
-        this.openMicrophone = false;
+        this.openMicrophone.update(() => false);
         alert('Microphone access denied.');
       }
     }
@@ -304,7 +320,7 @@ export class ChatRoomMediaComponent {
 
       this.chatWebRtcService.resetScreenShareStream();
 
-      if (!this.showScreenCast) {
+      if (!this.showScreenCast()) {
         screenVideoElement.srcObject = null;
         return;
       }
@@ -320,7 +336,7 @@ export class ChatRoomMediaComponent {
         this.screenCastCheckboxRef!.nativeElement;
 
       screenCastCheckbox.checked = false;
-      this.showScreenCast = false;
+      this.showScreenCast.update(() => false);
     }
   };
 
@@ -337,7 +353,7 @@ export class ChatRoomMediaComponent {
       return;
     }
 
-    this.showWebcam = input.checked;
+    this.showWebcam.update(() => input.checked);
 
     this.updateLocalStream();
   };
@@ -355,7 +371,7 @@ export class ChatRoomMediaComponent {
       return;
     }
 
-    this.openMicrophone = input.checked;
+    this.openMicrophone.update(() => input.checked);
 
     this.updateLocalStream();
   };
@@ -373,7 +389,7 @@ export class ChatRoomMediaComponent {
       return;
     }
 
-    this.showScreenCast = input.checked;
+    this.showScreenCast.update(() => input.checked);
 
     this.updateScreenCastStream();
   };
