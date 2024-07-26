@@ -258,7 +258,7 @@
     &[type="checkbox"] {
       --_color: initial;
       --_appearance: auto;
-      --_moz-appearance: initial;
+      --_moz-appearance: auto;
 
       accent-color: var(--_color);
       appearance: var(--_appearance);
@@ -268,7 +268,7 @@
     &[type="radio"] {
       --_color: initial;
       --_appearance: auto;
-      --_moz-appearance: initial;
+      --_moz-appearance: auto;
 
       accent-color: var(--_color);
       appearance: var(--_appearance);
@@ -464,6 +464,8 @@
       &:hover {
         cursor: text;
       }
+
+      &::-webkit-calendar-picker-indicator {}
 
       --_reset-button-display: initial;
 
