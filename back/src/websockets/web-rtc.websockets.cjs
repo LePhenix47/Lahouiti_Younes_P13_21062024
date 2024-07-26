@@ -135,6 +135,29 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
     socket.to(roomName).emit("wrtc-test", message);
   });
 
+  socket.on("webrtc-session-start", ({ roomName }) => {
+    console.log(
+      `webrtc-session-start from ${userName.toUpperCase()} in room ${roomName}`
+    );
+
+    socket.to(roomName).emit("webrtc-session-start");
+  });
+
+  socket.on(
+    "enabled-local-media",
+    ({ roomName, remotePeerHasSharedLocalMedia }) => {
+      console.log(
+        `enabled-local-media from ${userName.toUpperCase()} in room ${roomName}, have they shared their local media? ${
+          remotePeerHasSharedLocalMedia ? "YES" : "NO"
+        }`
+      );
+
+      socket
+        .to(roomName)
+        .emit("enabled-local-media", remotePeerHasSharedLocalMedia);
+    }
+  );
+
   // Handle an offer event within a room
   socket.on("offer", (data) => {
     const { roomName, offer } = data;
