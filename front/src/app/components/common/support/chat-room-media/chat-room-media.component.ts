@@ -57,14 +57,19 @@ export class ChatRoomMediaComponent {
   public openMicrophone = signal<boolean>(false);
   public showScreenCast = signal<boolean>(false);
   public localPeerHasSharedLocalMedia = computed(() => {
-    console.log('localPeerHasSharedLocalMedia signal updated!');
+    console.log(
+      'localPeerHasSharedLocalMedia signal updated!',
+      this.chatWebRtcService.currentRoom,
+      this.webRtcSessionStarted
+    );
+
+    const hasSharedLocalFeed = this.showWebcam() || this.openMicrophone();
+    const hasSharedScreenFeed = this.showScreenCast();
 
     const localPeerHasSharedLocalMedia: boolean =
-      this.showWebcam() || this.openMicrophone() || this.showScreenCast();
+      hasSharedLocalFeed || hasSharedScreenFeed;
 
-    if (this.chatWebRtcService.currentRoom && this.webRtcSessionStarted) {
-      // TODO: Call a method to set the "enabled" property of the local stream
-    } else if (this.chatWebRtcService.currentRoom) {
+    if (this.chatWebRtcService.currentRoom && !this.webRtcSessionStarted) {
       this.chatWebRtcService.notifyRemotePeerOfLocalMediaShare(
         localPeerHasSharedLocalMedia
       );
@@ -98,6 +103,10 @@ export class ChatRoomMediaComponent {
       this.remotePeerHasSharedLocalMediaCallback
     );
 
+    this.chatWebRtcService.setOnTrackAddedCallback(
+      this.setWebRtcSessionStarted
+    );
+
     this.roomsList.update(() => {
       return [...this.chatWebRtcService.getRoomList()];
     });
@@ -110,6 +119,10 @@ export class ChatRoomMediaComponent {
     );
     console.groupEnd();
   }
+
+  setWebRtcSessionStarted = () => {
+    this.webRtcSessionStarted = true;
+  };
 
   ngAfterViewInit(): void {
     console.group('ngAfterViewInit()');
@@ -178,6 +191,12 @@ export class ChatRoomMediaComponent {
         this.otherPeerUserName
       }`
     );
+
+    if (!this.isReceiver) {
+      this.chatWebRtcService.notifyRemotePeerOfLocalMediaShare(
+        this.localPeerHasSharedLocalMedia()
+      );
+    }
   };
 
   private roomDeletedCallback = () => {
@@ -366,13 +385,20 @@ export class ChatRoomMediaComponent {
    */
   public toggleWebcam = (event: Event): void => {
     const input = event.currentTarget as HTMLInputElement;
+    this.showWebcam.update(() => input.checked);
 
     if (this.webRtcSessionStarted) {
-      // TODO: Add the logic to get the media track and toggle the "enabled" property
+      console.log(
+        "%cStarted session, don't need to notify remote peer",
+        'background: orange'
+      );
+
+      this.chatWebRtcService.toggleLocalStream(
+        this.showWebcam(),
+        this.openMicrophone()
+      );
       return;
     }
-
-    this.showWebcam.update(() => input.checked);
 
     this.updateLocalStream();
   };
@@ -384,13 +410,20 @@ export class ChatRoomMediaComponent {
    */
   public toggleAudio = (event: Event): void => {
     const input = event.currentTarget as HTMLInputElement;
+    this.openMicrophone.update(() => input.checked);
 
     if (this.webRtcSessionStarted) {
-      // TODO: Add the logic to get the media track and toggle the "enabled" property
+      console.log(
+        "%cStarted session, don't need to notify remote peer",
+        'background: orange'
+      );
+
+      this.chatWebRtcService.toggleLocalStream(
+        this.showWebcam(),
+        this.openMicrophone()
+      );
       return;
     }
-
-    this.openMicrophone.update(() => input.checked);
 
     this.updateLocalStream();
   };
@@ -402,13 +435,12 @@ export class ChatRoomMediaComponent {
    */
   public toggleScreenCast = (event: Event): void => {
     const input = event.currentTarget as HTMLInputElement;
+    this.showScreenCast.update(() => input.checked);
 
     if (this.webRtcSessionStarted) {
       // TODO: Add the logic to get the media track and toggle the "enabled" property
       return;
     }
-
-    this.showScreenCast.update(() => input.checked);
 
     this.updateScreenCastStream();
   };

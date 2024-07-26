@@ -151,16 +151,61 @@ export abstract class WebRTCService {
     }
 
     // Remove the ended event listener if it exists
-    if (this.screenStreamEndedHandler) {
-      const track = this.screenStream.getVideoTracks()[0];
-      track.removeEventListener('ended', this.screenStreamEndedHandler);
-    }
+    const track = this.screenStream.getVideoTracks()[0];
+    track.removeEventListener('ended', this.screenStreamEndedHandler);
 
     for (const screenTrack of this.screenStream.getTracks()) {
       screenTrack.stop();
     }
 
     this.screenStream = null;
+  };
+
+  /**
+   * Toggles the local stream's audio and video tracks.
+   * @param video - Whether to enable video.
+   * @param audio - Whether to enable audio.
+   */
+  public toggleLocalStream = (video: boolean, audio: boolean): void => {
+    if (!this.localStream) {
+      console.warn('Local stream is not set.');
+      return;
+    }
+
+    // Toggle audio tracks
+    for (const track of this.localStream.getAudioTracks()) {
+      track.enabled = audio; // Enable or disable audio track
+    }
+
+    // Toggle video tracks
+    for (const track of this.localStream.getVideoTracks()) {
+      track.enabled = video; // Enable or disable video track
+    }
+
+    console.log('%cLocal stream toggled:', 'background: orange', {
+      audio,
+      video,
+    });
+  };
+
+  /**
+   * Toggles the screen share stream.
+   */
+  public toggleScreenShare = (): void => {
+    if (!this.screenStream) {
+      console.warn('Screen share stream is not set.');
+      return;
+    }
+
+    // Check if the screen stream is active
+    const isActive: boolean = this.screenStream.getVideoTracks()[0].enabled;
+
+    // Toggle video tracks
+    for (const track of this.screenStream.getVideoTracks()) {
+      track.enabled = !isActive; // Enable or disable video track
+    }
+
+    console.log('Screen share toggled:', { active: !isActive });
   };
 
   private screenStreamEndedHandler = (e: Event) => {

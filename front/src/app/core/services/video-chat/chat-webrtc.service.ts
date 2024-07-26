@@ -28,6 +28,8 @@ export class ChatWebRtcService extends WebRTCService {
     | ((remotePeerHasSharedLocalMedia: boolean) => void)
     | null = null;
 
+  private onTrackAddedCallback: ((...args: any[]) => void) | null = null;
+
   /**
    * Adds websocket event listeners related to WebRTC for handling ICE candidates, offers, and answers
    */
@@ -168,6 +170,12 @@ export class ChatWebRtcService extends WebRTCService {
     callback: (remotePeerHasSharedLocalMedia: boolean) => void
   ): void => {
     this.onReceiveEnabledLocalMedia = callback;
+  };
+
+  public setOnTrackAddedCallback = (
+    callback: (...args: any[]) => void
+  ): void => {
+    this.onTrackAddedCallback = callback;
   };
 
   /**
@@ -354,6 +362,8 @@ export class ChatWebRtcService extends WebRTCService {
         }
       }
     }
+
+    this.onTrackAddedCallback?.(event);
   };
 
   public handleIceCandidate = async (
