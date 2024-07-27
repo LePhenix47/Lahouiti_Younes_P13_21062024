@@ -32,11 +32,9 @@ export class SupportComponent {
   };
 
   setSocket = (socket: any | null) => {
-    console.log('setSocket', socket);
     this.sharedSocket = socket;
   };
 
   ngOnInit() {
-    console.log('Own username', this.ownUsername);
   }
 }
