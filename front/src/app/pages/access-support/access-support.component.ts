@@ -2,12 +2,14 @@ import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { setChatUsernameAction } from '@core/ngrx/actions/chat-info.actions';
+import { CheckUsernameService } from '@core/services/check-username/check-username.service';
 import { Store } from '@ngrx/store';
+import { SpinLoaderComponent } from '@components/shared/spin-loader/spin-loader.component';
 
 @Component({
   selector: 'app-access-support',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, SpinLoaderComponent],
   templateUrl: './access-support.component.html',
   styleUrl: './access-support.component.scss',
 })
@@ -16,6 +18,11 @@ export class AccessSupportComponent {
    * Form builder service for creating reactive forms.
    */
   private readonly formBuilder = inject(FormBuilder);
+
+  private readonly checkUserNameService = inject(CheckUsernameService);
+
+  public readonly isLoading = this.checkUserNameService.isLoading;
+  public readonly error = this.checkUserNameService.error;
 
   /**
    * Store for managing application state.
@@ -39,7 +46,7 @@ export class AccessSupportComponent {
    *
    * @param {Event} event - The event object for the form submission.
    */
-  protected onSubmit = (event: Event): void => {
+  protected onSubmit = async (event: Event): Promise<void> => {
     event.preventDefault();
 
     let { username } = this.enterChatForm.getRawValue();
@@ -50,6 +57,14 @@ export class AccessSupportComponent {
     }
 
     console.log('submit', username);
+
+    await this.checkUserNameService.checkUsernameAvailability(username);
+
+    if (this.error()) {
+      console.error(this.error()?.error.message);
+
+      return;
+    }
 
     this.store.dispatch(
       setChatUsernameAction({

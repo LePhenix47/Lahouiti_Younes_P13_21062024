@@ -17,4 +17,12 @@
 
     <button type="submit" class="access-support__button ycyw__button ycyw__button--1">Join chat</button>
   </form>
+
+  @if(isLoading()){
+  <app-spin-loader />
+  }
+
+  @if(error()){
+  <p>{{ error()?.error?.message }}</p>
+  }
 </section>
