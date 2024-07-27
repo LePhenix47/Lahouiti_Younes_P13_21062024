@@ -30,7 +30,7 @@
       <button type="button"
         class="ycyw__button ycyw__button--2 chat-room-media__{{currentRoom() ? 'has-joined' : 'no-join'}} chat-room-media__join-button{{room.isFull ? '--is-full' : ''}}"
         (click)="connectToRoom(room.roomName)"
-        [disabled]="room.roomName === ownUsername()|| currentRoom()|| room.isFull">
+        [disabled]="room.roomName === ownUsername() || currentRoom() || room.isFull">
         {{room.isFull ? 'Full' :
         'Join'}}
       </button>
@@ -100,18 +100,22 @@
     [disabled]="!otherPeerUserName || !remotePeerHasSharedLocalMedia || !localPeerHasSharedLocalMedia()">Start</button>
 
 
-  @if(!otherPeerUserName){
-  <p class="chat-room-media__error-message">Waiting for other peer to join the room</p>
-  }
+  <p class="chat-room-media__error-message">
+    @if(!otherPeerUserName){
+    <span class="chat-room-media__error-message--span">Waiting for other peer to join the room</span>
+    }
 
-  @if(!localPeerHasSharedLocalMedia()){
-  <p class="chat-room-media__error-message">You must share your local stream in order to start a WebRTC session</p>
-  }
+    @if(!localPeerHasSharedLocalMedia()){
+    <span class="chat-room-media__error-message--span">You must share your local stream in order to start a WebRTC
+      session</span>
+    }
 
 
-  @if(!remotePeerHasSharedLocalMedia){
-  <p class="chat-room-media__error-message">Waiting for other peer to share their stream</p>
-  }
+    @if(!remotePeerHasSharedLocalMedia){
+    <span class="chat-room-media__error-message--span">Waiting for other peer to share their stream</span>
+    }
+
+  </p>
   }
   <!-- <button type="button" class="chat-room-media__button ycyw__button ycyw__button--1" (click)="sendTestMessage()">Send
     test message</button> -->
