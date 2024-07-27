@@ -2,12 +2,18 @@ const { connectedUsersMap } = require("../user.management.cjs"); // Update the p
 
 exports.hasUsernameBeenTaken = (req, res) => {
   try {
-    console.log(req.params);
-
     const { userName } = req.body;
+
+    if (!req.body || !userName) {
+      res.status(400).send("Bad request, invalid body or username");
+      console.error("Invalid body or username");
+
+      return;
+    }
 
     if (connectedUsersMap.has(userName)) {
       res.status(409).send("Username already taken");
+      console.error(userName, "is already taken");
 
       return;
     }
@@ -17,5 +23,7 @@ exports.hasUsernameBeenTaken = (req, res) => {
     res
       .status(500)
       .send("An unexpected error has occurred: " + error.toString());
+
+    console.error("Unexpected error", error.toString());
   }
 };
