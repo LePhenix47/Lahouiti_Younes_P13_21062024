@@ -5,14 +5,16 @@ exports.hasUsernameBeenTaken = (req, res) => {
     const { userName } = req.body;
 
     if (!req.body || !userName) {
-      res.status(400).send({ error: "Bad request, invalid body or username" });
+      res
+        .status(400)
+        .send({ message: "Bad request, invalid body or username" });
       console.error("Invalid body or username");
 
       return;
     }
 
     if (connectedUsersMap.has(userName)) {
-      res.status(409).send({ error: "Username already taken" });
+      res.status(409).send({ message: "Username already taken" });
       console.error(userName, "is already taken");
 
       return;
