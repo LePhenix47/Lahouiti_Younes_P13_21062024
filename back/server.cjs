@@ -8,6 +8,8 @@ const chatSocketListener = require("./src/websockets/chat.websockets.cjs");
 const testSocketListener = require("./src/websockets/test.websockets.cjs");
 const webRtcSocketListener = require("./src/websockets/web-rtc.websockets.cjs");
 
+const { connectedUsersMap, roomsMap } = require("./src/user.management.cjs"); // Update the path
+
 const normalizePort = (val) => {
   const port = parseInt(val, 10);
   if (isNaN(port)) {
@@ -67,29 +69,6 @@ server.on("listening", () => {
 });
 
 server.listen(port);
-
-const offers = [
-  // offererUserName
-  // offer
-  // offerIceCandidates
-  // answererUserName
-  // answer
-  // answererIceCandidates
-];
-
-/**
- * Map to store username and socket.id
- *
- * @type {Map<string, string>}
- */
-const connectedUsersMap = new Map();
-
-/**
- * Map to store room details, with the key the initializer and the value a tuple with 2 elements: [initializer, otherPeer]
- *
- * @type {Map<string, [string, string|null]>}
- */
-const roomsMap = new Map();
 
 const io = socketio(server, {
   cors: {
