@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { WebRTCService } from '../webrtc/webrtc.service';
+import { Room } from '@core/types/videoconference/videoconference.types';
 
 @Injectable({
   providedIn: 'root',
@@ -8,13 +9,13 @@ export class ChatWebRtcService extends WebRTCService {
   public rtcConnected: boolean = false;
   public hasCreatedRoom: boolean = false;
   public currentRoom: string | null = null;
-  protected roomList: string[] = []; // To keep track of available rooms
+  protected roomList: Room[] = []; // To keep track of available rooms
 
   private hasAddedRoomSocketListeners: boolean = false;
   private hasAddedWebRtcSocketListeners: boolean = false;
 
   // Callbacks for room-related events
-  private onRoomListUpdateCallback: ((rooms: string[]) => void) | null = null;
+  private onRoomListUpdateCallback: ((rooms: Room[]) => void) | null = null;
   private onRoomCreatedCallback: ((roomName: string) => void) | null = null;
   private onRoomJoinedCallback:
     | ((roomName: string, userName: string) => void)
@@ -88,7 +89,7 @@ export class ChatWebRtcService extends WebRTCService {
       return;
     }
 
-    this.socketio.on('room-list', (rooms: string[]) => {
+    this.socketio.on('room-list', (rooms: Room[]) => {
       this.roomList = rooms;
 
       this.onRoomListUpdateCallback?.(rooms);
@@ -137,7 +138,7 @@ export class ChatWebRtcService extends WebRTCService {
 
   // * Methods to set callbacks
   public setOnRoomListUpdateCallback = (
-    callback: (rooms: string[]) => void
+    callback: (rooms: Room[]) => void
   ): void => {
     this.onRoomListUpdateCallback = callback;
   };

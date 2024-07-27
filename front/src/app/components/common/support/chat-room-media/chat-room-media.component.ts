@@ -9,6 +9,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { ChatWebRtcService } from '@core/services/video-chat/chat-webrtc.service';
+import { Room } from '@core/types/videoconference/videoconference.types';
 
 @Component({
   selector: 'app-chat-room-media',
@@ -78,7 +79,7 @@ export class ChatRoomMediaComponent {
     return localPeerHasSharedLocalMedia;
   });
 
-  public roomsList = signal<string[]>([]);
+  public roomsList = signal<Room[]>([]);
   public currentRoom = signal<string | null>(null);
 
   public signalEffect = effect(() => {
@@ -90,6 +91,8 @@ export class ChatRoomMediaComponent {
   public remotePeerHasSharedLocalMedia: boolean = false;
   public webRtcSessionStarted: boolean = false;
 
+  public roomErrorMessage: string | null = null;
+
   ngOnInit() {
     console.group('ngOnInit()');
     this.chatWebRtcService.setSocketIO(this.socketIO()!);
@@ -97,6 +100,7 @@ export class ChatRoomMediaComponent {
 
     this.chatWebRtcService.setOnRoomListUpdateCallback(this.updateRoomsList);
     this.chatWebRtcService.setOnRoomCreatedCallback(this.roomCreatedCallback);
+    this.chatWebRtcService.setOnRoomErrorCallback(this.showRoomError);
     this.chatWebRtcService.setOnRoomJoinedCallback(this.roomJoinedCallback);
     this.chatWebRtcService.setOnRoomDeletedCallback(this.roomDeletedCallback);
     this.chatWebRtcService.setOnReceiveEnabledLocalMediaCallback(
@@ -134,6 +138,14 @@ export class ChatRoomMediaComponent {
     this.webRtcSessionStarted = false;
     this.chatWebRtcService.endWebRTCSession();
   }
+
+  private showRoomError = (errorMessage: string) => {
+    console.log('Room error: ', errorMessage);
+
+    this.roomErrorMessage = errorMessage;
+  };
+
+  private resetState = () => {};
 
   private remotePeerHasSharedLocalMediaCallback = (
     remotePeerHasSharedLocalMedia: boolean
@@ -192,11 +204,9 @@ export class ChatRoomMediaComponent {
       }`
     );
 
-    if (!this.isReceiver) {
-      this.chatWebRtcService.notifyRemotePeerOfLocalMediaShare(
-        this.localPeerHasSharedLocalMedia()
-      );
-    }
+    this.chatWebRtcService.notifyRemotePeerOfLocalMediaShare(
+      this.localPeerHasSharedLocalMedia()
+    );
   };
 
   private roomDeletedCallback = () => {
@@ -214,7 +224,7 @@ export class ChatRoomMediaComponent {
     this.otherPeerUserName = null;
   };
 
-  private updateRoomsList = (rooms: string[]) => {
+  private updateRoomsList = (rooms: Room[]) => {
     this.roomsList.update(() => {
       return rooms;
     });
@@ -243,7 +253,6 @@ export class ChatRoomMediaComponent {
   };
 
   public connectToRoom = (roomName: string) => {
-    console.log('connectToRoom', roomName);
     this.chatWebRtcService.initializePeerConnection();
     this.chatWebRtcService.joinRoom(roomName);
 

@@ -39,6 +39,15 @@
 
   }
 
+
+  &__join-button {
+
+
+    &--is-full {
+      filter: grayscale(1) !important;
+    }
+  }
+
   &__username {
     position: absolute;
     bottom: 0;
@@ -65,4 +74,5 @@
   &__error-message {
     color: red;
   }
+
 }
