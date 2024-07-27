@@ -32,7 +32,6 @@ export abstract class ApiService {
    * @param {string} urlPathname - The URL segment to be appended to the base URL.
    * @param {ApiParams} params - Optional parameters to be included in the URL.
    * @param {string} newUrl - Optional base URL to be used instead of the class's base URL.
-   * @param {string} newUrl - Optional base URL to be used instead of the class's base URL.
    * @returns {string} The constructed URL.
    */
   private constructUrl = (
