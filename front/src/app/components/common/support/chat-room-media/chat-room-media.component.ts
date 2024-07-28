@@ -57,6 +57,11 @@ export class ChatRoomMediaComponent {
   public showWebcam = signal<boolean>(false);
   public openMicrophone = signal<boolean>(false);
   public showScreenCast = signal<boolean>(false);
+
+  public hasWebcamPermissionDenied = signal<boolean>(false);
+  public hasMicrophonePermissionDenied = signal<boolean>(false);
+  public hasCanceledScreenCast = signal<boolean>(false);
+
   public localPeerHasSharedLocalMedia = computed(() => {
     console.log(
       'localPeerHasSharedLocalMedia signal updated!',
@@ -64,8 +69,9 @@ export class ChatRoomMediaComponent {
       this.webRtcSessionStarted
     );
 
-    const hasSharedLocalFeed = this.showWebcam() || this.openMicrophone();
-    const hasSharedScreenFeed = this.showScreenCast();
+    const hasSharedLocalFeed: boolean =
+      this.showWebcam() || this.openMicrophone();
+    const hasSharedScreenFeed: boolean = this.showScreenCast();
 
     const localPeerHasSharedLocalMedia: boolean =
       hasSharedLocalFeed || hasSharedScreenFeed;
@@ -95,6 +101,8 @@ export class ChatRoomMediaComponent {
 
   ngOnInit() {
     console.group('ngOnInit()');
+    this.getInitialDevicePermissions();
+
     this.chatWebRtcService.setSocketIO(this.socketIO()!);
     this.chatWebRtcService.addRoomSocketEventListeners();
 
@@ -111,6 +119,8 @@ export class ChatRoomMediaComponent {
       this.setWebRtcSessionStarted
     );
 
+    this.chatWebRtcService.setOnScreenShareEndedCallback(this.onScreenShareEnd);
+
     this.roomsList.update(() => {
       return [...this.chatWebRtcService.getRoomList()];
     });
@@ -124,10 +134,6 @@ export class ChatRoomMediaComponent {
     console.groupEnd();
   }
 
-  setWebRtcSessionStarted = () => {
-    this.webRtcSessionStarted = true;
-  };
-
   ngAfterViewInit(): void {
     console.group('ngAfterViewInit()');
     this.setWebRtcVideoElements();
@@ -139,6 +145,10 @@ export class ChatRoomMediaComponent {
     this.chatWebRtcService.endWebRTCSession();
   }
 
+  private setWebRtcSessionStarted = () => {
+    this.webRtcSessionStarted = true;
+  };
+
   private showRoomError = (errorMessage: string) => {
     console.log('Room error: ', errorMessage);
 
@@ -146,6 +156,28 @@ export class ChatRoomMediaComponent {
   };
 
   private resetState = () => {};
+
+  private getInitialDevicePermissions = async () => {
+    const cameraPermissionResult: PermissionStatus =
+      await navigator.permissions.query({
+        // @ts-ignore TS is drunk
+        name: 'camera',
+      });
+
+    const microphonePermissionResult: PermissionStatus =
+      await navigator.permissions.query({
+        // @ts-ignore TS is drunk
+        name: 'microphone',
+      });
+
+    this.hasWebcamPermissionDenied.update(() => {
+      return cameraPermissionResult.state === 'denied';
+    });
+
+    this.hasMicrophonePermissionDenied.update(() => {
+      return microphonePermissionResult.state === 'denied';
+    });
+  };
 
   private remotePeerHasSharedLocalMediaCallback = (
     remotePeerHasSharedLocalMedia: boolean
@@ -323,6 +355,9 @@ export class ChatRoomMediaComponent {
       );
 
       ownVideoElement.srcObject = this.chatWebRtcService.localStream;
+
+      this.hasWebcamPermissionDenied.update(() => false);
+      this.hasMicrophonePermissionDenied.update(() => false);
     } catch (error) {
       const webcamCheckbox: HTMLInputElement =
         this.webcamCheckboxRef!.nativeElement;
@@ -339,7 +374,7 @@ export class ChatRoomMediaComponent {
         error.name !== 'NotAllowedError';
 
       if (isNotPermissionRelated) {
-        alert(`An unexpected error occurred: ${error.message}`);
+        console.error(`An unexpected error occurred: ${error.message}`);
 
         return;
       }
@@ -348,20 +383,22 @@ export class ChatRoomMediaComponent {
       if (this.showWebcam()) {
         webcamCheckbox.checked = false;
         this.showWebcam.update(() => false);
-        alert('Webcam access denied.');
+        this.hasWebcamPermissionDenied.update(() => true);
       }
 
       // Check if it was due to the microphone
       if (this.openMicrophone()) {
         audioCheckbox.checked = false;
         this.openMicrophone.update(() => false);
-        alert('Microphone access denied.');
+        this.hasMicrophonePermissionDenied.update(() => true);
       }
     }
   };
 
   private updateScreenCastStream = async () => {
     try {
+      this.hasCanceledScreenCast.update(() => false);
+
       const screenVideoElement: HTMLVideoElement =
         this.ownScreenCastVideoRef!.nativeElement;
 
@@ -377,14 +414,24 @@ export class ChatRoomMediaComponent {
       screenVideoElement.srcObject = screenStream;
     } catch (error) {
       console.error('Error accessing screen stream.', error);
-      alert(error);
 
       const screenCastCheckbox: HTMLInputElement =
         this.screenCastCheckboxRef!.nativeElement;
 
       screenCastCheckbox.checked = false;
       this.showScreenCast.update(() => false);
+      this.hasCanceledScreenCast.update(() => true);
     }
+  };
+
+  private onScreenShareEnd = (event: Event): void => {
+    console.log('onScreenShareEnd', event);
+
+    const screenCastCheckbox: HTMLInputElement =
+      this.screenCastCheckboxRef!.nativeElement;
+
+    screenCastCheckbox.checked = false;
+    this.showScreenCast.update(() => false);
   };
 
   /**

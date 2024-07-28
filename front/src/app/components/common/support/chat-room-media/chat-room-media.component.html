@@ -49,7 +49,23 @@
     <h3 class="chat-room-media__local-stream-title">
       Local stream
     </h3>
-    <video autoplay muted playsInline #ownWebCamVideoRef class="chat-room-media__webcam-video"></video>
+
+    <p class="chat-room-media__error-message">
+      @if(hasWebcamPermissionDenied()){
+      <span class="chat-room-media__error-message--span">Webcam permission has been denied</span>
+      }
+
+      @if(hasMicrophonePermissionDenied()){
+      <span class="chat-room-media__error-message--span">Microphone permission has been denied</span>
+      }
+
+      @if(hasCanceledScreenCast()){
+      <span class="chat-room-media__error-message--span">Screen cast has been canceled</span>
+      }
+
+    </p>
+
+    <video autoplay playsInline #ownWebCamVideoRef class="chat-room-media__webcam-video"></video>
     <video autoplay playsInline #ownScreenCastVideoRef class="chat-room-media__screen-cast-video"></video>
   </section>
 
