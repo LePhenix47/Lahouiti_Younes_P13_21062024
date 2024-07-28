@@ -63,12 +63,6 @@ export class ChatRoomMediaComponent {
   public hasCanceledScreenCast = signal<boolean>(false);
 
   public localPeerHasSharedLocalMedia = computed(() => {
-    console.log(
-      'localPeerHasSharedLocalMedia signal updated!',
-      this.chatWebRtcService.currentRoom,
-      this.webRtcSessionStarted
-    );
-
     const hasSharedLocalFeed: boolean =
       this.showWebcam() || this.openMicrophone();
     const hasSharedScreenFeed: boolean = this.showScreenCast();
@@ -150,8 +144,6 @@ export class ChatRoomMediaComponent {
   };
 
   private showRoomError = (errorMessage: string) => {
-    console.log('Room error: ', errorMessage);
-
     this.roomErrorMessage = errorMessage;
   };
 
@@ -183,11 +175,6 @@ export class ChatRoomMediaComponent {
     remotePeerHasSharedLocalMedia: boolean
   ) => {
     this.remotePeerHasSharedLocalMedia = remotePeerHasSharedLocalMedia;
-
-    console.log(
-      'remotePeerHasSharedLocalMediaCallback',
-      this.remotePeerHasSharedLocalMedia
-    );
   };
 
   private setWebRtcVideoElements = () => {
@@ -220,8 +207,6 @@ export class ChatRoomMediaComponent {
     roomName: string,
     otherPeerUserName: string
   ) => {
-    console.log('roomJoinedCallback', roomName);
-
     this.currentRoom.update(() => {
       return roomName;
     });
@@ -230,20 +215,12 @@ export class ChatRoomMediaComponent {
 
     this.otherPeerUserName = otherPeerUserName;
 
-    console.log(
-      `Currently in a room (${this.currentRoom()}) with ${
-        this.otherPeerUserName
-      }`
-    );
-
     this.chatWebRtcService.notifyRemotePeerOfLocalMediaShare(
       this.localPeerHasSharedLocalMedia()
     );
   };
 
   private roomDeletedCallback = () => {
-    console.log('roomDeletedCallback');
-
     this.currentRoom.update(() => {
       return null;
     });
@@ -298,11 +275,6 @@ export class ChatRoomMediaComponent {
       this.chatWebRtcService.endWebRTCSession();
     }
 
-    console.log(
-      '%cdisconnectFromRoom methodn, current room',
-      'background: red; padding: 10px',
-      this.currentRoom()
-    );
     this.chatWebRtcService.leaveRoom();
 
     this.currentRoom.update(() => {
@@ -335,12 +307,6 @@ export class ChatRoomMediaComponent {
     try {
       const ownVideoElement: HTMLVideoElement =
         this.ownWebCamVideoRef!.nativeElement;
-
-      console.log(
-        this.showWebcam(),
-        this.openMicrophone(),
-        this.showScreenCast()
-      );
 
       this.chatWebRtcService.resetLocalStream();
 
@@ -396,20 +362,14 @@ export class ChatRoomMediaComponent {
   };
 
   private updateScreenCastStream = async () => {
+    // TODO: Handle the case when a WebRTC session has already started
     try {
       this.hasCanceledScreenCast.update(() => false);
 
       const screenVideoElement: HTMLVideoElement =
         this.ownScreenCastVideoRef!.nativeElement;
 
-      this.chatWebRtcService.resetScreenShareStream();
-
-      if (!this.showScreenCast()) {
-        screenVideoElement.srcObject = null;
-        return;
-      }
-
-      const screenStream = await this.chatWebRtcService.setScreenShareStream();
+      const screenStream = await this.chatWebRtcService.toggleScreenShare();
 
       screenVideoElement.srcObject = screenStream;
     } catch (error) {
@@ -425,8 +385,6 @@ export class ChatRoomMediaComponent {
   };
 
   private onScreenShareEnd = (event: Event): void => {
-    console.log('onScreenShareEnd', event);
-
     const screenCastCheckbox: HTMLInputElement =
       this.screenCastCheckboxRef!.nativeElement;
 
@@ -444,11 +402,6 @@ export class ChatRoomMediaComponent {
     this.showWebcam.update(() => input.checked);
 
     if (this.webRtcSessionStarted) {
-      console.log(
-        "%cStarted session, don't need to notify remote peer",
-        'background: orange'
-      );
-
       this.chatWebRtcService.toggleLocalStream(
         this.showWebcam(),
         this.openMicrophone()
@@ -469,11 +422,6 @@ export class ChatRoomMediaComponent {
     this.openMicrophone.update(() => input.checked);
 
     if (this.webRtcSessionStarted) {
-      console.log(
-        "%cStarted session, don't need to notify remote peer",
-        'background: orange'
-      );
-
       this.chatWebRtcService.toggleLocalStream(
         this.showWebcam(),
         this.openMicrophone()
@@ -493,10 +441,10 @@ export class ChatRoomMediaComponent {
     const input = event.currentTarget as HTMLInputElement;
     this.showScreenCast.update(() => input.checked);
 
-    if (this.webRtcSessionStarted) {
-      // TODO: Add the logic to get the media track and toggle the "enabled" property
-      return;
-    }
+    // if (this.webRtcSessionStarted) {
+    //   // TODO: Add the logic to get the media track and toggle the "enabled" property
+    //   return;
+    // }
 
     this.updateScreenCastStream();
   };

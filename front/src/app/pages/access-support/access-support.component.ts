@@ -56,8 +56,6 @@ export class AccessSupportComponent {
       return;
     }
 
-    console.log('submit', username);
-
     await this.checkUserNameService.checkUsernameAvailability(username);
 
     if (this.error()) {

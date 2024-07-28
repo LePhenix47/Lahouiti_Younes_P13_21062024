@@ -48,7 +48,6 @@ export class CheckUsernameService extends ApiService {
           })
         )
         .subscribe((result) => {
-          console.log('%cResult', 'background: lime; color: black', result);
           resolve(result);
 
           this.setAvailability(result?.error ? false : true);
