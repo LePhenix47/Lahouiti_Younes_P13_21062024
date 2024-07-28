@@ -31,6 +31,12 @@ export class ChatWebRtcService extends WebRTCService {
 
   private onTrackAddedCallback: ((...args: any[]) => void) | null = null;
 
+  private onScreenShareEndCallback: ((...args: any[]) => void) | null = null;
+
+  public handleScreenShareEndEvent = (event: Event) => {
+    this.onScreenShareEndCallback?.(event);
+  };
+
   /**
    * Adds websocket event listeners related to WebRTC for handling ICE candidates, offers, and answers
    */
@@ -177,6 +183,12 @@ export class ChatWebRtcService extends WebRTCService {
     callback: (...args: any[]) => void
   ): void => {
     this.onTrackAddedCallback = callback;
+  };
+
+  public setOnScreenShareEndedCallback = (
+    callback: (...args: any[]) => void
+  ): void => {
+    this.onScreenShareEndCallback = callback;
   };
 
   /**

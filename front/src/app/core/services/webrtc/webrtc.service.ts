@@ -151,7 +151,7 @@ export abstract class WebRTCService {
     }
 
     // Remove the ended event listener if it exists
-    const track = this.screenStream.getVideoTracks()[0];
+    const track: MediaStreamTrack = this.screenStream.getVideoTracks()[0];
     track.removeEventListener('ended', this.screenStreamEndedHandler);
 
     for (const screenTrack of this.screenStream.getTracks()) {
@@ -208,8 +208,8 @@ export abstract class WebRTCService {
     console.log('Screen share toggled:', { active: !isActive });
   };
 
-  private screenStreamEndedHandler = (e: Event) => {
-    console.log('screenStreamEndedHandler', e);
+  private screenStreamEndedHandler = (event: Event) => {
+    this.handleScreenShareEndEvent(event);
   };
 
   /**
@@ -440,6 +440,12 @@ export abstract class WebRTCService {
    * @param {RTCTrackEvent} event - The track event.
    */
   protected abstract handleTrackEvent(event: RTCTrackEvent): void;
+
+  /**
+   * Handles the end of a screen share.
+   * @param {Event} event - The event.
+   */
+  protected abstract handleScreenShareEndEvent(event: Event): void;
 
   /**
    * Handles the creation of an offer.
