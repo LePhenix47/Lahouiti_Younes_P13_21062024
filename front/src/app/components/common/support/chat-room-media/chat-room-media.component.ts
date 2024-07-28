@@ -369,7 +369,14 @@ export class ChatRoomMediaComponent {
       const screenVideoElement: HTMLVideoElement =
         this.ownScreenCastVideoRef!.nativeElement;
 
-      const screenStream = await this.chatWebRtcService.toggleScreenShare();
+      this.chatWebRtcService.resetScreenShareStream();
+
+      if (!this.showScreenCast()) {
+        screenVideoElement.srcObject = null;
+        return;
+      }
+
+      const screenStream = await this.chatWebRtcService.setScreenShareStream();
 
       screenVideoElement.srcObject = screenStream;
     } catch (error) {
@@ -441,10 +448,10 @@ export class ChatRoomMediaComponent {
     const input = event.currentTarget as HTMLInputElement;
     this.showScreenCast.update(() => input.checked);
 
-    // if (this.webRtcSessionStarted) {
-    //   // TODO: Add the logic to get the media track and toggle the "enabled" property
-    //   return;
-    // }
+    if (this.webRtcSessionStarted) {
+      // TODO: Add the logic to get the media track and toggle the "enabled" property
+      return;
+    }
 
     this.updateScreenCastStream();
   };
