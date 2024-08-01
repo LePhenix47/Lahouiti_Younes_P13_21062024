@@ -33,14 +33,14 @@ export class ChatWebRtcService extends WebRTCService {
 
   private onScreenShareEndCallback: ((...args: any[]) => void) | null = null;
 
-  public handleScreenShareEndEvent = (event: Event) => {
+  public override handleScreenShareEndEvent = (event: Event) => {
     this.onScreenShareEndCallback?.(event);
   };
 
   /**
    * Adds websocket event listeners related to WebRTC for handling ICE candidates, offers, and answers
    */
-  public addWebRtcSocketEventListeners = (): void => {
+  public override addWebRtcSocketEventListeners = (): void => {
     if (!this.socketio) {
       return;
     }
@@ -271,7 +271,7 @@ export class ChatWebRtcService extends WebRTCService {
     this.peerConnection = null;
   };
 
-  public createOffer = async (): Promise<void> => {
+  public override createOffer = async (): Promise<void> => {
     this.addLocalTracksToPeerConnection();
 
     if (!this.peerConnection) {
@@ -302,7 +302,7 @@ export class ChatWebRtcService extends WebRTCService {
     this.socketio!.emit('offer', offerPayload);
   };
 
-  public createAnswer = async (): Promise<void> => {
+  public override createAnswer = async (): Promise<void> => {
     if (!this.peerConnection) {
       console.error(
         "Cannot create answer because peer connection doesn't exist."
@@ -337,7 +337,7 @@ export class ChatWebRtcService extends WebRTCService {
 
   public onReceiveOffer = async (offer: RTCSessionDescriptionInit) => {};
 
-  protected handleTrackEvent = (event: RTCTrackEvent): void => {
+  protected override handleTrackEvent = (event: RTCTrackEvent): void => {
     console.log(`Received tracks from remote peer`, event);
 
     // Check if we have any streams from the event
@@ -347,7 +347,7 @@ export class ChatWebRtcService extends WebRTCService {
     }
     // * Since only 2 people can make a call, we only need one stream
     const stream = event.streams[0];
-    console.log({ stream });
+    console.log({ stream }, stream.getTracks());
 
     // Handle the stream based on its type
     for (const track of stream.getTracks()) {
@@ -379,7 +379,7 @@ export class ChatWebRtcService extends WebRTCService {
     this.onTrackAddedCallback?.(event);
   };
 
-  public handleIceCandidate = async (
+  public override handleIceCandidate = async (
     candidate: RTCIceCandidate
   ): Promise<void> => {
     //   `%cGENERATED Ice candidate to send to remote peer`,
