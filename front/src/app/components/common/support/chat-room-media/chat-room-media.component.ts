@@ -22,13 +22,9 @@ export class ChatRoomMediaComponent {
   // * Refs for the video elements
   @ViewChild('ownWebCamVideoRef')
   ownWebCamVideoRef: ElementRef<HTMLVideoElement> | null = null;
-  @ViewChild('ownScreenCastVideoRef')
-  ownScreenCastVideoRef: ElementRef<HTMLVideoElement> | null = null;
 
   @ViewChild('remoteWebCamVideoRef')
   remoteWebCamVideoRef: ElementRef<HTMLVideoElement> | null = null;
-  @ViewChild('remoteScreenCastVideoRef')
-  remoteScreenCastVideoRef: ElementRef<HTMLVideoElement> | null = null;
 
   // * Refs for the controls
   @ViewChild('webcamCheckboxRef')
@@ -182,16 +178,10 @@ export class ChatRoomMediaComponent {
     this.chatWebRtcService.setLocalVideoElement(
       this.ownWebCamVideoRef!.nativeElement
     );
-    this.chatWebRtcService.setLocalScreenElement(
-      this.ownScreenCastVideoRef!.nativeElement
-    );
 
     // * Remote webcam, audio and screen cast
     this.chatWebRtcService.setRemoteVideoElement(
       this.remoteWebCamVideoRef!.nativeElement
-    );
-    this.chatWebRtcService.setRemoteScreenElement(
-      this.remoteScreenCastVideoRef!.nativeElement
     );
   };
 
@@ -305,13 +295,13 @@ export class ChatRoomMediaComponent {
 
   private updateLocalStream = async () => {
     try {
-      const ownVideoElement: HTMLVideoElement =
+      const webcamVideoElement: HTMLVideoElement =
         this.ownWebCamVideoRef!.nativeElement;
 
       this.chatWebRtcService.resetLocalStream();
 
       if (!this.showWebcam() && !this.openMicrophone()) {
-        ownVideoElement.srcObject = null;
+        webcamVideoElement.srcObject = null;
         return;
       }
 
@@ -320,7 +310,7 @@ export class ChatRoomMediaComponent {
         this.showWebcam()
       );
 
-      ownVideoElement.srcObject = this.chatWebRtcService.localStream;
+      webcamVideoElement.srcObject = this.chatWebRtcService.localStream;
 
       this.hasWebcamPermissionDenied.update(() => false);
       this.hasMicrophonePermissionDenied.update(() => false);
@@ -366,19 +356,18 @@ export class ChatRoomMediaComponent {
     try {
       this.hasCanceledScreenCast.update(() => false);
 
-      const screenVideoElement: HTMLVideoElement =
-        this.ownScreenCastVideoRef!.nativeElement;
-
-      this.chatWebRtcService.resetScreenShareStream();
+      const webcamVideoElement: HTMLVideoElement =
+        this.ownWebCamVideoRef!.nativeElement;
 
       if (!this.showScreenCast()) {
-        screenVideoElement.srcObject = null;
+        webcamVideoElement.srcObject = null;
         return;
       }
 
-      const screenStream = await this.chatWebRtcService.setScreenShareStream();
+      const screenStream: MediaStream | null =
+        await this.chatWebRtcService.startScreenShare();
 
-      screenVideoElement.srcObject = screenStream;
+      webcamVideoElement.srcObject = screenStream;
     } catch (error) {
       console.error('Error accessing screen stream.', error);
 
@@ -397,6 +386,10 @@ export class ChatRoomMediaComponent {
 
     screenCastCheckbox.checked = false;
     this.showScreenCast.update(() => false);
+
+    const videoElement: HTMLVideoElement =
+      this.ownWebCamVideoRef!.nativeElement;
+    videoElement.srcObject = this.chatWebRtcService.localStream;
   };
 
   /**
@@ -447,11 +440,6 @@ export class ChatRoomMediaComponent {
   public toggleScreenCast = (event: Event): void => {
     const input = event.currentTarget as HTMLInputElement;
     this.showScreenCast.update(() => input.checked);
-
-    if (this.webRtcSessionStarted) {
-      // TODO: Add the logic to get the media track and toggle the "enabled" property
-      return;
-    }
 
     this.updateScreenCastStream();
   };
