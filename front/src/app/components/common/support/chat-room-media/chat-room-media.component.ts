@@ -9,7 +9,11 @@ import {
   ViewChild,
 } from '@angular/core';
 import { ChatWebRtcService } from '@core/services/video-chat/chat-webrtc.service';
-import { Room } from '@core/types/videoconference/videoconference.types';
+import {
+  DeviceInfo,
+  Room,
+} from '@core/types/videoconference/videoconference.types';
+import { createDeviceList } from '@core/utils/videoconference/videoconference.utils';
 
 @Component({
   selector: 'app-chat-room-media',
@@ -75,6 +79,22 @@ export class ChatRoomMediaComponent {
     return localPeerHasSharedLocalMedia;
   });
 
+  public enumeratedDevicesList = signal<MediaDeviceInfo[]>([]);
+
+  // Filter for video input devices
+  public videoInputsList = computed(() => {
+    return createDeviceList(this.enumeratedDevicesList(), 'videoinput');
+  });
+
+  public audioInputsList = computed<DeviceInfo[]>(() => {
+    return createDeviceList(this.enumeratedDevicesList(), 'audioinput');
+  });
+
+  // Filter for audio output devices
+  public audioOutputsList = computed(() => {
+    return createDeviceList(this.enumeratedDevicesList(), 'audiooutput');
+  });
+
   public roomsList = signal<Room[]>([]);
   public currentRoom = signal<string | null>(null);
 
@@ -89,9 +109,20 @@ export class ChatRoomMediaComponent {
 
   public roomErrorMessage: string | null = null;
 
-  ngOnInit() {
+  async ngOnInit() {
     console.group('ngOnInit()');
     this.getInitialDevicePermissions();
+
+    await this.populateEnumeratedDevices();
+
+    console.log(
+      'this.videoInputsList()',
+      this.videoInputsList(),
+      'this.audioInputsList()',
+      this.audioInputsList(),
+      'this.audioOutputsList()',
+      this.audioOutputsList()
+    );
 
     this.chatWebRtcService.setSocketIO(this.socketIO()!);
     this.chatWebRtcService.addRoomSocketEventListeners();
@@ -141,6 +172,15 @@ export class ChatRoomMediaComponent {
 
   private showRoomError = (errorMessage: string) => {
     this.roomErrorMessage = errorMessage;
+  };
+
+  private populateEnumeratedDevices = async () => {
+    const devices: MediaDeviceInfo[] =
+      await navigator.mediaDevices.enumerateDevices();
+
+    this.enumeratedDevicesList.update(() => {
+      return devices;
+    });
   };
 
   private resetState = () => {};
