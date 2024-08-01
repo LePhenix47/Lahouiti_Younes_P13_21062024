@@ -50,7 +50,7 @@ export class CheckUsernameService extends ApiService {
         .subscribe((result) => {
           resolve(result);
 
-          this.setAvailability(result?.error ? false : true);
+          this.setAvailability(Boolean(result?.error));
           this.setLoadingIndicator(false);
 
           subscription.unsubscribe();
