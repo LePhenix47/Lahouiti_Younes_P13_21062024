@@ -1,13 +1,17 @@
 import { Injectable } from '@angular/core';
 import { Socket } from 'socket.io-client';
 
+interface StreamLogic {}
+
+interface WebRTCLogic {}
+
 /**
  * A service class for interacting with WebRTC in a two-person chat.
  */
 @Injectable({
   providedIn: 'root',
 })
-export abstract class WebRTCService {
+export abstract class WebRTCService implements WebRTCLogic, StreamLogic {
   /**
    * The single peer connection between the local and remote users.
    */
@@ -17,7 +21,6 @@ export abstract class WebRTCService {
    * Local media streams, either webcam or screen casts.
    */
   public localStream: MediaStream | null = null;
-  public screenStream: MediaStream | null = null;
 
   /**
    * Remote media stream from the other peer.
@@ -25,9 +28,7 @@ export abstract class WebRTCService {
   protected remoteStream: MediaStream = new MediaStream();
 
   protected localVideoElement: HTMLVideoElement | null = null;
-  protected localScreenElement: HTMLVideoElement | null = null;
   protected remoteVideoElement: HTMLVideoElement | null = null;
-  protected remoteScreenElement: HTMLVideoElement | null = null;
 
   /**
    * RTC configuration with ICE servers for STUN/TURN servers.
@@ -48,6 +49,9 @@ export abstract class WebRTCService {
   protected socketio: Socket | null = null;
 
   protected dataChannel: RTCDataChannel | null = null;
+
+  protected screenTrack: MediaStreamTrack | null = null;
+  protected webcamTrack: MediaStreamTrack | null = null;
 
   /**
    * Sets the Socket.io client for signaling.
@@ -87,6 +91,9 @@ export abstract class WebRTCService {
         });
 
       this.localStream = localStream;
+
+      this.webcamTrack = localStream.getVideoTracks()[0];
+
       return localStream;
     } catch (error) {
       console.error('Error accessing media devices.', error);
@@ -107,58 +114,6 @@ export abstract class WebRTCService {
     }
 
     this.localStream = null;
-  };
-
-  /**
-   * Sets the screen share stream.
-   * @param {boolean} withInnerDeviceAudio - Whether to capture audio.
-   * @returns {Promise<MediaStream>}
-   */
-  public setScreenShareStream = async (
-    withInnerDeviceAudio: boolean = false
-  ): Promise<MediaStream> => {
-    try {
-      if (this.screenStream) {
-        return this.screenStream;
-      }
-
-      const screenStream: MediaStream =
-        await navigator.mediaDevices.getDisplayMedia({
-          video: true,
-          audio: withInnerDeviceAudio,
-        });
-
-      this.screenStream = screenStream;
-
-      // Add an event listener for when the screen sharing ends
-      const track: MediaStreamTrack = screenStream.getVideoTracks()[0];
-      track.addEventListener('ended', this.screenStreamEndedHandler);
-
-      return screenStream;
-    } catch (error) {
-      console.error('Error accessing display media.', error);
-      throw error;
-    }
-  };
-
-  /**
-   * Stops all tracks of the current screen share stream and resets it to null.
-   */
-  public resetScreenShareStream = (): void => {
-    if (!this.screenStream) {
-      console.warn('No screen stream to reset.');
-      return;
-    }
-
-    // Remove the ended event listener if it exists
-    const track: MediaStreamTrack = this.screenStream.getVideoTracks()[0];
-    track.removeEventListener('ended', this.screenStreamEndedHandler);
-
-    for (const screenTrack of this.screenStream.getTracks()) {
-      screenTrack.stop();
-    }
-
-    this.screenStream = null;
   };
 
   /**
@@ -188,30 +143,71 @@ export abstract class WebRTCService {
     });
   };
 
-  /**
-   * Toggles the screen share stream.
-   */
-  public toggleScreenShare = (): void => {
-    if (!this.screenStream) {
-      console.warn('Screen share stream is not set.');
+  // When the user starts screen sharing
+  public startScreenShare = async (): Promise<MediaStream | null> => {
+    let screenStream: MediaStream | null = null;
+
+    try {
+      screenStream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+      });
+      this.screenTrack = screenStream.getVideoTracks()[0];
+
+      if (!this.screenTrack || !this.webcamTrack) {
+        return null;
+      }
+      // Replace the webcam track with the screen track
+      this.replaceTrackInPeerConnection(this.webcamTrack, this.screenTrack);
+
+      // Handle the ended event to know when to switch back
+      this.screenTrack.addEventListener('ended', this.stopScreenShare);
+    } catch (error) {
+      console.error('Error starting screen share', error);
+      throw error;
+    } finally {
+      return screenStream;
+    }
+  };
+
+  // When the user stops screen sharing
+  public stopScreenShare = (event: Event): void => {
+    // Replace the screen track with the original webcam track
+    if (!this.screenTrack || !this.webcamTrack) {
       return;
     }
 
-    // Check if the screen stream is active
-    const isActive: boolean = this.screenStream.getVideoTracks()[0].enabled;
+    this.replaceTrackInPeerConnection(this.screenTrack, this.webcamTrack);
+    this.screenTrack = null; // Reset the screen track reference
 
-    // Toggle video tracks
-    for (const track of this.screenStream.getVideoTracks()) {
-      track.enabled = !isActive; // Enable or disable video track
-    }
-
-    console.log('Screen share toggled:', { active: !isActive });
-  };
-
-  private screenStreamEndedHandler = (event: Event) => {
     this.handleScreenShareEndEvent(event);
   };
 
+  // Method to replace a track in the peer connection
+  private replaceTrackInPeerConnection = (
+    oldTrack: MediaStreamTrack,
+    newTrack: MediaStreamTrack
+  ): void => {
+    if (!this.peerConnection) {
+      console.warn(
+        'Peer connection is not initialized, could not replace track'
+      );
+
+      return;
+    }
+
+    const senders = this.peerConnection.getSenders();
+    const sender = senders.find((s) => s.track === oldTrack);
+    if (sender) {
+      sender.replaceTrack(newTrack);
+    } else {
+      console.error(
+        'Track not found in peer connection',
+        senders,
+        'Sender value :',
+        sender
+      );
+    }
+  };
   /**
    * Creates a new peer connection and adds event listeners.
    * @returns {RTCPeerConnection}
@@ -361,14 +357,6 @@ export abstract class WebRTCService {
       }
     }
 
-    if (this.screenStream) {
-      console.log('this.screenStream');
-
-      for (const track of this.screenStream.getTracks()) {
-        this.peerConnection.addTrack(track, this.screenStream);
-      }
-    }
-
     console.log(this.peerConnection.connectionState);
   };
 
@@ -385,16 +373,6 @@ export abstract class WebRTCService {
   }
 
   /**
-   * Sets the local screen element for the user's screen cast
-   *
-   * @param {HTMLVideoElement | null} element - The video element to set as the local screen.
-   * @return {void} This function does not return a value.
-   */
-  public setLocalScreenElement(element: HTMLVideoElement | null): void {
-    this.localScreenElement = element;
-  }
-
-  /**
    * Sets the remote video element for the user's webcam
    *
    * @param {HTMLVideoElement | null} element - The video element to set as the local video.
@@ -402,16 +380,6 @@ export abstract class WebRTCService {
    */
   public setRemoteVideoElement(element: HTMLVideoElement | null): void {
     this.remoteVideoElement = element;
-  }
-
-  /**
-   * Sets the remote screen element for the user's screen cast
-   *
-   * @param {HTMLVideoElement | null} element - The video element to set as the local screen.
-   * @return {void} This function does not return a value.
-   */
-  public setRemoteScreenElement(element: HTMLVideoElement | null): void {
-    this.remoteScreenElement = element;
   }
 
   /**
