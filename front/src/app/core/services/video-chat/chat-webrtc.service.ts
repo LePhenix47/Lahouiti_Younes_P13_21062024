@@ -352,22 +352,10 @@ export class ChatWebRtcService extends WebRTCService {
     // Handle the stream based on its type
     for (const track of stream.getTracks()) {
       switch (track.kind) {
+        case 'audio':
         case 'video': {
           if (!this.remoteVideoElement) {
-            return;
-          }
-          this.remoteVideoElement!.srcObject = stream;
-          break;
-        }
-        case 'screen': {
-          if (!this.remoteScreenElement) {
-            return;
-          }
-          this.remoteScreenElement!.srcObject = stream;
-          break;
-        }
-        case 'audio': {
-          if (!this.remoteVideoElement) {
+            console.error('No video element found to add stream to !');
             return;
           }
           this.remoteVideoElement!.srcObject = stream;
