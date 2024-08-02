@@ -138,6 +138,11 @@ export abstract class WebRTCService implements WebRTCLogic, StreamLogic {
           video: { deviceId: previousVideoDeviceId },
           audio: { deviceId: audioDeviceId },
         });
+      } else {
+        localStream = await navigator.mediaDevices.getUserMedia({
+          video: { deviceId: previousVideoDeviceId! },
+          audio: { deviceId: previousAudioDeviceId! },
+        });
       }
 
       if (!localStream) {
@@ -229,6 +234,22 @@ export abstract class WebRTCService implements WebRTCLogic, StreamLogic {
     });
   };
 
+  public resetRemoteStream = (): void => {
+    if (!this.peerConnection) {
+      console.error('PeerConnection is not initialized');
+      return;
+    }
+
+    const senders: RTCRtpSender[] = this.peerConnection.getSenders();
+    for (const sender of senders) {
+      if (!sender.track) {
+        continue;
+      }
+
+      sender.track.stop();
+    }
+  };
+
   // When the user starts screen sharing
   public startScreenShare = async (): Promise<MediaStream | null> => {
     let screenStream: MediaStream | null = null;
@@ -304,7 +325,7 @@ export abstract class WebRTCService implements WebRTCLogic, StreamLogic {
    */
   public initializePeerConnection = (): RTCPeerConnection => {
     if (this.peerConnection) {
-      console.warn('Peer connection already exists.');
+      console.warn('Peer connection already exists.', this.peerConnection);
       return this.peerConnection;
     }
 
@@ -448,6 +469,42 @@ export abstract class WebRTCService implements WebRTCLogic, StreamLogic {
     }
 
     console.log(this.peerConnection.connectionState);
+  };
+
+  protected removeLocalTracksFromPeerConnection = (): void => {
+    if (!this.peerConnection) {
+      console.error('The peer connection was not initiated');
+      return;
+    }
+    if (!this.localStream) {
+      console.error('The local stream was not initiated');
+      return;
+    }
+
+    console.log('Removing local tracks from peer connection');
+
+    console.log('Local stream tracks:', this.localStream.getTracks());
+
+    // Get the senders for the current peer connection
+    const senders = this.peerConnection.getSenders();
+
+    for (const track of this.localStream.getTracks()) {
+      // Find the sender that corresponds to the track
+      const sender = senders.find((s) => s.track === track);
+
+      if (!sender) {
+        console.warn('Sender for track not found:', track);
+        continue;
+      }
+
+      // Stop the track if you want to stop sending media
+      track.stop();
+      // Remove the track from the peer connection
+      this.peerConnection.removeTrack(sender);
+      console.log(`Removed track: ${track.kind}`);
+    }
+
+    console.log('Peer connection state:', this.peerConnection.connectionState);
   };
 
   // ? ===========  ABSTRACT METHODS =========== ?

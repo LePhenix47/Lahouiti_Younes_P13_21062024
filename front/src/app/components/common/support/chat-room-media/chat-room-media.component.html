@@ -152,8 +152,11 @@
   }@else {
   <button type="button" class="chat-room-media__button ycyw__button ycyw__button--2" (click)="deleteRoom()">Delete
     room</button>
+
+  @if(!webRtcSessionStarted){
   <button type="button" class="chat-room-media__button ycyw__button ycyw__button--1" (click)="initializeConnection()"
     [disabled]="!otherPeerUserName || !remotePeerHasSharedLocalMedia || !localPeerHasSharedLocalMedia()">Start</button>
+  }
 
 
   <p class="chat-room-media__error-message">

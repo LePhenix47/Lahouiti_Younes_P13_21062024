@@ -370,11 +370,6 @@ export class ChatWebRtcService extends WebRTCService {
   public override handleIceCandidate = async (
     candidate: RTCIceCandidate
   ): Promise<void> => {
-    //   `%cGENERATED Ice candidate to send to remote peer`,
-    //   'background: yellow; color: black; padding: 1rem',
-    //   candidate
-    // );
-
     const candidatePayload = { roomName: this.currentRoom, candidate } as const;
 
     this.socketio!.emit('ice-candidate', candidatePayload);
@@ -385,14 +380,25 @@ export class ChatWebRtcService extends WebRTCService {
   };
 
   // Example method for starting a WebRTC session with a specific user
-  public startWebRTCSession = (): void => {};
+  public startWebRTCSession = async (): Promise<void> => {
+    this.initializePeerConnection();
+
+    await this.createOffer();
+  };
 
   // Example method for ending a WebRTC session with a specific user
   public endWebRTCSession = (): void => {
-    // Close peer connection and clean up resources
-    this.closePeerConnection();
+    if (!this.localStream || !this.peerConnection) {
+      console.error('Local stream or peer connection not initialized');
 
-    const hasCreatedRoom = this.currentRoom === 'this';
-    this.leaveRoom(); // Ensure to leave the room when ending the session
+      return;
+    }
+    // Close peer connection and clean up resources
+
+    this.removeLocalTracksFromPeerConnection();
+    this.resetLocalStream();
+
+    this.peerConnection!.close();
+    this.peerConnection = null;
   };
 }

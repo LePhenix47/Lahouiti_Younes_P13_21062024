@@ -191,7 +191,17 @@ export class ChatRoomMediaComponent {
     });
   };
 
-  private resetState = () => {};
+  private resetWebRTCState = () => {
+    this.isReceiver = false;
+    this.otherPeerUserName = null;
+    this.remotePeerHasSharedLocalMedia = false;
+    this.webRtcSessionStarted = false;
+
+    const remoteVideoElement: HTMLVideoElement =
+      this.remoteWebCamVideoRef!.nativeElement;
+
+    this.setVideoElementStream(remoteVideoElement, null);
+  };
 
   private getInitialDevicePermissions = async () => {
     const cameraPermissionResult: PermissionStatus =
@@ -263,12 +273,7 @@ export class ChatRoomMediaComponent {
       return null;
     });
 
-    this.isReceiver = false;
-
-    this.remotePeerHasSharedLocalMedia = false;
-    this.webRtcSessionStarted = false;
-
-    this.otherPeerUserName = null;
+    this.resetWebRTCState();
   };
 
   private updateRoomsList = (rooms: Room[]) => {
@@ -296,6 +301,11 @@ export class ChatRoomMediaComponent {
   };
 
   public deleteRoom = () => {
+    if (this.webRtcSessionStarted) {
+      this.chatWebRtcService.endWebRTCSession();
+      this.resetWebRTCState();
+    }
+
     this.chatWebRtcService.deleteRoom(this.ownUsername());
   };
 
@@ -311,6 +321,8 @@ export class ChatRoomMediaComponent {
   public disconnectFromRoom = () => {
     if (this.webRtcSessionStarted) {
       this.chatWebRtcService.endWebRTCSession();
+
+      this.resetWebRTCState();
     }
 
     this.chatWebRtcService.leaveRoom();
@@ -334,9 +346,7 @@ export class ChatRoomMediaComponent {
   };
 
   public initializeConnection = async () => {
-    this.chatWebRtcService.initializePeerConnection();
-
-    await this.chatWebRtcService.createOffer();
+    this.chatWebRtcService.startWebRTCSession();
 
     this.webRtcSessionStarted = true;
   };
