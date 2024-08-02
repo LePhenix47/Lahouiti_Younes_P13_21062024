@@ -51,8 +51,12 @@ export abstract class WebRTCService implements WebRTCLogic, StreamLogic {
   protected dataChannel: RTCDataChannel | null = null;
 
   protected screenTrack: MediaStreamTrack | null = null;
+
   protected webcamTrack: MediaStreamTrack | null = null;
   protected webcamDeviceId: string | null = null;
+
+  protected audioInputTrack: MediaStreamTrack | null = null;
+  protected microphoneDeviceId: string | null = null;
 
   /**
    * Sets the Socket.io client for signaling.
@@ -93,6 +97,7 @@ export abstract class WebRTCService implements WebRTCLogic, StreamLogic {
 
       this.localStream = localStream;
 
+      this.audioInputTrack = localStream.getAudioTracks()[0];
       this.webcamTrack = localStream.getVideoTracks()[0];
 
       return localStream;
@@ -108,18 +113,29 @@ export abstract class WebRTCService implements WebRTCLogic, StreamLogic {
   ): Promise<MediaStream | null> => {
     try {
       let localStream: MediaStream | null = null;
+      let previousAudioDeviceId: string | null = null;
+      let previousVideoDeviceId: string | null = null;
 
       if (audioDeviceId && videoDeviceId) {
         localStream = await navigator.mediaDevices.getUserMedia({
-          audio: { deviceId: audioDeviceId },
           video: { deviceId: videoDeviceId },
+          audio: { deviceId: audioDeviceId },
         });
       } else if (videoDeviceId) {
+        previousAudioDeviceId =
+          this.microphoneDeviceId ||
+          this.audioInputTrack!.getSettings().deviceId!;
+
         localStream = await navigator.mediaDevices.getUserMedia({
           video: { deviceId: videoDeviceId },
+          audio: { deviceId: previousAudioDeviceId },
         });
       } else if (audioDeviceId) {
+        previousVideoDeviceId =
+          this.webcamDeviceId || this.webcamTrack!.getSettings().deviceId!;
+
         localStream = await navigator.mediaDevices.getUserMedia({
+          video: { deviceId: previousVideoDeviceId },
           audio: { deviceId: audioDeviceId },
         });
       }
@@ -129,10 +145,14 @@ export abstract class WebRTCService implements WebRTCLogic, StreamLogic {
       }
 
       const newWebcamTrack: MediaStreamTrack = localStream.getVideoTracks()[0];
-      const deviceId: string | null =
-        newWebcamTrack.getSettings().deviceId || null;
 
-      if (this.localStream && deviceId === this.webcamDeviceId) {
+      const newAudioInputTrack: MediaStreamTrack =
+        localStream.getAudioTracks()[0];
+      if (
+        this.localStream &&
+        videoDeviceId === this.webcamDeviceId &&
+        audioDeviceId === this.microphoneDeviceId
+      ) {
         console.warn('Device ID did not change');
 
         return this.localStream;
@@ -142,12 +162,23 @@ export abstract class WebRTCService implements WebRTCLogic, StreamLogic {
         this.replaceTrackInPeerConnection(this.webcamTrack, newWebcamTrack);
       }
 
+      if (this.peerConnection && this.audioInputTrack) {
+        this.replaceTrackInPeerConnection(
+          this.audioInputTrack,
+          newAudioInputTrack
+        );
+      }
+
       this.localStream = localStream;
 
       this.webcamTrack = newWebcamTrack;
-      this.webcamDeviceId = deviceId;
+      this.webcamDeviceId = newWebcamTrack.getSettings().deviceId!;
 
-      console.log('Device ID: ', this.webcamDeviceId);
+      this.audioInputTrack = newAudioInputTrack;
+      this.microphoneDeviceId = newAudioInputTrack.getSettings().deviceId!;
+
+      console.log('Device ID for webcam: ', this.webcamDeviceId);
+      console.log('Device ID for microphone: ', this.microphoneDeviceId);
 
       return localStream;
     } catch (error) {
