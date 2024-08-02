@@ -113,6 +113,7 @@ export class ChatRoomMediaComponent {
     console.group('ngOnInit()');
     this.getInitialDevicePermissions();
 
+    this.listenToDeviceChanges();
     await this.populateEnumeratedDevices();
 
     console.log(
@@ -172,6 +173,13 @@ export class ChatRoomMediaComponent {
 
   private showRoomError = (errorMessage: string) => {
     this.roomErrorMessage = errorMessage;
+  };
+
+  private listenToDeviceChanges = () => {
+    navigator.mediaDevices.addEventListener(
+      'devicechange',
+      this.populateEnumeratedDevices
+    );
   };
 
   private populateEnumeratedDevices = async () => {
@@ -333,6 +341,65 @@ export class ChatRoomMediaComponent {
     this.webRtcSessionStarted = true;
   };
 
+  public switchWebcamDevice = async (event: Event) => {
+    console.log('switchWebcamDevice', event);
+
+    try {
+      const selectElement = event.target as HTMLSelectElement;
+      const videoInputDeviceId: string = selectElement.value;
+
+      const localStream =
+        await this.chatWebRtcService.switchLocalStreamByDeviceId(
+          videoInputDeviceId,
+          null
+        );
+
+      console.log({ videoInputDeviceId, localStream });
+
+      const localVideoElement: HTMLVideoElement =
+        this.ownWebCamVideoRef!.nativeElement;
+
+      this.setVideoElementStream(localVideoElement, localStream);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  public switchMicrophoneDevice = async (event: Event) => {
+    console.log('switchMicrophoneDevice', event);
+
+    try {
+      const selectElement = event.target as HTMLSelectElement;
+      const audioInputDeviceId: string = selectElement.value;
+
+      const localStream =
+        await this.chatWebRtcService.switchLocalStreamByDeviceId(
+          null,
+          audioInputDeviceId
+        );
+
+      console.log({ audioInputDeviceId, localStream });
+
+      const localVideoElement: HTMLVideoElement =
+        this.ownWebCamVideoRef!.nativeElement;
+
+      this.setVideoElementStream(localVideoElement, localStream);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  public switchSpeakerDevice = async (event: Event) => {
+    const selectElement = event.target as HTMLSelectElement;
+    const audioOutputDeviceId: string = selectElement.value;
+
+    const remoteVideoElement: HTMLVideoElement =
+      this.remoteWebCamVideoRef!.nativeElement;
+
+    // @ts-ignore Angular compiler complains about not finding this method even though it exists
+    await remoteVideoElement.setSinkId(audioOutputDeviceId);
+  };
+
   private updateLocalStream = async () => {
     try {
       const webcamVideoElement: HTMLVideoElement =
@@ -341,7 +408,7 @@ export class ChatRoomMediaComponent {
       this.chatWebRtcService.resetLocalStream();
 
       if (!this.showWebcam() && !this.openMicrophone()) {
-        webcamVideoElement.srcObject = null;
+        this.setVideoElementStream(webcamVideoElement, null);
         return;
       }
 
@@ -350,7 +417,10 @@ export class ChatRoomMediaComponent {
         this.showWebcam()
       );
 
-      webcamVideoElement.srcObject = this.chatWebRtcService.localStream;
+      this.setVideoElementStream(
+        webcamVideoElement,
+        this.chatWebRtcService.localStream
+      );
 
       this.hasWebcamPermissionDenied.update(() => false);
       this.hasMicrophonePermissionDenied.update(() => false);
@@ -407,7 +477,7 @@ export class ChatRoomMediaComponent {
       const screenStream: MediaStream | null =
         await this.chatWebRtcService.startScreenShare();
 
-      webcamVideoElement.srcObject = screenStream;
+      this.setVideoElementStream(webcamVideoElement, screenStream!);
     } catch (error) {
       console.error('Error accessing screen stream.', error);
 
@@ -429,7 +499,18 @@ export class ChatRoomMediaComponent {
 
     const videoElement: HTMLVideoElement =
       this.ownWebCamVideoRef!.nativeElement;
-    videoElement.srcObject = this.chatWebRtcService.localStream;
+
+    this.setVideoElementStream(
+      videoElement,
+      this.chatWebRtcService.localStream!
+    );
+  };
+
+  private setVideoElementStream = (
+    videoElement: HTMLVideoElement,
+    stream: MediaStream | null
+  ) => {
+    videoElement.srcObject = stream;
   };
 
   /**

@@ -69,34 +69,70 @@
 
     </p>
 
-    <video autoplay playsInline #ownWebCamVideoRef
+    <video autoPlay playsInline muted volume="0" #ownWebCamVideoRef
       class="chat-room-media__webcam-video chat-room-media__webcam-video--local"></video>
+
+    <form class="chat-room-media__controls">
+      <fieldset class="chat-room-media__controls-fieldset chat-room-media__controls-fieldset--toggles">
+        <legend class="chat-room-media__controls-legend chat-room-media__controls-legend--toggles">Toggle controls
+        </legend>
+        <label class="chat-room-media__label chat-room-media__control">
+          <input type="checkbox" name="local-connection-control" class="chat-room-media__input"
+            (change)="toggleWebcam($event)" #webcamCheckboxRef /> Webcam</label>
+
+        <label class="chat-room-media__label chat-room-media__control">
+          <input type="checkbox" name="local-connection-control" class="chat-room-media__input"
+            (change)="toggleAudio($event)" #audioCheckboxRef /> Audio</label>
+
+        <label class="chat-room-media__label chat-room-media__control">
+          <input type="checkbox" name="local-connection-control" class="chat-room-media__input"
+            (change)="toggleScreenCast($event)" #screenCastCheckboxRef /> Screen
+          cast</label>
+      </fieldset>
+
+      <fieldset class="chat-room-media__controls-fieldset chat-room-media__controls-fieldset--devices">
+        <legend class="chat-room-media__controls-legend chat-room-media__controls-legend--devices">Device inputs/outputs
+        </legend>
+        <label class="chat-room-media__label chat-room-media__control">
+          Video input device
+          <select name="video-input-device" (change)="switchWebcamDevice($event)">
+            @for(device of videoInputsList(); let index = $index; track index){
+            <option value="{{device.deviceId}}" selected="{{device.isDefaultDevice}}">{{device.label}}</option>
+            }
+          </select>
+        </label>
+        <label class="chat-room-media__label chat-room-media__control">
+          Audio input device
+          <select name="audio-input-device" (change)="switchMicrophoneDevice($event)">
+            @for(device of audioInputsList(); let index = $index; track index){
+            <option value="{{device.deviceId}}" selected="{{device.isDefaultDevice}}">{{device.label}}</option>
+            }
+          </select>
+        </label>
+        <label class="chat-room-media__label chat-room-media__control" (change)="switchSpeakerDevice($event)">
+          Audio output device
+          <select name="audio-output-device">
+            @for(device of audioOutputsList(); let index = $index; track index){
+            <option value="{{device.deviceId}}" selected="{{device.isDefaultDevice}}">{{device.label}}</option>
+            }
+          </select>
+        </label>
+
+      </fieldset>
+
+    </form>
+
   </section>
 
   <section class="chat-room-media__remote-stream">
     <h3 class="chat-room-media__remote-stream-title">
       Remote stream
     </h3>
-    <video autoplay playsInline #remoteWebCamVideoRef
+    <video autoPlay playsInline #remoteWebCamVideoRef
       class="chat-room-media__webcam-video chat-room-media__webcam-video--remote"></video>
   </section>
 
 
-  <form class="chat-room-media__controls">
-    <label class="chat-room-media__label chat-room-media__control">
-      <input type="checkbox" name="local-connection-control" class="chat-room-media__input"
-        (change)="toggleWebcam($event)" #webcamCheckboxRef /> Webcam</label>
-
-    <label class="chat-room-media__label chat-room-media__control">
-      <input type="checkbox" name="local-connection-control" class="chat-room-media__input"
-        (change)="toggleAudio($event)" #audioCheckboxRef /> Audio</label>
-
-    <label class="chat-room-media__label chat-room-media__control">
-      <input type="checkbox" name="local-connection-control" class="chat-room-media__input"
-        (change)="toggleScreenCast($event)" #screenCastCheckboxRef /> Screen
-      cast</label>
-
-  </form>
 
   @if(!!(currentRoom())){
   @if(isReceiver){

@@ -52,6 +52,7 @@ export abstract class WebRTCService implements WebRTCLogic, StreamLogic {
 
   protected screenTrack: MediaStreamTrack | null = null;
   protected webcamTrack: MediaStreamTrack | null = null;
+  protected webcamDeviceId: string | null = null;
 
   /**
    * Sets the Socket.io client for signaling.
@@ -101,6 +102,60 @@ export abstract class WebRTCService implements WebRTCLogic, StreamLogic {
     }
   };
 
+  public switchLocalStreamByDeviceId = async (
+    videoDeviceId: string | null,
+    audioDeviceId: string | null
+  ): Promise<MediaStream | null> => {
+    try {
+      let localStream: MediaStream | null = null;
+
+      if (audioDeviceId && videoDeviceId) {
+        localStream = await navigator.mediaDevices.getUserMedia({
+          audio: { deviceId: audioDeviceId },
+          video: { deviceId: videoDeviceId },
+        });
+      } else if (videoDeviceId) {
+        localStream = await navigator.mediaDevices.getUserMedia({
+          video: { deviceId: videoDeviceId },
+        });
+      } else if (audioDeviceId) {
+        localStream = await navigator.mediaDevices.getUserMedia({
+          audio: { deviceId: audioDeviceId },
+        });
+      }
+
+      if (!localStream) {
+        return null;
+      }
+
+      const newWebcamTrack: MediaStreamTrack = localStream.getVideoTracks()[0];
+      const deviceId: string | null =
+        newWebcamTrack.getSettings().deviceId || null;
+
+      if (this.localStream && deviceId === this.webcamDeviceId) {
+        console.warn('Device ID did not change');
+
+        return this.localStream;
+      }
+
+      if (this.peerConnection && this.webcamTrack) {
+        this.replaceTrackInPeerConnection(this.webcamTrack, newWebcamTrack);
+      }
+
+      this.localStream = localStream;
+
+      this.webcamTrack = newWebcamTrack;
+      this.webcamDeviceId = deviceId;
+
+      console.log('Device ID: ', this.webcamDeviceId);
+
+      return localStream;
+    } catch (error) {
+      console.error('Error accessing media devices.', error);
+      throw error;
+    }
+  };
+
   /**
    * Stops all tracks of the current local stream and resets it to null.
    */
@@ -118,8 +173,8 @@ export abstract class WebRTCService implements WebRTCLogic, StreamLogic {
 
   /**
    * Toggles the local stream's audio and video tracks.
-   * @param video - Whether to enable video.
-   * @param audio - Whether to enable audio.
+   * @param {boolean} video - Whether to enable video.
+   * @param {boolean} audio - Whether to enable audio.
    */
   public toggleLocalStream = (video: boolean, audio: boolean): void => {
     if (!this.localStream) {
@@ -195,18 +250,22 @@ export abstract class WebRTCService implements WebRTCLogic, StreamLogic {
       return;
     }
 
-    const senders = this.peerConnection.getSenders();
-    const sender = senders.find((s) => s.track === oldTrack);
-    if (sender) {
-      sender.replaceTrack(newTrack);
-    } else {
+    const senders: RTCRtpSender[] = this.peerConnection.getSenders();
+    const sender: RTCRtpSender | undefined = senders.find(
+      (s) => s.track === oldTrack
+    );
+    if (!sender) {
       console.error(
         'Track not found in peer connection',
         senders,
         'Sender value :',
         sender
       );
+
+      return;
     }
+
+    sender.replaceTrack(newTrack);
   };
   /**
    * Creates a new peer connection and adds event listeners.
