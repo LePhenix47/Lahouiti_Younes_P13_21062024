@@ -82,6 +82,36 @@ export class ChatWebRtcService extends WebRTCService {
   };
 
   /**
+   * Removes websocket event listeners related to WebRTC for handling ICE candidates, offers, and answers
+   */
+  public override removeWebRtcSocketEventListeners = (): void => {
+    if (!this.socketio) {
+      return;
+    }
+
+    if (!this.hasAddedWebRtcSocketListeners) {
+      console.warn('WebRTC socket listeners not added, skipping removal');
+      return;
+    }
+
+    console.log(
+      '%cRemoving WebRTC socket listeners !!!',
+      'background: white; color: black; padding: 1rem'
+    );
+
+    // Remove the ice-candidate listener
+    this.socketio.off('ice-candidate');
+
+    // Remove the offer listener
+    this.socketio.off('offer');
+
+    // Remove the answer listener
+    this.socketio.off('answer');
+
+    this.hasAddedWebRtcSocketListeners = false;
+  };
+
+  /**
    * Adds websocket event listeners for handling room management.
    * @return {void}
    */
@@ -159,6 +189,12 @@ export class ChatWebRtcService extends WebRTCService {
     callback: (roomName: string, userName: string) => void
   ): void => {
     this.onRoomJoinedCallback = callback;
+  };
+
+  public setOnRoomLeftCallback = (
+    callback: (roomName: string, userName: string) => void
+  ): void => {
+    this.onRoomLeftCallback = callback;
   };
 
   public setOnRoomDeletedCallback = (
@@ -269,6 +305,18 @@ export class ChatWebRtcService extends WebRTCService {
 
     this.peerConnection.close();
     this.peerConnection = null;
+  };
+  /**
+   * Closes the peer connection.
+   */
+  public closeDataChannel = (): void => {
+    if (!this.dataChannel) {
+      console.error("Data channel doesn't exist.");
+      return;
+    }
+
+    this.dataChannel!.close();
+    this.dataChannel = null;
   };
 
   public override createOffer = async (): Promise<void> => {
@@ -394,11 +442,12 @@ export class ChatWebRtcService extends WebRTCService {
       return;
     }
     // Close peer connection and clean up resources
-
     this.removeLocalTracksFromPeerConnection();
     this.resetLocalStream();
 
-    this.peerConnection!.close();
-    this.peerConnection = null;
+    this.removeWebRtcSocketEventListeners();
+
+    this.closeDataChannel();
+    this.closePeerConnection();
   };
 }

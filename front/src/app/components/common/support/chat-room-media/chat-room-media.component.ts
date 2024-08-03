@@ -137,6 +137,8 @@ export class ChatRoomMediaComponent {
       this.remotePeerHasSharedLocalMediaCallback
     );
 
+    // this.chatWebRtcService.setOnRoomLeftCallback();
+
     this.chatWebRtcService.setOnTrackAddedCallback(
       this.setWebRtcSessionStarted
     );
@@ -166,6 +168,18 @@ export class ChatRoomMediaComponent {
     this.webRtcSessionStarted = false;
     this.chatWebRtcService.endWebRTCSession();
   }
+
+  private disconnectFromWebRtcSession = () => {
+    if (this.webRtcSessionStarted) {
+      this.chatWebRtcService.endWebRTCSession();
+      this.resetWebRTCState();
+
+      console.log(
+        '%croomDeletedCallback + End WebRTC session',
+        'background: #222; color: #bada55'
+      );
+    }
+  };
 
   private setWebRtcSessionStarted = () => {
     this.webRtcSessionStarted = true;
@@ -269,6 +283,8 @@ export class ChatRoomMediaComponent {
   };
 
   private roomDeletedCallback = () => {
+    this.disconnectFromWebRtcSession();
+
     this.currentRoom.update(() => {
       return null;
     });
@@ -301,11 +317,6 @@ export class ChatRoomMediaComponent {
   };
 
   public deleteRoom = () => {
-    if (this.webRtcSessionStarted) {
-      this.chatWebRtcService.endWebRTCSession();
-      this.resetWebRTCState();
-    }
-
     this.chatWebRtcService.deleteRoom(this.ownUsername());
   };
 
@@ -319,23 +330,13 @@ export class ChatRoomMediaComponent {
   };
 
   public disconnectFromRoom = () => {
-    if (this.webRtcSessionStarted) {
-      this.chatWebRtcService.endWebRTCSession();
-
-      this.resetWebRTCState();
-    }
-
     this.chatWebRtcService.leaveRoom();
+
+    this.disconnectFromWebRtcSession();
 
     this.currentRoom.update(() => {
       return null;
     });
-
-    this.remotePeerHasSharedLocalMedia = false;
-    this.webRtcSessionStarted = false;
-
-    this.otherPeerUserName = null;
-    this.isReceiver = false;
   };
 
   public sendTestMessage = () => {
