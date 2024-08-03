@@ -31,9 +31,9 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
   protected remoteVideoElement: HTMLVideoElement | null = null;
 
   /**
-   * RTC configuration with ICE servers for STUN/TURN servers.
+   * RTC configuration for STUN/TURN servers.
    */
-  private readonly iceStunServers: RTCConfiguration = {
+  private readonly stunTurnConfig: RTCConfiguration = {
     iceServers: [
       { urls: 'stun:stun.l.google.com:19302' },
       { urls: 'stun:stun1.l.google.com:19302' },
@@ -311,7 +311,7 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
       return this.peerConnection;
     }
 
-    this.peerConnection = new RTCPeerConnection(this.iceStunServers);
+    this.peerConnection = new RTCPeerConnection(this.stunTurnConfig);
     this.addPeerConnectionEventListeners();
 
     this.addWebRtcSocketEventListeners();
