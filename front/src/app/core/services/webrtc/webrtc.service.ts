@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Socket } from 'socket.io-client';
 
-interface StreamLogic {}
+interface MediaStreamLogic {}
 
 interface WebRTCLogic {}
 
@@ -11,7 +11,7 @@ interface WebRTCLogic {}
 @Injectable({
   providedIn: 'root',
 })
-export abstract class WebRTCService implements WebRTCLogic, StreamLogic {
+export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
   /**
    * The single peer connection between the local and remote users.
    */
@@ -112,38 +112,18 @@ export abstract class WebRTCService implements WebRTCLogic, StreamLogic {
     audioDeviceId: string | null
   ): Promise<MediaStream | null> => {
     try {
-      let localStream: MediaStream | null = null;
-      let previousAudioDeviceId: string | null = null;
-      let previousVideoDeviceId: string | null = null;
+      const previousAudioDeviceId: string | null =
+        this.microphoneDeviceId ||
+        this.audioInputTrack!.getSettings().deviceId!;
 
-      if (audioDeviceId && videoDeviceId) {
-        localStream = await navigator.mediaDevices.getUserMedia({
-          video: { deviceId: videoDeviceId },
-          audio: { deviceId: audioDeviceId },
-        });
-      } else if (videoDeviceId) {
-        previousAudioDeviceId =
-          this.microphoneDeviceId ||
-          this.audioInputTrack!.getSettings().deviceId!;
+      const previousVideoDeviceId: string | null =
+        this.webcamDeviceId || this.webcamTrack!.getSettings().deviceId!;
 
-        localStream = await navigator.mediaDevices.getUserMedia({
-          video: { deviceId: videoDeviceId },
-          audio: { deviceId: previousAudioDeviceId },
+      const localStream: MediaStream =
+        await navigator.mediaDevices.getUserMedia({
+          video: { deviceId: videoDeviceId || previousVideoDeviceId },
+          audio: { deviceId: audioDeviceId || previousAudioDeviceId },
         });
-      } else if (audioDeviceId) {
-        previousVideoDeviceId =
-          this.webcamDeviceId || this.webcamTrack!.getSettings().deviceId!;
-
-        localStream = await navigator.mediaDevices.getUserMedia({
-          video: { deviceId: previousVideoDeviceId },
-          audio: { deviceId: audioDeviceId },
-        });
-      } else {
-        localStream = await navigator.mediaDevices.getUserMedia({
-          video: { deviceId: previousVideoDeviceId! },
-          audio: { deviceId: previousAudioDeviceId! },
-        });
-      }
 
       if (!localStream) {
         return null;
@@ -197,6 +177,8 @@ export abstract class WebRTCService implements WebRTCLogic, StreamLogic {
    */
   public resetLocalStream = (): void => {
     if (!this.localStream) {
+      console.error('Local stream is not set.');
+
       return;
     }
 
@@ -369,7 +351,7 @@ export abstract class WebRTCService implements WebRTCLogic, StreamLogic {
    * Adds event listeners to the peer connection.
    * @param {RTCPeerConnection} peerConnection - The peer connection instance.
    */
-  private addPeerConnectionEventListeners = (): void => {
+  protected addPeerConnectionEventListeners = (): void => {
     this.peerConnection!.addEventListener('track', this.onTrackEvent);
 
     this.peerConnection!.addEventListener(
@@ -397,7 +379,7 @@ export abstract class WebRTCService implements WebRTCLogic, StreamLogic {
    * Adds event listeners to the peer connection.
    * @param {RTCPeerConnection} peerConnection - The peer connection instance.
    */
-  private removePeerConnectionEventListeners = (): void => {
+  protected removePeerConnectionEventListeners = (): void => {
     this.peerConnection!.removeEventListener('track', this.onTrackEvent);
 
     this.peerConnection!.removeEventListener(
@@ -535,6 +517,13 @@ export abstract class WebRTCService implements WebRTCLogic, StreamLogic {
    * @return {void} This function does not return a value.
    */
   public abstract addWebRtcSocketEventListeners(): void;
+
+  /**
+   * Removes event listeners for WebRTC socket events.
+   *
+   * @return {void} This function does not return a value.
+   */
+  public abstract removeWebRtcSocketEventListeners(): void;
 
   /**
    * Handles ICE candidate events to emit the ICE candidate to the remote peer
