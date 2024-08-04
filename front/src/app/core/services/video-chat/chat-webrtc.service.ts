@@ -395,22 +395,8 @@ export class ChatWebRtcService extends WebRTCService {
     }
     // * Since only 2 people can make a call, we only need one stream
     const stream = event.streams[0];
-    console.log({ stream }, stream.getTracks());
-
-    // Handle the stream based on its type
-    for (const track of stream.getTracks()) {
-      switch (track.kind) {
-        case 'audio':
-        case 'video': {
-          if (!this.remoteVideoElement) {
-            console.error('No video element found to add stream to !');
-            return;
-          }
-          this.remoteVideoElement!.srcObject = stream;
-          break;
-        }
-      }
-    }
+    console.log({ 'event.streams': event.streams });
+    this.remoteVideoElement!.srcObject = stream;
 
     this.onTrackAddedCallback?.(event);
   };
