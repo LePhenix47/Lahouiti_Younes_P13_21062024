@@ -30,13 +30,6 @@ export class ChatRoomMediaComponent {
   @ViewChild('remoteWebCamVideoRef')
   remoteWebCamVideoRef: ElementRef<HTMLVideoElement> | null = null;
 
-  // * Refs for the controls
-  @ViewChild('webcamCheckboxRef')
-  webcamCheckboxRef: ElementRef<HTMLInputElement> | null = null;
-  @ViewChild('audioCheckboxRef')
-  audioCheckboxRef: ElementRef<HTMLInputElement> | null = null;
-  @ViewChild('screenCastCheckboxRef')
-  screenCastCheckboxRef: ElementRef<HTMLInputElement> | null = null;
   /**
    * The Stomp client for the WebSocket connection.
    */
@@ -436,11 +429,6 @@ export class ChatRoomMediaComponent {
       this.hasWebcamPermissionDenied.update(() => false);
       this.hasMicrophonePermissionDenied.update(() => false);
     } catch (error) {
-      const webcamCheckbox: HTMLInputElement =
-        this.webcamCheckboxRef!.nativeElement;
-      const audioCheckbox: HTMLInputElement =
-        this.audioCheckboxRef!.nativeElement;
-
       if (!(error instanceof Error)) {
         return;
       }
@@ -458,14 +446,12 @@ export class ChatRoomMediaComponent {
 
       // Check if it was due to the webcam
       if (this.showWebcam()) {
-        webcamCheckbox.checked = false;
         this.showWebcam.update(() => false);
         this.hasWebcamPermissionDenied.update(() => true);
       }
 
       // Check if it was due to the microphone
       if (this.openMicrophone()) {
-        audioCheckbox.checked = false;
         this.openMicrophone.update(() => false);
         this.hasMicrophonePermissionDenied.update(() => true);
       }
@@ -492,20 +478,12 @@ export class ChatRoomMediaComponent {
     } catch (error) {
       console.error('Error accessing screen stream.', error);
 
-      const screenCastCheckbox: HTMLInputElement =
-        this.screenCastCheckboxRef!.nativeElement;
-
-      screenCastCheckbox.checked = false;
       this.showScreenCast.update(() => false);
       this.hasCanceledScreenCast.update(() => true);
     }
   };
 
   private onScreenShareEnd = (event: Event): void => {
-    const screenCastCheckbox: HTMLInputElement =
-      this.screenCastCheckboxRef!.nativeElement;
-
-    screenCastCheckbox.checked = false;
     this.showScreenCast.update(() => false);
 
     const videoElement: HTMLVideoElement =
@@ -524,6 +502,28 @@ export class ChatRoomMediaComponent {
     videoElement.srcObject = stream;
   };
 
+  public toggleInputDevicesOnWebRtc = (event: Event): void => {
+    if (!this.webRtcSessionStarted) {
+      console.error('WebRTC session has not started yet');
+
+      return;
+    }
+
+    const input = event.currentTarget as HTMLInputElement;
+    const [_, toggleType] = input.name.split(/\s/g);
+
+    if (toggleType === 'webcam') {
+      this.showWebcam.update(() => input.checked);
+    } else if (toggleType === 'microphone') {
+      this.openMicrophone.update(() => input.checked);
+    }
+
+    this.chatWebRtcService.toggleLocalStream(
+      this.showWebcam(),
+      this.openMicrophone()
+    );
+  };
+
   /**
    * Toggles the webcam state based on the given event.
    *
@@ -532,14 +532,6 @@ export class ChatRoomMediaComponent {
   public toggleWebcam = (event: Event): void => {
     const input = event.currentTarget as HTMLInputElement;
     this.showWebcam.update(() => input.checked);
-
-    if (this.webRtcSessionStarted) {
-      this.chatWebRtcService.toggleLocalStream(
-        this.showWebcam(),
-        this.openMicrophone()
-      );
-      return;
-    }
 
     this.updateLocalStream();
   };
@@ -552,14 +544,6 @@ export class ChatRoomMediaComponent {
   public toggleAudio = (event: Event): void => {
     const input = event.currentTarget as HTMLInputElement;
     this.openMicrophone.update(() => input.checked);
-
-    if (this.webRtcSessionStarted) {
-      this.chatWebRtcService.toggleLocalStream(
-        this.showWebcam(),
-        this.openMicrophone()
-      );
-      return;
-    }
 
     this.updateLocalStream();
   };

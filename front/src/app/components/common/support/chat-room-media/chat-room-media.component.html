@@ -73,20 +73,44 @@
       class="chat-room-media__webcam-video chat-room-media__webcam-video--local"></video>
 
     <form class="chat-room-media__controls">
+
       <fieldset class="chat-room-media__controls-fieldset chat-room-media__controls-fieldset--toggles">
+
+        @if(webRtcSessionStarted){
+        <legend class="chat-room-media__controls-legend chat-room-media__controls-legend--toggles">Toggle controls
+          (WebRTC session on)
+        </legend>
+        <label class="chat-room-media__label chat-room-media__control">
+          <input type="checkbox" name="local-connection-control webcam" class="chat-room-media__input"
+            (change)="toggleInputDevicesOnWebRtc($event)" [checked]="showWebcam()" />
+          {{ showWebcam() ? "Disable webcam" : "Enable webcam" }}
+        </label>
+
+        <label class="chat-room-media__label chat-room-media__control">
+          <input type="checkbox" name="local-connection-control microphone" class="chat-room-media__input"
+            (change)="toggleInputDevicesOnWebRtc($event)" [checked]="openMicrophone()" />
+          {{ openMicrophone() ? "Disable audio" : "Enable audio" }}
+        </label>
+        }@else {
         <legend class="chat-room-media__controls-legend chat-room-media__controls-legend--toggles">Toggle controls
         </legend>
         <label class="chat-room-media__label chat-room-media__control">
           <input type="checkbox" name="local-connection-control" class="chat-room-media__input"
-            (change)="toggleWebcam($event)" #webcamCheckboxRef /> Webcam</label>
+            (change)="toggleWebcam($event)" [checked]="showWebcam()" />
+          {{ showWebcam() ? "Stop webcam" : "Start webcam" }}
+        </label>
 
         <label class="chat-room-media__label chat-room-media__control">
           <input type="checkbox" name="local-connection-control" class="chat-room-media__input"
-            (change)="toggleAudio($event)" #audioCheckboxRef /> Audio</label>
+            (change)="toggleAudio($event)" [checked]="openMicrophone()" />
+          {{ openMicrophone() ? "Stop audio" : "Start audio" }}
+        </label>
+        }
+
 
         <label class="chat-room-media__label chat-room-media__control">
           <input type="checkbox" name="local-connection-control" class="chat-room-media__input"
-            (change)="toggleScreenCast($event)" #screenCastCheckboxRef /> Screen
+            (change)="toggleScreenCast($event)" [checked]="showScreenCast()" /> Screen
           cast</label>
       </fieldset>
 
@@ -140,6 +164,7 @@
     (click)="disconnectFromRoom()">Disconnect from
     room</button>
 
+  @if(!webRtcSessionStarted){
   @if(!localPeerHasSharedLocalMedia()){
   <p class="chat-room-media__error-message">You must share your local stream in to allow the other peer to start a
     WebRTC session</p>
@@ -148,6 +173,7 @@
 
   @if(otherPeerUserName && !remotePeerHasSharedLocalMedia){
   <p class="chat-room-media__error-message">Waiting for other peer to share their stream</p>
+  }
   }
   }@else {
   <button type="button" class="chat-room-media__button ycyw__button ycyw__button--2" (click)="deleteRoom()">Delete
@@ -158,7 +184,7 @@
     [disabled]="!otherPeerUserName || !remotePeerHasSharedLocalMedia || !localPeerHasSharedLocalMedia()">Start</button>
   }
 
-
+  @if(!webRtcSessionStarted){
   <p class="chat-room-media__error-message">
     @if(!otherPeerUserName){
     <span class="chat-room-media__error-message--span">Waiting for other peer to join the room</span>
@@ -175,6 +201,8 @@
     }
 
   </p>
+  }
+
   }
   <!-- <button type="button" class="chat-room-media__button ycyw__button ycyw__button--1" (click)="sendTestMessage()">Send
     test message</button> -->
