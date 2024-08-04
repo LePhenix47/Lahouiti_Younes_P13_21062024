@@ -71,108 +71,6 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
   }
 
   /**
-   * Sets the local media stream.
-   * @param {boolean} audio - Whether to capture audio.
-   * @param {boolean} video - Whether to capture video.
-   * @returns {Promise<MediaStream | null>}
-   */
-  public setLocalStream = async (
-    audio: boolean = true,
-    video: boolean = true
-  ): Promise<MediaStream | null> => {
-    try {
-      if (!audio && !video) {
-        return null;
-      }
-
-      if (this.localStream) {
-        return this.localStream;
-      }
-
-      const localStream: MediaStream =
-        await navigator.mediaDevices.getUserMedia({
-          audio,
-          video,
-        });
-
-      this.localStream = localStream;
-
-      this.audioInputTrack = localStream.getAudioTracks()[0];
-      this.webcamTrack = localStream.getVideoTracks()[0];
-
-      return localStream;
-    } catch (error) {
-      console.error('Error accessing media devices.', error);
-      throw error;
-    }
-  };
-
-  public switchLocalStreamByDeviceId = async (
-    videoDeviceId: string | null,
-    audioDeviceId: string | null
-  ): Promise<MediaStream | null> => {
-    try {
-      const previousAudioDeviceId: string | null =
-        this.microphoneDeviceId ||
-        this.audioInputTrack!.getSettings().deviceId!;
-
-      const previousVideoDeviceId: string | null =
-        this.webcamDeviceId || this.webcamTrack!.getSettings().deviceId!;
-
-      const localStream: MediaStream =
-        await navigator.mediaDevices.getUserMedia({
-          video: { deviceId: videoDeviceId || previousVideoDeviceId },
-          audio: { deviceId: audioDeviceId || previousAudioDeviceId },
-        });
-
-      if (!localStream) {
-        return null;
-      }
-
-      const newWebcamTrack: MediaStreamTrack = localStream.getVideoTracks()[0];
-
-      const newAudioInputTrack: MediaStreamTrack =
-        localStream.getAudioTracks()[0];
-      if (
-        this.localStream &&
-        videoDeviceId === this.webcamDeviceId &&
-        audioDeviceId === this.microphoneDeviceId
-      ) {
-        console.warn('Device ID did not change');
-
-        return this.localStream;
-      }
-
-      if (this.peerConnection && this.webcamTrack) {
-        this.replaceTrackInPeerConnection(this.webcamTrack, newWebcamTrack);
-      }
-
-      if (this.peerConnection && this.audioInputTrack) {
-        this.replaceTrackInPeerConnection(
-          this.audioInputTrack,
-          newAudioInputTrack
-        );
-      }
-
-      this.localStream = localStream;
-
-      this.webcamTrack = newWebcamTrack;
-      this.webcamDeviceId = newWebcamTrack.getSettings().deviceId!;
-
-      this.audioInputTrack = newAudioInputTrack;
-      this.microphoneDeviceId = newAudioInputTrack.getSettings().deviceId!;
-
-      console.log('New device ID for webcam: ', this.webcamDeviceId);
-      console.log('New device ID for microphone: ', this.microphoneDeviceId);
-
-      return localStream;
-    } catch (error) {
-      console.error('Error accessing media devices.', error);
-      throw error;
-    }
-  };
-
-  /**
    * Stops all tracks of the current local stream and resets it to null.
    */
   public resetLocalStream = (): void => {
@@ -278,6 +176,95 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
 
     this.handleScreenShareEndEvent(event);
   };
+
+  public async manageLocalStream(
+    video: boolean,
+    audio: boolean,
+    videoDeviceId?: string | null,
+    audioDeviceId?: string | null
+  ): Promise<MediaStream | null> {
+    try {
+      const currentVideoId: string | undefined =
+        this.webcamDeviceId || this.webcamTrack?.getSettings().deviceId;
+
+      const currentAudioId: string | undefined =
+        this.microphoneDeviceId || this.audioInputTrack?.getSettings().deviceId;
+      console.log({ video, audio });
+      console.log({ currentVideoId, currentAudioId });
+
+      const mediaOptions: MediaStreamConstraints = {
+        video:
+          video && videoDeviceId
+            ? { deviceId: videoDeviceId || currentVideoId }
+            : video,
+        audio:
+          audio && audioDeviceId
+            ? { deviceId: audioDeviceId || currentAudioId }
+            : audio,
+      };
+
+      // Get the media stream based on the current device IDs
+      const localStream: MediaStream =
+        await navigator.mediaDevices.getUserMedia(mediaOptions);
+
+      // Set the local stream
+      this.localStream = localStream;
+
+      // Update the webcam track and device ID
+      let newWebcamTrack: MediaStreamTrack | null = null;
+      let newAudioInputTrack: MediaStreamTrack | null = null;
+      if (video) {
+        newWebcamTrack = localStream.getVideoTracks()[0];
+        this.webcamDeviceId = newWebcamTrack.getSettings().deviceId || null; // Set the webcam device ID
+      }
+
+      // Update the audio track and device ID
+      if (audio) {
+        newAudioInputTrack = localStream.getAudioTracks()[0];
+        this.microphoneDeviceId =
+          newAudioInputTrack.getSettings().deviceId || null; // Set the microphone device ID
+      }
+
+      // Update tracks in the peer connection if needed
+      if (this.peerConnection?.connectionState === 'connected') {
+        // Replace the webcam track if it exists
+        if (this.webcamTrack && newWebcamTrack) {
+          this.replaceTrackInPeerConnection(this.webcamTrack, newWebcamTrack);
+        } else {
+          console.warn(
+            'Webcam track not found, webcamTrack:',
+            this.webcamTrack,
+            'newWebcamTrack:',
+            newWebcamTrack
+          );
+        }
+
+        // Replace the audio track if it exists
+        if (this.audioInputTrack && newAudioInputTrack) {
+          this.replaceTrackInPeerConnection(
+            this.audioInputTrack,
+            newAudioInputTrack
+          );
+        } else {
+          console.warn(
+            'Audio track not found, audioInputTrack:',
+            this.audioInputTrack,
+            'newAudioInputTrack:',
+            newAudioInputTrack
+          );
+        }
+      }
+
+      this.webcamTrack = newWebcamTrack;
+      this.audioInputTrack = newAudioInputTrack;
+
+      return localStream;
+    } catch (error) {
+      console.error('Error accessing media devices:', error);
+      // Implement logic for permission denial or other errors
+      throw error;
+    }
+  }
 
   // Method to replace a track in the peer connection
   private replaceTrackInPeerConnection = (
