@@ -162,8 +162,8 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
       this.audioInputTrack = newAudioInputTrack;
       this.microphoneDeviceId = newAudioInputTrack.getSettings().deviceId!;
 
-      console.log('Device ID for webcam: ', this.webcamDeviceId);
-      console.log('Device ID for microphone: ', this.microphoneDeviceId);
+      console.log('New device ID for webcam: ', this.webcamDeviceId);
+      console.log('New device ID for microphone: ', this.microphoneDeviceId);
 
       return localStream;
     } catch (error) {
@@ -240,7 +240,9 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
       screenStream = await navigator.mediaDevices.getDisplayMedia({
         video: true,
       });
+
       this.screenTrack = screenStream.getVideoTracks()[0];
+      this.screenTrack.addEventListener('ended', this.stopScreenShare);
 
       if (!this.screenTrack || !this.webcamTrack) {
         return null;
@@ -249,19 +251,25 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
       this.replaceTrackInPeerConnection(this.webcamTrack, this.screenTrack);
 
       // Handle the ended event to know when to switch back
-      this.screenTrack.addEventListener('ended', this.stopScreenShare);
     } catch (error) {
       console.error('Error starting screen share', error);
       throw error;
-    } finally {
-      return screenStream;
     }
+
+    return screenStream;
   };
 
   // When the user stops screen sharing
   public stopScreenShare = (event: Event): void => {
     // Replace the screen track with the original webcam track
     if (!this.screenTrack || !this.webcamTrack) {
+      console.warn(
+        'No screen track to stop',
+        this.screenTrack,
+        this.webcamTrack
+      );
+
+      this.handleScreenShareEndEvent(event);
       return;
     }
 
