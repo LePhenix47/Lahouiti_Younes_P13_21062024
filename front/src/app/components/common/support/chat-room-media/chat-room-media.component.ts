@@ -75,7 +75,7 @@ export class ChatRoomMediaComponent {
   public enumeratedDevicesList = signal<MediaDeviceInfo[]>([]);
 
   // Filter for video input devices
-  public videoInputsList = computed(() => {
+  public videoInputsList = computed<DeviceInfo[]>(() => {
     return createDeviceList(this.enumeratedDevicesList(), 'videoinput');
   });
 
@@ -84,9 +84,12 @@ export class ChatRoomMediaComponent {
   });
 
   // Filter for audio output devices
-  public audioOutputsList = computed(() => {
+  public audioOutputsList = computed<DeviceInfo[]>(() => {
     return createDeviceList(this.enumeratedDevicesList(), 'audiooutput');
   });
+
+  public selectedVideoInputDeviceId = signal<string | null>(null);
+  public selectedAudioInputDeviceId = signal<string | null>(null);
 
   public roomsList = signal<Room[]>([]);
   public currentRoom = signal<string | null>(null);
@@ -158,7 +161,13 @@ export class ChatRoomMediaComponent {
   }
 
   ngOnDestroy() {
-    this.webRtcSessionStarted = false;
+    debugger;
+    if (this.isReceiver) {
+      this.disconnectFromRoom();
+    } else {
+      this.deleteRoom();
+    }
+
     this.chatWebRtcService.endWebRTCSession();
   }
 
@@ -347,16 +356,21 @@ export class ChatRoomMediaComponent {
 
   public switchWebcamDevice = async (event: Event) => {
     console.log('switchWebcamDevice', event);
+    const selectElement = event.target as HTMLSelectElement;
+
+    this.selectedVideoInputDeviceId.update(() => {
+      return selectElement.value;
+    });
 
     try {
-      const selectElement = event.target as HTMLSelectElement;
       const videoInputDeviceId: string = selectElement.value;
 
-      const localStream =
-        await this.chatWebRtcService.switchLocalStreamByDeviceId(
-          videoInputDeviceId,
-          null
-        );
+      const localStream = await this.chatWebRtcService.manageLocalStream(
+        this.showWebcam(),
+        this.openMicrophone(),
+        this.selectedVideoInputDeviceId(),
+        this.selectedAudioInputDeviceId()
+      );
 
       console.log({ videoInputDeviceId, localStream });
 
@@ -371,16 +385,21 @@ export class ChatRoomMediaComponent {
 
   public switchMicrophoneDevice = async (event: Event) => {
     console.log('switchMicrophoneDevice', event);
+    const selectElement = event.target as HTMLSelectElement;
+
+    this.selectedAudioInputDeviceId.update(() => {
+      return selectElement.value;
+    });
 
     try {
-      const selectElement = event.target as HTMLSelectElement;
       const audioInputDeviceId: string = selectElement.value;
 
-      const localStream =
-        await this.chatWebRtcService.switchLocalStreamByDeviceId(
-          null,
-          audioInputDeviceId
-        );
+      const localStream = await this.chatWebRtcService.manageLocalStream(
+        this.showWebcam(),
+        this.openMicrophone(),
+        this.selectedVideoInputDeviceId(),
+        this.selectedAudioInputDeviceId()
+      );
 
       console.log({ audioInputDeviceId, localStream });
 
@@ -416,9 +435,11 @@ export class ChatRoomMediaComponent {
         return;
       }
 
-      await this.chatWebRtcService.setLocalStream(
+      await this.chatWebRtcService.manageLocalStream(
+        this.showWebcam(),
         this.openMicrophone(),
-        this.showWebcam()
+        this.selectedVideoInputDeviceId(),
+        this.selectedAudioInputDeviceId()
       );
 
       this.setVideoElementStream(
@@ -459,7 +480,6 @@ export class ChatRoomMediaComponent {
   };
 
   private updateScreenCastStream = async () => {
-    // TODO: Handle the case when a WebRTC session has already started
     try {
       this.hasCanceledScreenCast.update(() => false);
 
