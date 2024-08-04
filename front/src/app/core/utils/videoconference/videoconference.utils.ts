@@ -12,14 +12,12 @@ export function createDeviceList(
   let deviceGroupId: string = '';
 
   for (const device of specificDevicesArray) {
-    const groupKey: string = device.groupId;
-
-    if (device.deviceId === 'default') {
+    if (device.deviceId === 'default' || device.deviceId === 'communications') {
       deviceGroupId = device.groupId; // Capture the groupId of the default device
     }
 
     if (
-      combinedDeviceMap.has(groupKey) ||
+      combinedDeviceMap.has(device.groupId) ||
       device.deviceId === 'default' ||
       device.deviceId === 'communications'
     ) {
@@ -35,7 +33,7 @@ export function createDeviceList(
       isDefaultDevice: deviceGroupId === device.groupId,
     };
 
-    combinedDeviceMap.set(groupKey, newDevice); // Add to the map
+    combinedDeviceMap.set(device.groupId, newDevice); // Add to the map
   }
 
   // Convert the map back to an array
