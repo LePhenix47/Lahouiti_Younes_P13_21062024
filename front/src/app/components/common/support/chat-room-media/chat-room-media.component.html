@@ -107,12 +107,9 @@
         </label>
         }
 
-
-        <label class="chat-room-media__label chat-room-media__control">
-          <button type="button" (click)="toggleScreenCast($event)" [disabled]="showScreenCast()">
-            Screen cast ({{ showScreenCast() ? 'Stop' : 'Start' }})
-          </button>
-        </label>
+        <button type="button" (click)="toggleScreenCast($event)" [disabled]="showScreenCast()">
+          Screen cast ({{ showScreenCast() ? 'Stop' : 'Start' }})
+        </button>
       </fieldset>
 
       <fieldset class="chat-room-media__controls-fieldset chat-room-media__controls-fieldset--devices">
@@ -166,26 +163,28 @@
     room</button>
 
   @if(!webRtcSessionStarted){
-  @if(!localPeerHasSharedLocalMedia()){
-  <p class="chat-room-media__error-message">You must share your local stream in to allow the other peer to start a
-    WebRTC session</p>
-  }
+  <p class="chat-room-media__error-message">
+    @if(!localPeerHasSharedLocalMedia()){
+    <span class="chat-room-media__error-message--span">You must share your local stream in to allow the other peer to
+      start a
+      WebRTC session</span>
+    }
 
 
-  @if(otherPeerUserName && !remotePeerHasSharedLocalMedia){
-  <p class="chat-room-media__error-message">Waiting for other peer to share their stream</p>
-  }
+    @if(otherPeerUserName && !remotePeerHasSharedLocalMedia){
+    <span class="chat-room-media__error-message--span">Waiting for other peer to share their stream</span>
+    }
+  </p>
   }
   }@else {
   <button type="button" class="chat-room-media__button ycyw__button ycyw__button--2" (click)="deleteRoom()">Delete
     room</button>
 
+
   @if(!webRtcSessionStarted){
   <button type="button" class="chat-room-media__button ycyw__button ycyw__button--1" (click)="initializeConnection()"
     [disabled]="!otherPeerUserName || !remotePeerHasSharedLocalMedia || !localPeerHasSharedLocalMedia()">Start</button>
-  }
 
-  @if(!webRtcSessionStarted){
   <p class="chat-room-media__error-message">
     @if(!otherPeerUserName){
     <span class="chat-room-media__error-message--span">Waiting for other peer to join the room</span>
@@ -200,7 +199,6 @@
     @if(!remotePeerHasSharedLocalMedia){
     <span class="chat-room-media__error-message--span">Waiting for other peer to share their stream</span>
     }
-
   </p>
   }
 
@@ -210,7 +208,7 @@
   } @else {
 
   <button type="button" class="chat-room-media__button ycyw__button ycyw__button--1" (click)="createRoom()"
-    [disabled]="!!(currentRoom())">Create new
+    [disabled]="currentRoom()">Create new
     room</button>
   }
 </aside>
