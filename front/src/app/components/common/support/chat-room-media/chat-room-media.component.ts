@@ -480,6 +480,8 @@ export class ChatRoomMediaComponent {
 
       this.showScreenCast.update(() => false);
       this.hasCanceledScreenCast.update(() => true);
+
+      console.log(this.showScreenCast());
     }
   };
 
@@ -554,8 +556,7 @@ export class ChatRoomMediaComponent {
    * @param {Event} event - The event that triggered the toggle.
    */
   public toggleScreenCast = (event: Event): void => {
-    const input = event.currentTarget as HTMLInputElement;
-    this.showScreenCast.update(() => input.checked);
+    this.showScreenCast.update(() => true);
 
     this.updateScreenCastStream();
   };

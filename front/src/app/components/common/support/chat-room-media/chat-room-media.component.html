@@ -109,9 +109,10 @@
 
 
         <label class="chat-room-media__label chat-room-media__control">
-          <input type="checkbox" name="local-connection-control" class="chat-room-media__input"
-            (change)="toggleScreenCast($event)" [checked]="showScreenCast()" /> Screen
-          cast</label>
+          <button type="button" (click)="toggleScreenCast($event)" [disabled]="showScreenCast()">
+            Screen cast ({{ showScreenCast() ? 'Stop' : 'Start' }})
+          </button>
+        </label>
       </fieldset>
 
       <fieldset class="chat-room-media__controls-fieldset chat-room-media__controls-fieldset--devices">
