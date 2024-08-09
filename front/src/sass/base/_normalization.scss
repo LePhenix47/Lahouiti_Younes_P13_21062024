@@ -631,7 +631,7 @@
 
     --_progress-border-radius: 100vmax;
 
-    --_progress-value-bg: #0042b2;
+    --_progress-value-bg: var(--default-bg);
     --_progress-bar-bg: rgb(128, 128, 128, 50%);
     --_progress-bar-bg--invisible: transparent;
 
@@ -650,6 +650,7 @@
     }
 
     &::-moz-progress-bar {
+      overflow-x: hidden;
       border-radius: inherit;
 
       background: var(--_progress-value-bg);
@@ -662,6 +663,7 @@
     }
 
     &::-webkit-progress-bar {
+      overflow-x: hidden;
       border-radius: inherit;
 
       background: var(--_progress-bar-bg--invisible);
