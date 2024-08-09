@@ -11,18 +11,17 @@ export class VolumeMeterService {
 
   private animationFrameId: number | null = null;
 
-  constructor() {}
   /**
    * Stops the volume measurement by canceling the animation frame if it exists.
    *
    */
-  public stopVolumeMeasurement(): void {
+  public stopVolumeMeasurement = (): void => {
     if (!this.animationFrameId) {
       return;
     }
 
     cancelAnimationFrame(this.animationFrameId);
-  }
+  };
 
   /**
    * Sets the HTMLInputElement to be used as the volume meter element.
@@ -30,16 +29,28 @@ export class VolumeMeterService {
    * @param {HTMLInputElement} element - The HTMLInputElement to be used as the volume meter element.
    * @return {void}
    */
-  public setVolumeMeterElement(element: HTMLInputElement): void {
+  public setVolumeMeterElement = (element: HTMLInputElement): void => {
     this.volumeMeterEl = element;
-  }
+  };
 
-  // Setter method to set the microphone stream
-  public setMicrophoneStream(audioStream: MediaStream): void {
+  /**
+   * Sets the microphone stream to be used for volume measurement.
+   *
+   * @param {MediaStream} audioStream - The microphone stream to be used.
+   * @return {void}
+   */
+  public setMicrophoneStream = (audioStream: MediaStream): void => {
     this.microphoneStream = audioStream;
-  }
+  };
 
-  public startVolumeMeasurement(): void {
+  /**
+   * Starts the volume measurement by creating an `AudioContext`,
+   * connecting the microphone stream to an `AnalyserNode`, and
+   * scheduling an animation frame to update the volume meter.
+   *
+   * @return {void}
+   */
+  public startVolumeMeasurement = (): void => {
     if (!this.microphoneStream) {
       return;
     } // Exit if no valid stream is returned
@@ -55,15 +66,28 @@ export class VolumeMeterService {
     this.analyserNode.fftSize = 2 ** 8;
     const pcmData = new Float32Array(this.analyserNode.fftSize);
     this.startVolumeUpdate(pcmData);
-  }
+  };
 
-  private createAudioContext(): AudioContext {
+  /**
+   * Creates a new `AudioContext` instance.
+   *
+   * @return {AudioContext} The newly created `AudioContext` instance.
+   */
+  private createAudioContext = (): AudioContext => {
     return new (AudioContext || (window as any).webkitAudioContext)();
-  }
+  };
 
-  private createMediaStreamSource(
+  /**
+   * Creates a `MediaStreamAudioSourceNode` from the given `MediaStream`.
+   *
+   * @param {MediaStream} stream - The `MediaStream` to create a
+   * `MediaStreamAudioSourceNode` from.
+   * @return {MediaStreamAudioSourceNode} The newly created
+   * `MediaStreamAudioSourceNode`.
+   */
+  private createMediaStreamSource = (
     stream: MediaStream
-  ): MediaStreamAudioSourceNode {
+  ): MediaStreamAudioSourceNode => {
     if (!this.audioContext) {
       throw new Error(
         'AudioContext not initialized, can not create MediaStreamSourceNode.'
@@ -71,9 +95,14 @@ export class VolumeMeterService {
     }
 
     return this.audioContext.createMediaStreamSource(stream);
-  }
+  };
 
-  private createAnalyserNode(): AnalyserNode {
+  /**
+   * Creates a new `AnalyserNode` instance.
+   *
+   * @return {AnalyserNode} The newly created `AnalyserNode` instance.
+   */
+  private createAnalyserNode = (): AnalyserNode => {
     if (!this.audioContext) {
       throw new Error(
         'AudioContext not initialized, can not create AnalyserNode.'
@@ -81,24 +110,45 @@ export class VolumeMeterService {
     }
 
     return this.audioContext.createAnalyser();
-  }
+  };
 
-  private connectAudioNodes(
+  /**
+   * Connects the given `MediaStreamAudioSourceNode` to the specified
+   * `AnalyserNode`.
+   *
+   * @param {MediaStreamAudioSourceNode} sourceNode - The source node to connect.
+   * @param {AnalyserNode} analyserNode - The analyser node to connect to.
+   */
+  private connectAudioNodes = (
     sourceNode: MediaStreamAudioSourceNode,
     analyserNode: AnalyserNode
-  ): void {
+  ): void => {
     sourceNode.connect(analyserNode);
-  }
+  };
 
-  private startVolumeUpdate(pcmData: Float32Array): void {
+  /**
+   * Starts the volume update process with the provided pcmData.
+   *
+   * @param {Float32Array} pcmData - The pcmData to update the volume meter with.
+   */
+  private startVolumeUpdate = (pcmData: Float32Array): void => {
+    /**
+     * Executes the `onFrame` function, updating the volume meter with the provided pcmData
+     * and scheduling the next animation frame.
+     */
     const onFrame = () => {
       this.updateVolumeMeter(pcmData);
       this.animationFrameId = requestAnimationFrame(onFrame);
     };
     this.animationFrameId = requestAnimationFrame(onFrame);
-  }
+  };
 
-  private updateVolumeMeter(pcmData: Float32Array): void {
+  /**
+   * Updates the volume meter with the provided pcmData.
+   *
+   * @param {Float32Array} pcmData - The pcmData to update the volume meter with.
+   */
+  private updateVolumeMeter = (pcmData: Float32Array): void => {
     if (!this.analyserNode || !this.volumeMeterEl) {
       return;
     }
@@ -114,13 +164,19 @@ export class VolumeMeterService {
     const calculatedAmplitude: number = Math.sqrt(sumSquares / pcmData.length);
 
     this.setProgressBarValue(calculatedAmplitude);
-  }
+  };
 
-  private setProgressBarValue(value: number): void {
+  /**
+   * Sets the value of the progress bar element.
+   *
+   * @param {number} value - The value to set the progress bar to.
+   * @return {void} This function does not return anything.
+   */
+  private setProgressBarValue = (value: number): void => {
     if (!this.volumeMeterEl) {
       return;
     }
 
     this.volumeMeterEl.value = value;
-  }
+  };
 }
