@@ -69,7 +69,7 @@
 
     </p>
 
-    <video autoPlay playsInline muted volume="0" #ownWebCamVideoRef
+    <video autoPlay playsInline muted volume="0" [disablePictureInPicture]="!showScreenCast()" #ownWebCamVideoRef
       class="chat-room-media__webcam-video chat-room-media__webcam-video--local"></video>
 
     <form class="chat-room-media__controls">
@@ -156,7 +156,7 @@
 
 
 
-  @if(!!(currentRoom())){
+  @if(currentRoom()){
   @if(isReceiver){
   <button type="button" class="chat-room-media__button ycyw__button ycyw__button--2"
     (click)="disconnectFromRoom()">Disconnect from
@@ -186,6 +186,10 @@
     [disabled]="!otherPeerUserName || !remotePeerHasSharedLocalMedia || !localPeerHasSharedLocalMedia()">Start</button>
 
   <p class="chat-room-media__error-message">
+    @if(isReceiver){
+    <span class="chat-room-media__error-message--span">Waiting for room creator to start the WebRTC session</span>
+    }
+
     @if(!otherPeerUserName){
     <span class="chat-room-media__error-message--span">Waiting for other peer to join the room</span>
     }
@@ -196,7 +200,7 @@
     }
 
 
-    @if(!remotePeerHasSharedLocalMedia){
+    @if(otherPeerUserName && !remotePeerHasSharedLocalMedia){
     <span class="chat-room-media__error-message--span">Waiting for other peer to share their stream</span>
     }
   </p>
