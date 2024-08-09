@@ -29,7 +29,9 @@ export class VolumeMeterService {
    * @param {HTMLInputElement} element - The HTMLInputElement to be used as the volume meter element.
    * @return {void}
    */
-  public setVolumeMeterElement = (element: HTMLInputElement): void => {
+  public setVolumeMeterElement = (
+    element: HTMLInputElement | HTMLProgressElement
+  ): void => {
     this.volumeMeterEl = element;
   };
 
@@ -52,6 +54,7 @@ export class VolumeMeterService {
    */
   public startVolumeMeasurement = (): void => {
     if (!this.microphoneStream) {
+      console.warn('No microphone stream available');
       return;
     } // Exit if no valid stream is returned
 
