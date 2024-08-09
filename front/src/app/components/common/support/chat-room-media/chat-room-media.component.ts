@@ -172,15 +172,18 @@ export class ChatRoomMediaComponent {
   }
 
   private disconnectFromWebRtcSession = () => {
-    if (this.webRtcSessionStarted) {
-      this.chatWebRtcService.endWebRTCSession();
-      this.resetWebRTCState();
-
-      console.log(
-        '%croomDeletedCallback + End WebRTC session',
-        'background: #222; color: #bada55'
-      );
+    if (!this.webRtcSessionStarted) {
+      return;
     }
+
+    this.chatWebRtcService.endWebRTCSession();
+    this.resetWebRTCState();
+    this.resetMediaCheckboxes();
+
+    console.log(
+      '%croomDeletedCallback + End WebRTC session',
+      'background: #222; color: #bada55'
+    );
   };
 
   private setWebRtcSessionStarted = () => {
@@ -217,6 +220,16 @@ export class ChatRoomMediaComponent {
       this.remoteWebCamVideoRef!.nativeElement;
 
     this.setVideoElementStream(remoteVideoElement, null);
+  };
+
+  private resetMediaCheckboxes = () => {
+    this.showWebcam.update(() => {
+      return false;
+    });
+
+    this.openMicrophone.update(() => {
+      return false;
+    });
   };
 
   private getInitialDevicePermissions = async () => {
@@ -285,6 +298,8 @@ export class ChatRoomMediaComponent {
   };
 
   private roomDeletedCallback = () => {
+    console.log('roomDeletedCallback');
+
     this.disconnectFromWebRtcSession();
 
     this.currentRoom.update(() => {
