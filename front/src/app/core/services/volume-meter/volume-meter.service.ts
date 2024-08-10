@@ -147,9 +147,16 @@ export class VolumeMeterService {
   };
 
   /**
-   * Updates the volume meter with the provided pcmData.
+   * Updates the volume meter with the provided `pcmData`.
    *
-   * @param {Float32Array} pcmData - The pcmData to update the volume meter with.
+   * PCM (Pulse Code Modulation) is a method of encoding an analogue
+   * signal so that it can be transmitted or stored in a digital format.
+   * In this case, the `pcmData` is an array of floating point numbers,
+   * representing the current waveform of the audio signal being
+   * measured by the volume meter.
+   *
+   * @param {Float32Array} pcmData - The array of floating point numbers
+   * representing the current waveform of the audio signal.
    */
   private updateVolumeMeter = (pcmData: Float32Array): void => {
     if (!this.analyserNode || !this.volumeMeterEl) {
