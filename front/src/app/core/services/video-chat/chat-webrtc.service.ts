@@ -394,7 +394,7 @@ export class ChatWebRtcService extends WebRTCService {
       return;
     }
     // * Since only 2 people can make a call, we only need one stream
-    const stream = event.streams[0];
+    const stream: MediaStream = event.streams[0];
     console.log({ 'event.streams': event.streams });
     this.remoteVideoElement!.srcObject = stream;
 
