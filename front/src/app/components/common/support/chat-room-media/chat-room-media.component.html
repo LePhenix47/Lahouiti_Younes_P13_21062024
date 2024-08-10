@@ -50,7 +50,7 @@
       Local stream
     </h3>
 
-    <progress value="0" max="0.25" #audioVolumeIndicator class="chat-room-media__audio-indicator"></progress>
+
 
     <p class="chat-room-media__error-message">
       @if(hasWebcamPermissionDenied()){
@@ -67,8 +67,9 @@
 
     </p>
 
-    <video autoPlay playsInline muted volume="0" [disablePictureInPicture]="!showScreenCast()" #ownWebCamVideoRef
+    <video autoPlay playsInline muted volume="0" disablePictureInPicture #ownWebCamVideoRef
       class="chat-room-media__webcam-video chat-room-media__webcam-video--local"></video>
+    <progress value="0" max="0.25" #ownAudioVolumeIndicator class="chat-room-media__audio-indicator"></progress>
 
     <form class="chat-room-media__controls">
 
@@ -150,6 +151,8 @@
     </h3>
     <video autoPlay playsInline #remoteWebCamVideoRef
       class="chat-room-media__webcam-video chat-room-media__webcam-video--remote"></video>
+
+    <progress value="0" max="0.25" #remotePeerAudioVolumeIndicator class="chat-room-media__audio-indicator"></progress>
   </section>
 
 

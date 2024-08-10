@@ -31,8 +31,11 @@ export class ChatRoomMediaComponent {
   @ViewChild('remoteWebCamVideoRef')
   remoteWebCamVideoRef: ElementRef<HTMLVideoElement> | null = null;
 
-  @ViewChild('audioVolumeIndicator')
-  audioVolumeIndicator: ElementRef<HTMLProgressElement> | null = null;
+  @ViewChild('ownAudioVolumeIndicator')
+  ownAudioVolumeIndicator: ElementRef<HTMLProgressElement> | null = null;
+
+  @ViewChild('remotePeerAudioVolumeIndicator')
+  remotePeerAudioVolumeIndicator: ElementRef<HTMLProgressElement> | null = null;
 
   /**
    * The Stomp client for the WebSocket connection.
@@ -50,7 +53,9 @@ export class ChatRoomMediaComponent {
   public readonly ownUsername = input.required<string>();
 
   private readonly chatWebRtcService = inject(ChatWebRtcService);
-  private readonly volumeAnalyzerService = inject(VolumeMeterService);
+
+  private ownVolumeAnalyzerService: VolumeMeterService | null = null;
+  private remoteVolumeAnalyzerService: VolumeMeterService | null = null;
 
   public showWebcam = signal<boolean>(false);
   public openMicrophone = signal<boolean>(false);
@@ -114,6 +119,9 @@ export class ChatRoomMediaComponent {
     console.group('ngOnInit()');
     this.getInitialDevicePermissions();
 
+    this.ownVolumeAnalyzerService = new VolumeMeterService();
+    this.remoteVolumeAnalyzerService = new VolumeMeterService();
+
     this.listenToDeviceChanges();
     await this.populateEnumeratedDevices();
 
@@ -152,7 +160,9 @@ export class ChatRoomMediaComponent {
   }
 
   ngOnDestroy() {
-    this.volumeAnalyzerService.stopVolumeMeasurement();
+    this.ownVolumeAnalyzerService!.stopVolumeMeasurement();
+    this.remoteVolumeAnalyzerService!.stopVolumeMeasurement();
+
     this.chatWebRtcService.endWebRTCSession();
 
     debugger;
@@ -164,12 +174,24 @@ export class ChatRoomMediaComponent {
   }
 
   private setVolumeMeterServiceElements = () => {
-    const progressElement: HTMLProgressElement =
-      this.audioVolumeIndicator!.nativeElement;
+    const ownProgressElement: HTMLProgressElement =
+      this.ownAudioVolumeIndicator!.nativeElement;
 
-    console.log('progressElement', progressElement);
+    console.log('ownProgressElement', ownProgressElement);
 
-    this.volumeAnalyzerService.setVolumeMeterElement(progressElement);
+    this.ownVolumeAnalyzerService!.setVolumeMeterElement(ownProgressElement);
+
+    const remoteProgressElement: HTMLProgressElement =
+      this.remotePeerAudioVolumeIndicator!.nativeElement;
+
+    this.remoteVolumeAnalyzerService!.setVolumeMeterElement(
+      remoteProgressElement
+    );
+
+    console.log(
+      this.ownVolumeAnalyzerService,
+      this.remoteVolumeAnalyzerService
+    );
   };
 
   private disconnectFromWebRtcSession = () => {
@@ -206,8 +228,14 @@ export class ChatRoomMediaComponent {
     this.chatWebRtcService.setOnScreenShareEndedCallback(this.onScreenShareEnd);
   };
 
-  private setWebRtcSessionStarted = () => {
+  private setWebRtcSessionStarted = (event: RTCTrackEvent) => {
     this.webRtcSessionStarted = true;
+
+    const remoteStream: MediaStream = event.streams[0];
+
+    this.remoteVolumeAnalyzerService!.setMicrophoneStream(remoteStream);
+
+    this.remoteVolumeAnalyzerService!.startVolumeMeasurement();
   };
 
   private showRoomError = (errorMessage: string) => {
@@ -240,16 +268,14 @@ export class ChatRoomMediaComponent {
       this.remoteWebCamVideoRef!.nativeElement;
 
     this.setVideoElementStream(remoteVideoElement, null);
+
+    this.remoteVolumeAnalyzerService!.stopVolumeMeasurement();
   };
 
   private resetMediaCheckboxes = () => {
-    this.showWebcam.update(() => {
-      return false;
-    });
+    this.showWebcam.update(() => false);
 
-    this.openMicrophone.update(() => {
-      return false;
-    });
+    this.openMicrophone.update(() => false);
   };
 
   private getInitialDevicePermissions = async () => {
@@ -415,12 +441,12 @@ export class ChatRoomMediaComponent {
       this.setVideoElementStream(localVideoElement, localStream);
 
       if (this.openMicrophone()) {
-        this.volumeAnalyzerService.startVolumeMeasurement();
+        this.ownVolumeAnalyzerService!.startVolumeMeasurement();
       }
     } catch (error) {
       console.error(error);
 
-      this.volumeAnalyzerService.stopVolumeMeasurement();
+      this.ownVolumeAnalyzerService!.stopVolumeMeasurement();
     }
   };
 
@@ -456,15 +482,15 @@ export class ChatRoomMediaComponent {
 
       this.setVideoElementStream(localVideoElement, localStream);
 
-      this.volumeAnalyzerService.setMicrophoneStream(localStream);
+      this.ownVolumeAnalyzerService!.setMicrophoneStream(localStream);
 
       if (this.openMicrophone()) {
-        this.volumeAnalyzerService.startVolumeMeasurement();
+        this.ownVolumeAnalyzerService!.startVolumeMeasurement();
       }
     } catch (error) {
       console.error(error);
 
-      this.volumeAnalyzerService.stopVolumeMeasurement();
+      this.ownVolumeAnalyzerService!.stopVolumeMeasurement();
     }
   };
 
@@ -509,10 +535,10 @@ export class ChatRoomMediaComponent {
         this.chatWebRtcService.localStream
       );
 
-      this.volumeAnalyzerService.setMicrophoneStream(localStream);
+      this.ownVolumeAnalyzerService!.setMicrophoneStream(localStream);
 
       if (this.openMicrophone()) {
-        this.volumeAnalyzerService.startVolumeMeasurement();
+        this.ownVolumeAnalyzerService!.startVolumeMeasurement();
       }
 
       this.hasWebcamPermissionDenied.update(() => false);
@@ -545,7 +571,7 @@ export class ChatRoomMediaComponent {
         this.hasMicrophonePermissionDenied.update(() => true);
       }
 
-      this.volumeAnalyzerService.stopVolumeMeasurement();
+      this.ownVolumeAnalyzerService!.stopVolumeMeasurement();
     }
   };
 
