@@ -8,7 +8,11 @@ const chatSocketListener = require("./src/websockets/chat.websockets.cjs");
 const testSocketListener = require("./src/websockets/test.websockets.cjs");
 const webRtcSocketListener = require("./src/websockets/web-rtc.websockets.cjs");
 
-const { connectedUsersMap, roomsMap } = require("./src/user.management.cjs"); // Update the path
+const {
+  connectedUsersMap,
+  roomsMap,
+  currentlyJoinedRoom,
+} = require("./src/user.management.cjs"); // Update the path
 
 const normalizePort = (val) => {
   const port = parseInt(val, 10);
@@ -85,7 +89,13 @@ io.on("connection", (socket) => {
   testSocketListener(io, socket);
 
   chatSocketListener(io, socket, connectedUsersMap);
-  webRtcSocketListener(io, socket, connectedUsersMap, roomsMap);
+  webRtcSocketListener(
+    io,
+    socket,
+    connectedUsersMap,
+    roomsMap,
+    currentlyJoinedRoom
+  );
   const { userName } = socket.handshake.auth;
   console.log(
     "A user connected to the WS, with username from handshake: ",
@@ -96,9 +106,18 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     // Additional logic for cleanup or logging goes here
+
+    // Get the room name the user is in
+    const roomName =
+      roomsMap.get(userName) || roomsMap.get(currentlyJoinedRoom.name);
+
+    if (roomName) {
+      // ? Regardless if the user was the creator or joiner of the room, we'll still delete it
+      socket.to(roomName).emit("room-deleted", { roomName, userName });
+    }
+
     connectedUsersMap.delete(userName);
     roomsMap.delete(userName);
-
     io.emit("room-list", Array.from(roomsMap.keys()));
     console.log(`User disconnected: ${socket.id}`, connectedUsersMap, roomsMap);
   });

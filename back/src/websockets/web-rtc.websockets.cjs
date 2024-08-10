@@ -1,4 +1,10 @@
-module.exports = (io, socket, connectedUsersMap, roomsMap) => {
+module.exports = (
+  io,
+  socket,
+  connectedUsersMap,
+  roomsMap,
+  currentlyJoinedRoom
+) => {
   const { userName } = socket.handshake.auth;
   // Handle a user creating a room
   socket.on("create-room", (roomName) => {
@@ -26,6 +32,7 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
 
     // Emit a success message back to the creator and update the room list
     socket.emit("room-created", { roomName });
+    currentlyJoinedRoom.name = roomName;
     io.emit(
       "room-list",
       Array.from(roomsMap.entries()).map(
@@ -61,6 +68,8 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
         }
       )
     );
+
+    currentlyJoinedRoom.name = null;
     io.emit("room-deleted", true);
     console.log(`Room deleted: ${roomName}`, roomsMap);
   });
@@ -102,6 +111,7 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
     );
 
     // Emit a success message back to the joiner and update the room list
+    currentlyJoinedRoom.name = roomName;
     socket.emit("room-joined", { roomName, userName });
     socket.to(roomName).emit("room-joined", { roomName, userName });
     io.emit(
@@ -150,6 +160,7 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
     // Leave the room and remove it from the map
     socket.leave(roomName);
     roomsMap.delete(roomName);
+    currentlyJoinedRoom.name = null;
     console.log(`User ${userName} (${socket.id}) left room ${roomName}`);
 
     // Notify both users that the room is deleted
