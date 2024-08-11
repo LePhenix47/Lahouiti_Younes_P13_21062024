@@ -16,7 +16,16 @@ module.exports = (
       return;
     }
 
-    if (roomsMap.has(roomName)) {
+    if (!roomName) {
+      // Check if the room already exists
+      console.warn(`No room name was specified for the user ${userName}`);
+      socket.emit("room-error", {
+        message: "Cannot create room because the room name was not specified",
+      });
+      return;
+    }
+
+    if (roomsMap.has(roomName) || roomsMap.has(userName)) {
       // Check if the room already exists
       console.warn(`Room ${roomName} already exists`);
       socket.emit("room-error", {
