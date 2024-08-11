@@ -57,15 +57,16 @@ export class ChatRoomMediaComponent {
   private ownVolumeAnalyzerService: VolumeMeterService | null = null;
   private remoteVolumeAnalyzerService: VolumeMeterService | null = null;
 
-  public showWebcam = signal<boolean>(false);
-  public openMicrophone = signal<boolean>(false);
-  public showScreenCast = signal<boolean>(false);
+  public readonly showWebcam = signal<boolean>(false);
+  public readonly openMicrophone = signal<boolean>(false);
+  public readonly showScreenCast = signal<boolean>(false);
 
-  public hasWebcamPermissionDenied = signal<boolean>(false);
-  public hasMicrophonePermissionDenied = signal<boolean>(false);
-  public hasCanceledScreenCast = signal<boolean>(false);
+  public readonly hasPiPModeAvailable = signal<boolean>(false);
+  public readonly hasWebcamPermissionDenied = signal<boolean>(false);
+  public readonly hasMicrophonePermissionDenied = signal<boolean>(false);
+  public readonly hasCanceledScreenCast = signal<boolean>(false);
 
-  public localPeerHasSharedLocalMedia = computed(() => {
+  public readonly localPeerHasSharedLocalMedia = computed(() => {
     const hasSharedLocalFeed: boolean =
       this.showWebcam() || this.openMicrophone();
     const hasSharedScreenFeed: boolean = this.showScreenCast();
@@ -82,27 +83,27 @@ export class ChatRoomMediaComponent {
     return localPeerHasSharedLocalMedia;
   });
 
-  public enumeratedDevicesList = signal<MediaDeviceInfo[]>([]);
+  public readonly enumeratedDevicesList = signal<MediaDeviceInfo[]>([]);
 
   // Filter for video input devices
-  public videoInputsList = computed<DeviceInfo[]>(() => {
+  public readonly videoInputsList = computed<DeviceInfo[]>(() => {
     return createDeviceList(this.enumeratedDevicesList(), 'videoinput');
   });
 
-  public audioInputsList = computed<DeviceInfo[]>(() => {
+  public readonly audioInputsList = computed<DeviceInfo[]>(() => {
     return createDeviceList(this.enumeratedDevicesList(), 'audioinput');
   });
 
   // Filter for audio output devices
-  public audioOutputsList = computed<DeviceInfo[]>(() => {
+  public readonly audioOutputsList = computed<DeviceInfo[]>(() => {
     return createDeviceList(this.enumeratedDevicesList(), 'audiooutput');
   });
 
-  public selectedVideoInputDeviceId = signal<string | null>(null);
-  public selectedAudioInputDeviceId = signal<string | null>(null);
+  public readonly selectedVideoInputDeviceId = signal<string | null>(null);
+  public readonly selectedAudioInputDeviceId = signal<string | null>(null);
 
-  public roomsList = signal<Room[]>([]);
-  public currentRoom = signal<string | null>(null);
+  public readonly roomsList = signal<Room[]>([]);
+  public readonly currentRoom = signal<string | null>(null);
 
   public signalEffect = effect(() => {
     console.log('effect', this.localPeerHasSharedLocalMedia());
@@ -139,6 +140,7 @@ export class ChatRoomMediaComponent {
 
     this.setWebRtcServiceClassCallbacks();
 
+    this.hasPiPModeAvailable.update(() => document.pictureInPictureEnabled);
     this.roomsList.update(() => {
       return [...this.chatWebRtcService.getRoomList()];
     });
@@ -165,7 +167,6 @@ export class ChatRoomMediaComponent {
 
     this.chatWebRtcService.endWebRTCSession();
 
-    debugger;
     if (this.isReceiver) {
       this.disconnectFromRoom();
     } else {
@@ -233,6 +234,17 @@ export class ChatRoomMediaComponent {
 
     const remoteStream: MediaStream = event.streams[0];
 
+    // Check if the remote stream contains any audio tracks
+    const audioTracks: MediaStreamTrack[] = remoteStream.getAudioTracks();
+
+    if (!audioTracks.length) {
+      console.log(
+        'No audio tracks in remote stream, skipping volume measurement'
+      );
+
+      return;
+    }
+
     this.remoteVolumeAnalyzerService!.setMicrophoneStream(remoteStream);
 
     this.remoteVolumeAnalyzerService!.startVolumeMeasurement();
@@ -263,6 +275,8 @@ export class ChatRoomMediaComponent {
     this.otherPeerUserName = null;
     this.remotePeerHasSharedLocalMedia = false;
     this.webRtcSessionStarted = false;
+
+    this.onScreenShareEnd();
 
     const remoteVideoElement: HTMLVideoElement =
       this.remoteWebCamVideoRef!.nativeElement;
@@ -555,20 +569,18 @@ export class ChatRoomMediaComponent {
 
       if (isNotPermissionRelated) {
         console.error(`An unexpected error occurred: ${error.message}`);
-
-        return;
       }
 
       // Check if it was due to the webcam
       if (this.showWebcam()) {
         this.showWebcam.update(() => false);
-        this.hasWebcamPermissionDenied.update(() => true);
+        this.hasWebcamPermissionDenied.update(() => isNotPermissionRelated);
       }
 
       // Check if it was due to the microphone
       if (this.openMicrophone()) {
         this.openMicrophone.update(() => false);
-        this.hasMicrophonePermissionDenied.update(() => true);
+        this.hasMicrophonePermissionDenied.update(() => isNotPermissionRelated);
       }
 
       this.ownVolumeAnalyzerService!.stopVolumeMeasurement();
@@ -601,7 +613,7 @@ export class ChatRoomMediaComponent {
     }
   };
 
-  private onScreenShareEnd = (event: Event): void => {
+  private onScreenShareEnd = (event?: Event): void => {
     this.showScreenCast.update(() => false);
 
     const videoElement: HTMLVideoElement =
@@ -675,5 +687,44 @@ export class ChatRoomMediaComponent {
     this.showScreenCast.update(() => true);
 
     this.updateScreenCastStream();
+  };
+
+  public requestPictureInPicture = async (): Promise<void> => {
+    if (!document.pictureInPictureEnabled) {
+      console.warn(
+        'Cannot enable picture-in-picture: PiP mode is not supported by your browser'
+      );
+
+      return;
+    }
+
+    if (document.pictureInPictureElement) {
+      console.warn('Already in picture-in-picture mode');
+
+      return;
+    }
+
+    const peerRemoteVideoElement: HTMLVideoElement =
+      this.remoteWebCamVideoRef!.nativeElement;
+
+    await peerRemoteVideoElement.requestPictureInPicture();
+  };
+
+  public removePictureInPicture = async (): Promise<void> => {
+    if (!document.pictureInPictureEnabled) {
+      console.warn(
+        'Cannot disable picture-in-picture: PiP is not supported by your browser'
+      );
+
+      return;
+    }
+
+    if (!document.pictureInPictureElement) {
+      console.warn('Not in picture-in-picture mode');
+
+      return;
+    }
+
+    await document.exitPictureInPicture();
   };
 }

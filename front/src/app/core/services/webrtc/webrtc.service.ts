@@ -280,16 +280,12 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
     }
 
     const senders: RTCRtpSender[] = this.peerConnection.getSenders();
-    const sender: RTCRtpSender | undefined = senders.find(
-      (s) => s.track === oldTrack
-    );
+    const sender: RTCRtpSender | null =
+      senders.find((rtpSender: RTCRtpSender) => rtpSender.track === oldTrack) ||
+      null;
+
     if (!sender) {
-      console.error(
-        'Track not found in peer connection',
-        senders,
-        'Sender value :',
-        sender
-      );
+      console.warn('Track not found in peer connection', { senders, sender });
 
       return;
     }
@@ -318,12 +314,16 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
   protected setDataChannelAsOffer = (channel: string): void => {
     this.dataChannel = this.peerConnection!.createDataChannel(channel);
 
-    this.dataChannel.addEventListener('message', (e) => {
+    this.dataChannel.addEventListener('message', (e: MessageEvent) => {
       console.log('new message', e.data);
     });
 
-    this.dataChannel.addEventListener('open', (e) => {
+    this.dataChannel.addEventListener('open', (e: Event) => {
       console.log('(OFFER) Connected to other peer LETS GOOOO!!!!', e);
+    });
+
+    this.dataChannel.addEventListener('close', (e: Event) => {
+      console.log('Closed data channel (RIP)', e);
     });
   };
 

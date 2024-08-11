@@ -152,6 +152,10 @@
     <video autoPlay playsInline #remoteWebCamVideoRef
       class="chat-room-media__webcam-video chat-room-media__webcam-video--remote"></video>
 
+    @if (hasPiPModeAvailable()){
+    <button (click)="requestPictureInPicture()">PiP</button>
+    }
+
     <progress value="0" max="0.25" #remotePeerAudioVolumeIndicator class="chat-room-media__audio-indicator"></progress>
   </section>
 

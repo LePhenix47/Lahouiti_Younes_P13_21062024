@@ -56,6 +56,10 @@
 
   &__webcam-video {
     scale: -100% 100%;
+
+    &--remote {
+      scale: 100% 100%;
+    }
   }
 
   video {
