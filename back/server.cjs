@@ -8,11 +8,7 @@ const chatSocketListener = require("./src/websockets/chat.websockets.cjs");
 const testSocketListener = require("./src/websockets/test.websockets.cjs");
 const webRtcSocketListener = require("./src/websockets/web-rtc.websockets.cjs");
 
-const {
-  connectedUsersMap,
-  roomsMap,
-  currentlyJoinedRoom,
-} = require("./src/user.management.cjs"); // Update the path
+const { connectedUsersMap, roomsMap } = require("./src/user.management.cjs"); // Update the path
 
 const normalizePort = (val) => {
   const port = parseInt(val, 10);
@@ -89,27 +85,33 @@ io.on("connection", (socket) => {
   testSocketListener(io, socket);
 
   chatSocketListener(io, socket, connectedUsersMap);
-  webRtcSocketListener(
-    io,
-    socket,
-    connectedUsersMap,
-    roomsMap,
-    currentlyJoinedRoom
-  );
+  webRtcSocketListener(io, socket, connectedUsersMap, roomsMap);
   const { userName } = socket.handshake.auth;
   console.log(
     "A user connected to the WS, with username from handshake: ",
     userName
   );
 
-  io.emit("room-list", Array.from(roomsMap.keys()));
+  io.emit(
+    "room-list",
+    Array.from(roomsMap.entries()).map(
+      ([creator, [creatorName, joinerName]]) => {
+        return {
+          roomName: creatorName,
+          isFull: joinerName !== null, // * The room is full if there's a joiner
+        };
+      }
+    )
+  );
 
   socket.on("disconnect", () => {
     // Additional logic for cleanup or logging goes here
 
     // Get the room name the user is in
+    console.log("User disconnected: ", userName, connectedUsersMap, roomsMap);
+
     const roomName =
-      roomsMap.get(userName) || roomsMap.get(currentlyJoinedRoom.name);
+      roomsMap.get(userName) || connectedUsersMap.get(userName)?.joinedRoom;
 
     if (roomName) {
       // ? Regardless if the user was the creator or joiner of the room, we'll still delete it
@@ -118,7 +120,17 @@ io.on("connection", (socket) => {
 
     connectedUsersMap.delete(userName);
     roomsMap.delete(userName);
-    io.emit("room-list", Array.from(roomsMap.keys()));
+    io.emit(
+      "room-list",
+      Array.from(roomsMap.entries()).map(
+        ([creator, [creatorName, joinerName]]) => {
+          return {
+            roomName: creatorName,
+            isFull: joinerName !== null, // * The room is full if there's a joiner
+          };
+        }
+      )
+    );
     console.log(`User disconnected: ${socket.id}`, connectedUsersMap, roomsMap);
   });
 });

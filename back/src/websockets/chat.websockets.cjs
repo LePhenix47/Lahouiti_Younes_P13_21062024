@@ -2,9 +2,11 @@
 const { getUniqueConnectedUsers } = require("../utils/map.utils.cjs");
 
 module.exports = (io, socket, connectedUsersMap) => {
+  const { userName } = socket.handshake.auth;
+
   socket.on("join", (msg) => {
     const { sender } = msg;
-    connectedUsersMap.set(sender, socket.id); // Store username and socket.id in the map
+    connectedUsersMap.set(sender, { id: socket.id, joinedRoom: null }); // Store username and socket.id in the map
     console.log("join", msg, connectedUsersMap);
 
     io.emit("join", {

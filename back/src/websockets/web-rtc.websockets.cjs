@@ -1,10 +1,4 @@
-module.exports = (
-  io,
-  socket,
-  connectedUsersMap,
-  roomsMap,
-  currentlyJoinedRoom
-) => {
+module.exports = (io, socket, connectedUsersMap, roomsMap) => {
   const { userName } = socket.handshake.auth;
   // Handle a user creating a room
   socket.on("create-room", (roomName) => {
@@ -41,7 +35,12 @@ module.exports = (
 
     // Emit a success message back to the creator and update the room list
     socket.emit("room-created", { roomName });
-    currentlyJoinedRoom.name = roomName;
+
+    const userInfo = connectedUsersMap.get(userName);
+    userInfo.joinedRoom = roomName;
+
+    connectedUsersMap.set(userName, userInfo);
+
     io.emit(
       "room-list",
       Array.from(roomsMap.entries()).map(
@@ -66,6 +65,11 @@ module.exports = (
     }
 
     roomsMap.delete(roomName);
+
+    const userInfo = connectedUsersMap.get(userName);
+    userInfo.joinedRoom = null;
+
+    connectedUsersMap.set(userName, userInfo);
     io.emit(
       "room-list",
       Array.from(roomsMap.entries()).map(
@@ -78,7 +82,6 @@ module.exports = (
       )
     );
 
-    currentlyJoinedRoom.name = null;
     io.emit("room-deleted", true);
     console.log(`Room deleted: ${roomName}`, roomsMap);
   });
@@ -113,14 +116,19 @@ module.exports = (
     room[1] = userName;
     roomsMap.set(roomName, room);
     socket.join(roomName);
+
+    const userInfo = connectedUsersMap.get(userName);
+    userInfo.joinedRoom = roomName;
+
+    connectedUsersMap.set(userName, userInfo);
     console.log(
       `User ${userName} (${socket.id}) joined room ${roomName}`,
       room,
-      roomsMap.get(roomName)
+      roomsMap.get(roomName),
+      connectedUsersMap
     );
 
     // Emit a success message back to the joiner and update the room list
-    currentlyJoinedRoom.name = roomName;
     socket.emit("room-joined", { roomName, userName });
     socket.to(roomName).emit("room-joined", { roomName, userName });
     io.emit(
@@ -169,7 +177,11 @@ module.exports = (
     // Leave the room and remove it from the map
     socket.leave(roomName);
     roomsMap.delete(roomName);
-    currentlyJoinedRoom.name = null;
+
+    const userInfo = connectedUsersMap.get(userName);
+    userInfo.joinedRoom = null;
+
+    connectedUsersMap.set(userName, userInfo);
     console.log(`User ${userName} (${socket.id}) left room ${roomName}`);
 
     // Notify both users that the room is deleted
