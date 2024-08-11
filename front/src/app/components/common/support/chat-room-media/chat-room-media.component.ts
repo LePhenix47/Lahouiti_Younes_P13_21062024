@@ -61,6 +61,8 @@ export class ChatRoomMediaComponent {
   public readonly openMicrophone = signal<boolean>(false);
   public readonly showScreenCast = signal<boolean>(false);
 
+  public readonly wantsToTogglePiPOnTabSwitch = signal<boolean>(false);
+
   public readonly hasPiPModeAvailable = signal<boolean>(false);
   public readonly hasWebcamPermissionDenied = signal<boolean>(false);
   public readonly hasMicrophonePermissionDenied = signal<boolean>(false);
@@ -141,6 +143,10 @@ export class ChatRoomMediaComponent {
     this.setWebRtcServiceClassCallbacks();
 
     this.hasPiPModeAvailable.update(() => document.pictureInPictureEnabled);
+    if (this.hasPiPModeAvailable()) {
+      document.addEventListener('visibilitychange', this.togglePiPVideoElement);
+    }
+
     this.roomsList.update(() => {
       return [...this.chatWebRtcService.getRoomList()];
     });
@@ -166,6 +172,13 @@ export class ChatRoomMediaComponent {
     this.remoteVolumeAnalyzerService!.stopVolumeMeasurement();
 
     this.chatWebRtcService.endWebRTCSession();
+
+    if (this.hasPiPModeAvailable()) {
+      document.removeEventListener(
+        'visibilitychange',
+        this.togglePiPVideoElement
+      );
+    }
 
     if (this.isReceiver) {
       this.disconnectFromRoom();
@@ -690,24 +703,26 @@ export class ChatRoomMediaComponent {
   };
 
   public requestPictureInPicture = async (): Promise<void> => {
-    if (!document.pictureInPictureEnabled) {
-      console.warn(
-        'Cannot enable picture-in-picture: PiP mode is not supported by your browser'
-      );
+    try {
+      if (!document.pictureInPictureEnabled) {
+        throw new Error(
+          'Cannot enable picture-in-picture: PiP mode is not supported by your browser'
+        );
+      }
 
-      return;
+      if (document.pictureInPictureElement) {
+        throw new Error('Already in picture-in-picture mode');
+      }
+
+      const peerRemoteVideoElement: HTMLVideoElement =
+        this.remoteWebCamVideoRef!.nativeElement;
+
+      await peerRemoteVideoElement.requestPictureInPicture();
+    } catch (error) {
+      console.error('Error requesting picture-in-picture', error);
+
+      this.wantsToTogglePiPOnTabSwitch.update(() => false);
     }
-
-    if (document.pictureInPictureElement) {
-      console.warn('Already in picture-in-picture mode');
-
-      return;
-    }
-
-    const peerRemoteVideoElement: HTMLVideoElement =
-      this.remoteWebCamVideoRef!.nativeElement;
-
-    await peerRemoteVideoElement.requestPictureInPicture();
   };
 
   public removePictureInPicture = async (): Promise<void> => {
@@ -726,5 +741,36 @@ export class ChatRoomMediaComponent {
     }
 
     await document.exitPictureInPicture();
+  };
+
+  public togglePiPOnTabSwitch(event: Event) {
+    const checkboxInput = event.target as HTMLInputElement;
+
+    this.wantsToTogglePiPOnTabSwitch.update((prev) => !prev);
+  }
+
+  private togglePiPVideoElement = (event: Event) => {
+    console.log('document.visibilityState', document.visibilityState);
+    console.log('document.hidden', document.hidden);
+
+    if (!this.wantsToTogglePiPOnTabSwitch()) {
+      console.log(
+        'Wants to toggle PiP on tab switch is false, not toggling PiP'
+      );
+
+      return;
+    }
+
+    if (!this.webRtcSessionStarted) {
+      console.warn(
+        'Cannot toggle PiP: WebRTC session has not started yet, no video element to toggle'
+      );
+
+      return;
+    }
+
+    if (document.visibilityState === 'visible') {
+      this.removePictureInPicture();
+    }
   };
 }
