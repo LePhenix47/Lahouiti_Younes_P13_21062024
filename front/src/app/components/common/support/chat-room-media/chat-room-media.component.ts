@@ -15,6 +15,7 @@ import {
   Room,
 } from '@core/types/videoconference/videoconference.types';
 import { createDeviceList } from '@core/utils/videoconference/videoconference.utils';
+import { Socket } from 'socket.io-client';
 
 @Component({
   selector: 'app-chat-room-media',
@@ -40,7 +41,7 @@ export class ChatRoomMediaComponent {
   /**
    * The Stomp client for the WebSocket connection.
    */
-  public readonly socketIO = input.required<any | null>();
+  public readonly socketIO = input.required<Socket | null>();
 
   /**
    * An array of user names in the chat.
@@ -61,6 +62,22 @@ export class ChatRoomMediaComponent {
   public readonly openMicrophone = signal<boolean>(false);
   public readonly showScreenCast = signal<boolean>(false);
 
+  public readonly hasAuthorizedWebcamForWebRTC = computed<boolean>(() => {
+    return (
+      !this.hasWebcamPermissionDenied() &&
+      this.showWebcam() &&
+      this.webRtcSessionStarted
+    );
+  });
+
+  public readonly hasAuthorizedMicrophoneForWebRTC = computed<boolean>(() => {
+    return (
+      !this.hasMicrophonePermissionDenied() &&
+      this.openMicrophone() &&
+      this.webRtcSessionStarted
+    );
+  });
+
   public readonly wantsToTogglePiPOnTabSwitch = signal<boolean>(false);
 
   public readonly hasPiPModeAvailable = signal<boolean>(false);
@@ -68,21 +85,17 @@ export class ChatRoomMediaComponent {
   public readonly hasMicrophonePermissionDenied = signal<boolean>(false);
   public readonly hasCanceledScreenCast = signal<boolean>(false);
 
-  public readonly localPeerHasSharedLocalMedia = computed(() => {
+  public readonly localPeerHasSharedLocalMedia = computed<boolean>(() => {
     const hasSharedLocalFeed: boolean =
       this.showWebcam() || this.openMicrophone();
-    const hasSharedScreenFeed: boolean = this.showScreenCast();
 
-    const localPeerHasSharedLocalMedia: boolean =
-      hasSharedLocalFeed || hasSharedScreenFeed;
-
-    if (this.chatWebRtcService.currentRoom && !this.webRtcSessionStarted) {
+    if (this.currentRoom() && !this.webRtcSessionStarted) {
       this.chatWebRtcService.notifyRemotePeerOfLocalMediaShare(
-        localPeerHasSharedLocalMedia
+        hasSharedLocalFeed
       );
     }
 
-    return localPeerHasSharedLocalMedia;
+    return hasSharedLocalFeed;
   });
 
   public readonly enumeratedDevicesList = signal<MediaDeviceInfo[]>([]);
@@ -113,7 +126,7 @@ export class ChatRoomMediaComponent {
 
   public isReceiver: boolean = false;
   public otherPeerUserName: string | null = null;
-  public remotePeerHasSharedLocalMedia: boolean = false;
+  public isRemotePeerMediaActive: boolean = false;
   public webRtcSessionStarted: boolean = false;
 
   public roomErrorMessage: string | null = null;
@@ -127,15 +140,6 @@ export class ChatRoomMediaComponent {
 
     this.listenToDeviceChanges();
     await this.populateEnumeratedDevices();
-
-    console.log(
-      'this.videoInputsList()',
-      this.videoInputsList(),
-      'this.audioInputsList()',
-      this.audioInputsList(),
-      'this.audioOutputsList()',
-      this.audioOutputsList()
-    );
 
     this.chatWebRtcService.setSocketIO(this.socketIO()!);
     this.chatWebRtcService.addRoomSocketEventListeners();
@@ -171,7 +175,7 @@ export class ChatRoomMediaComponent {
     this.ownVolumeAnalyzerService!.stopVolumeMeasurement();
     this.remoteVolumeAnalyzerService!.stopVolumeMeasurement();
 
-    this.chatWebRtcService.endWebRTCSession();
+    this.disconnectFromWebRtcSession();
 
     if (this.hasPiPModeAvailable()) {
       document.removeEventListener(
@@ -179,6 +183,8 @@ export class ChatRoomMediaComponent {
         this.togglePiPVideoElement
       );
     }
+
+    this.chatWebRtcService.removeWebRtcSocketEventListeners();
 
     if (this.isReceiver) {
       this.disconnectFromRoom();
@@ -267,6 +273,10 @@ export class ChatRoomMediaComponent {
     this.roomErrorMessage = errorMessage;
   };
 
+  private resetRoomErrorMessage = () => {
+    this.roomErrorMessage = '';
+  };
+
   private listenToDeviceChanges = () => {
     navigator.mediaDevices.addEventListener(
       'devicechange',
@@ -286,7 +296,7 @@ export class ChatRoomMediaComponent {
   private resetWebRTCState = () => {
     this.isReceiver = false;
     this.otherPeerUserName = null;
-    this.remotePeerHasSharedLocalMedia = false;
+    this.isRemotePeerMediaActive = false;
     this.webRtcSessionStarted = false;
 
     this.onScreenShareEnd();
@@ -328,9 +338,9 @@ export class ChatRoomMediaComponent {
   };
 
   private remotePeerHasSharedLocalMediaCallback = (
-    remotePeerHasSharedLocalMedia: boolean
+    isRemotePeerMediaActive: boolean
   ) => {
-    this.remotePeerHasSharedLocalMedia = remotePeerHasSharedLocalMedia;
+    this.isRemotePeerMediaActive = isRemotePeerMediaActive;
   };
 
   private setWebRtcVideoElements = () => {
@@ -462,10 +472,15 @@ export class ChatRoomMediaComponent {
 
       console.log({ videoInputDeviceId, localStream });
 
-      const localVideoElement: HTMLVideoElement =
+      const webcamVideoElement: HTMLVideoElement =
         this.ownWebCamVideoRef!.nativeElement;
 
-      this.setVideoElementStream(localVideoElement, localStream);
+      if (!this.showScreenCast()) {
+        this.setVideoElementStream(
+          webcamVideoElement,
+          this.chatWebRtcService.localStream
+        );
+      }
 
       if (this.openMicrophone()) {
         this.ownVolumeAnalyzerService!.startVolumeMeasurement();
@@ -504,10 +519,15 @@ export class ChatRoomMediaComponent {
         return;
       }
 
-      const localVideoElement: HTMLVideoElement =
+      const webcamVideoElement: HTMLVideoElement =
         this.ownWebCamVideoRef!.nativeElement;
 
-      this.setVideoElementStream(localVideoElement, localStream);
+      if (!this.showScreenCast()) {
+        this.setVideoElementStream(
+          webcamVideoElement,
+          this.chatWebRtcService.localStream
+        );
+      }
 
       this.ownVolumeAnalyzerService!.setMicrophoneStream(localStream);
 
@@ -557,10 +577,12 @@ export class ChatRoomMediaComponent {
         return;
       }
 
-      this.setVideoElementStream(
-        webcamVideoElement,
-        this.chatWebRtcService.localStream
-      );
+      if (!this.showScreenCast()) {
+        this.setVideoElementStream(
+          webcamVideoElement,
+          this.chatWebRtcService.localStream
+        );
+      }
 
       this.ownVolumeAnalyzerService!.setMicrophoneStream(localStream);
 

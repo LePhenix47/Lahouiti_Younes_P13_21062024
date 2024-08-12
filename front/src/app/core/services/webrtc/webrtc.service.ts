@@ -226,7 +226,10 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
       }
 
       // Update tracks in the peer connection if needed
-      if (this.peerConnection?.connectionState === 'connected') {
+      if (
+        this.peerConnection?.connectionState === 'connected' &&
+        !this.screenTrack
+      ) {
         // Replace the webcam track if it exists
         if (this.webcamTrack && newWebcamTrack) {
           this.replaceTrackInPeerConnection(this.webcamTrack, newWebcamTrack);

@@ -39,6 +39,19 @@
 
   }
 
+  &__controls-fieldset {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__control {
+
+    &--disabled {
+      opacity: 50%;
+      filter: grayscale(100%)
+    }
+  }
+
 
   &__join-button {
 
