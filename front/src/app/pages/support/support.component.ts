@@ -28,13 +28,12 @@ export class SupportComponent {
   protected usersList: string[] = [];
 
   setUsersArray = (arrayOfUsers: string[]): void => {
-    this.usersList = arrayOfUsers;
+    this.usersList = [...new Set(arrayOfUsers)];
   };
 
   setSocket = (socket: any | null) => {
     this.sharedSocket = socket;
   };
 
-  ngOnInit() {
-  }
+  ngOnInit() {}
 }

@@ -456,6 +456,7 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
       console.error('The peer connection was not initiated');
       return;
     }
+
     if (!this.localStream) {
       console.error('The local stream was not initiated');
       return;

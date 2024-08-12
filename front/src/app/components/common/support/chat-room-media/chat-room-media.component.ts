@@ -62,23 +62,13 @@ export class ChatRoomMediaComponent {
   public readonly openMicrophone = signal<boolean>(false);
   public readonly showScreenCast = signal<boolean>(false);
 
-  public readonly hasAuthorizedWebcamForWebRTC = computed<boolean>(() => {
-    return (
-      !this.hasWebcamPermissionDenied() &&
-      this.showWebcam() &&
-      this.webRtcSessionStarted
-    );
-  });
+  public readonly hasEnabledWebcamForWebRTC = signal<boolean>(false);
+  public readonly hasEnabledMicrophoneForWebRTC = signal<boolean>(false);
 
-  public readonly hasAuthorizedMicrophoneForWebRTC = computed<boolean>(() => {
-    return (
-      !this.hasMicrophonePermissionDenied() &&
-      this.openMicrophone() &&
-      this.webRtcSessionStarted
-    );
-  });
+  public readonly isLoadingLocalMedia = signal<boolean>(false);
+  public readonly isLoadingRemoteMedia = signal<boolean>(false);
 
-  public readonly wantsToTogglePiPOnTabSwitch = signal<boolean>(false);
+  public readonly isPiPToggleEnabledOnTabSwitch = signal<boolean>(false);
 
   public readonly hasPiPModeAvailable = signal<boolean>(false);
   public readonly hasWebcamPermissionDenied = signal<boolean>(false);
@@ -193,6 +183,11 @@ export class ChatRoomMediaComponent {
     }
   }
 
+  private updateWebRTCDevicesAuthorizations = () => {
+    this.hasEnabledWebcamForWebRTC.update(() => this.showWebcam());
+    this.hasEnabledMicrophoneForWebRTC.update(() => this.openMicrophone());
+  };
+
   private setVolumeMeterServiceElements = () => {
     const ownProgressElement: HTMLProgressElement =
       this.ownAudioVolumeIndicator!.nativeElement;
@@ -222,6 +217,9 @@ export class ChatRoomMediaComponent {
     this.chatWebRtcService.endWebRTCSession();
     this.resetWebRTCState();
     this.resetMediaCheckboxes();
+
+    this.ownVolumeAnalyzerService!.stopVolumeMeasurement();
+    this.remoteVolumeAnalyzerService!.stopVolumeMeasurement();
 
     console.log(
       '%croomDeletedCallback + End WebRTC session',
@@ -253,11 +251,19 @@ export class ChatRoomMediaComponent {
 
     const remoteStream: MediaStream = event.streams[0];
 
+    this.updateWebRTCDevicesAuthorizations();
+
     // Check if the remote stream contains any audio tracks
     const audioTracks: MediaStreamTrack[] = remoteStream.getAudioTracks();
+    console.log(
+      'audioTracks',
+      audioTracks,
+      'audioTracks.length',
+      audioTracks.length
+    );
 
     if (!audioTracks.length) {
-      console.log(
+      console.warn(
         'No audio tracks in remote stream, skipping volume measurement'
       );
 
@@ -305,8 +311,6 @@ export class ChatRoomMediaComponent {
       this.remoteWebCamVideoRef!.nativeElement;
 
     this.setVideoElementStream(remoteVideoElement, null);
-
-    this.remoteVolumeAnalyzerService!.stopVolumeMeasurement();
   };
 
   private resetMediaCheckboxes = () => {
@@ -450,6 +454,8 @@ export class ChatRoomMediaComponent {
     this.chatWebRtcService.startWebRTCSession();
 
     this.webRtcSessionStarted = true;
+
+    this.updateWebRTCDevicesAuthorizations();
   };
 
   public switchWebcamDevice = async (event: Event) => {
@@ -678,14 +684,14 @@ export class ChatRoomMediaComponent {
     const [_, toggleType] = input.name.split(/\s/g);
 
     if (toggleType === 'webcam') {
-      this.showWebcam.update(() => input.checked);
+      this.hasEnabledWebcamForWebRTC.update(() => input.checked);
     } else if (toggleType === 'microphone') {
-      this.openMicrophone.update(() => input.checked);
+      this.hasEnabledMicrophoneForWebRTC.update(() => input.checked);
     }
 
     this.chatWebRtcService.toggleLocalStream(
-      this.showWebcam(),
-      this.openMicrophone()
+      this.hasEnabledWebcamForWebRTC(),
+      this.hasEnabledMicrophoneForWebRTC()
     );
   };
 
@@ -743,7 +749,7 @@ export class ChatRoomMediaComponent {
     } catch (error) {
       console.error('Error requesting picture-in-picture', error);
 
-      this.wantsToTogglePiPOnTabSwitch.update(() => false);
+      this.isPiPToggleEnabledOnTabSwitch.update(() => false);
     }
   };
 
@@ -768,14 +774,14 @@ export class ChatRoomMediaComponent {
   public togglePiPOnTabSwitch(event: Event) {
     const checkboxInput = event.target as HTMLInputElement;
 
-    this.wantsToTogglePiPOnTabSwitch.update((prev) => !prev);
+    this.isPiPToggleEnabledOnTabSwitch.update((prev) => !prev);
   }
 
   private togglePiPVideoElement = (event: Event) => {
     console.log('document.visibilityState', document.visibilityState);
     console.log('document.hidden', document.hidden);
 
-    if (!this.wantsToTogglePiPOnTabSwitch()) {
+    if (!this.isPiPToggleEnabledOnTabSwitch()) {
       console.log(
         'Wants to toggle PiP on tab switch is false, not toggling PiP'
       );

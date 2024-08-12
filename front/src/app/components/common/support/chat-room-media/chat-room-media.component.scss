@@ -48,15 +48,33 @@
 
     &--disabled {
       opacity: 50%;
-      filter: grayscale(100%)
+      filter: grayscale(100%);
+
+      cursor: not-allowed;
+    }
+  }
+
+  &__video-input-device {
+
+    &:disabled {
+      cursor: not-allowed;
+    }
+  }
+
+  &__audio-input-device {
+
+    &:disabled {
+      cursor: not-allowed;
     }
   }
 
 
   &__join-button {
 
+    width: fit-content;
 
     &--is-full {
+      width: fit-content;
       filter: grayscale(1) !important;
     }
   }

@@ -348,6 +348,13 @@ export class ChatWebRtcService extends WebRTCService {
     } as const;
 
     this.socketio!.emit('offer', offerPayload);
+
+    console.log(
+      '%cEmitting an offer, localStream:',
+      'background: red; padding: 1rem',
+      this.localStream?.getAudioTracks(),
+      this.localStream?.getVideoTracks()
+    );
   };
 
   public override createAnswer = async (): Promise<void> => {
@@ -377,6 +384,13 @@ export class ChatWebRtcService extends WebRTCService {
     } as const;
 
     this.socketio!.emit('answer', answerPayload);
+
+    console.log(
+      '%cEmitting an answer, localStream:',
+      'background: red; padding: 1rem',
+      this.localStream?.getAudioTracks(),
+      this.localStream?.getVideoTracks()
+    );
   };
 
   public onReceiveAnswer = async (answer: RTCSessionDescriptionInit) => {};
