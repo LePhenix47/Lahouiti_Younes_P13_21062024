@@ -5,34 +5,77 @@ import { Subject } from 'rxjs';
   providedIn: 'root',
 })
 export class ScreenRecordingService {
-  private mediaRecorder: MediaRecorder | null = null;
-  private recordedChunks: Blob[] = [];
-  private isRecording = signal<boolean>(false);
+  public mediaRecorder: MediaRecorder | null = null;
 
-  // Observable to notify when the recording is completed
+  private recordedChunks: Blob[] = [];
+  private downloadElement: HTMLAnchorElement | null = null;
+
+  public readonly isRecording = signal<boolean>(false);
   public readonly recordedBlob = signal<Blob | null>(null);
 
-  public startRecording = async (startDelayInMs: number = 0): Promise<void> => {
+  public setDownloadElement = (element: HTMLAnchorElement): void => {
+    this.downloadElement = element;
+  };
+
+  public setDownloadLink = (): void => {
+    if (!this.recordedBlob()) {
+      console.error('No blob to download');
+
+      return;
+    }
+
+    if (!this.downloadElement) {
+      console.error('No download element provided');
+
+      return;
+    }
+
+    const objectUrl: string = URL.createObjectURL(this.recordedBlob()!);
+
+    this.downloadElement.download = 'screen-recording.webm';
+    this.downloadElement.href = objectUrl;
+  };
+
+  public startRecording = async (
+    startDelayInMs: number = 0,
+    audioDeviceId?: string
+  ): Promise<MediaStream | null> => {
     this.recordedChunks = [];
 
     try {
+      if (startDelayInMs < 0) {
+        throw new Error('startDelayInMs must be greater than or equal to 0');
+      }
+
       const supportedConstraints: MediaTrackSupportedConstraints =
         navigator.mediaDevices.getSupportedConstraints();
 
       const supportsDisplaySurface: boolean =
         supportedConstraints.hasOwnProperty('displaySurface');
       // Request screen access
-      const stream: MediaStream = await navigator.mediaDevices.getDisplayMedia({
-        video: supportsDisplaySurface
-          ? {
-              displaySurface: 'browser',
-            }
-          : true,
-        audio: true, // Optional, depending on your needs
-      });
+      const screenStream: MediaStream =
+        await navigator.mediaDevices.getDisplayMedia({
+          video: supportsDisplaySurface
+            ? {
+                displaySurface: 'browser',
+              }
+            : true,
+          audio: true, // Optional, depending on your needs
+        });
 
+      const userAudioStream: MediaStream =
+        await navigator.mediaDevices.getUserMedia({
+          audio: Boolean(audioDeviceId) ? { deviceId: audioDeviceId } : true,
+        });
+
+      const combinedTracks: MediaStreamTrack[] = [
+        ...screenStream.getTracks(),
+        ...userAudioStream.getTracks(),
+      ];
+
+      const mixedStreams = new MediaStream(combinedTracks);
       // Create a MediaRecorder instance
-      this.mediaRecorder = new MediaRecorder(stream);
+      this.mediaRecorder = new MediaRecorder(mixedStreams);
 
       // Handle data available event
       this.mediaRecorder.addEventListener(
@@ -47,10 +90,14 @@ export class ScreenRecordingService {
 
       this.mediaRecorder.start(startDelayInMs);
       this.isRecording.update(() => true);
+
+      return mixedStreams;
     } catch (error) {
       console.error('Error accessing screen stream for recording: ', error);
 
       this.isRecording.update(() => false);
+
+      return null;
     }
   };
 
@@ -60,7 +107,11 @@ export class ScreenRecordingService {
     }
 
     this.mediaRecorder!.stop();
-    this.isRecording.update(() => false);
+
+    const tracks: MediaStreamTrack[] = this.mediaRecorder!.stream.getTracks();
+    for (const track of tracks) {
+      track.stop();
+    }
   };
 
   public pauseRecording = (): void => {
@@ -91,6 +142,8 @@ export class ScreenRecordingService {
   private onMediaRecordingStop = (event: Event): void => {
     // Create a Blob from the recorded chunks
     const blob = new Blob(this.recordedChunks, { type: 'video/webm' });
+
+    this.isRecording.update(() => false);
     this.recordedBlob.update(() => blob);
     this.resetRecording();
   };
