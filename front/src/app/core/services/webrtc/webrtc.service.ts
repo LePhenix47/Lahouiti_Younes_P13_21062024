@@ -371,6 +371,16 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
       'signalingstatechange',
       this.onSignalingStateChangeEvent
     );
+
+    // this.peerConnection!.addEventListener('negotiationneeded', (e: Event) => {
+    //   console.log('negotiationneeded', e);
+    // });
+    // this.peerConnection!.addEventListener(
+    //   'connectionstatechange',
+    //   (e: Event) => {
+    //     console.log('connectionstatechange', e);
+    //   }
+    // );
   };
 
   /**
@@ -440,12 +450,17 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
 
     console.log('this.addLocalTracksToPeerConnection');
 
-    if (this.localStream) {
-      console.log('this.localStream', this.localStream.getTracks());
+    if (!this.localStream) {
+      console.error(
+        'The local stream was not initiated, could not add local tracks to peer connection'
+      );
 
-      for (const track of this.localStream.getTracks()) {
-        this.peerConnection.addTrack(track, this.localStream);
-      }
+      return;
+    }
+    console.log('this.localStream', this.localStream.getTracks());
+
+    for (const track of this.localStream.getTracks()) {
+      this.peerConnection.addTrack(track, this.localStream);
     }
 
     console.log(this.peerConnection.connectionState);

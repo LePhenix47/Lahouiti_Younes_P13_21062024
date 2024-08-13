@@ -255,12 +255,27 @@ export class ChatRoomMediaComponent {
 
     // Check if the remote stream contains any audio tracks
     const audioTracks: MediaStreamTrack[] = remoteStream.getAudioTracks();
+
+    console.group('audioTracks');
     console.log(
       'audioTracks',
       audioTracks,
       'audioTracks.length',
       audioTracks.length
     );
+    console.groupEnd();
+
+    // Check if the remote stream contains any audio tracks
+    const videoTracks: MediaStreamTrack[] = remoteStream.getVideoTracks();
+
+    console.group('videoTracks');
+    console.log(
+      'videoTracks',
+      videoTracks,
+      'videoTracks.length',
+      videoTracks.length
+    );
+    console.groupEnd();
 
     if (!audioTracks.length) {
       console.warn(
@@ -778,27 +793,18 @@ export class ChatRoomMediaComponent {
   }
 
   private togglePiPVideoElement = (event: Event) => {
-    console.log('document.visibilityState', document.visibilityState);
-    console.log('document.hidden', document.hidden);
-
     if (!this.isPiPToggleEnabledOnTabSwitch()) {
-      console.log(
-        'Wants to toggle PiP on tab switch is false, not toggling PiP'
-      );
-
       return;
     }
 
     if (!this.webRtcSessionStarted) {
-      console.warn(
-        'Cannot toggle PiP: WebRTC session has not started yet, no video element to toggle'
-      );
-
       return;
     }
 
-    if (document.visibilityState === 'visible') {
-      this.removePictureInPicture();
+    if (document.visibilityState === 'hidden') {
+      return;
     }
+
+    this.removePictureInPicture();
   };
 }

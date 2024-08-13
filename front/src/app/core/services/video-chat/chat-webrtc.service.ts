@@ -55,14 +55,19 @@ export class ChatWebRtcService extends WebRTCService {
       'background: white; color: black; padding: 1rem'
     );
 
-    this.socketio.on('ice-candidate', async (remotePeerIceCandidate) => {
-      await this.peerConnection!.addIceCandidate(remotePeerIceCandidate);
+    this.socketio.on(
+      'ice-candidate',
+      async (remotePeerIceCandidate: RTCIceCandidate) => {
+        await this.peerConnection!.addIceCandidate(remotePeerIceCandidate);
 
-      this.onReceiveIce(remotePeerIceCandidate);
-    });
+        this.onReceiveIce(remotePeerIceCandidate);
+      }
+    );
 
     // * If the user is the RECEIVER
-    this.socketio.on('offer', async (remoteOffer) => {
+    this.socketio.on('offer', async (remoteOffer: RTCSessionDescription) => {
+      console.log('offer', remoteOffer);
+
       const sessionDescription = new RTCSessionDescription(remoteOffer);
       await this.peerConnection!.setRemoteDescription(sessionDescription);
       this.onReceiveOffer(remoteOffer);
@@ -71,7 +76,9 @@ export class ChatWebRtcService extends WebRTCService {
     });
 
     // * If the user is the SENDER
-    this.socketio.on('answer', async (remoteAnswer) => {
+    this.socketio.on('answer', async (remoteAnswer: RTCSessionDescription) => {
+      console.log('answer', remoteAnswer);
+
       const sessionDescription = new RTCSessionDescription(remoteAnswer);
       await this.peerConnection!.setRemoteDescription(sessionDescription);
 
@@ -400,7 +407,11 @@ export class ChatWebRtcService extends WebRTCService {
   public onReceiveOffer = async (offer: RTCSessionDescriptionInit) => {};
 
   protected override handleTrackEvent = (event: RTCTrackEvent): void => {
-    console.log(`Received tracks from remote peer`, event);
+    console.log(
+      `%cReceived tracks from remote peer`,
+      'background: crimson; padding: 1rem; font-size: 1.5rem;',
+      event
+    );
 
     // Check if we have any streams from the event
     if (!event.streams.length) {
