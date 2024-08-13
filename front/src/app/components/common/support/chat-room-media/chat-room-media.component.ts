@@ -8,6 +8,7 @@ import {
   signal,
   ViewChild,
 } from '@angular/core';
+import { ScreenRecordingService } from '@core/services/screen-recording/screen-recording.service';
 import { ChatWebRtcService } from '@core/services/video-chat/chat-webrtc.service';
 import { VolumeMeterService } from '@core/services/volume-meter/volume-meter.service';
 import {
@@ -38,6 +39,12 @@ export class ChatRoomMediaComponent {
   @ViewChild('remotePeerAudioVolumeIndicator')
   remotePeerAudioVolumeIndicator: ElementRef<HTMLProgressElement> | null = null;
 
+  @ViewChild('downloadRecordingLinkRef')
+  downloadRecordingLinkRef: ElementRef<HTMLAnchorElement> | null = null;
+
+  @ViewChild('videoRecordingElementRef')
+  videoRecordingElementRef: ElementRef<HTMLVideoElement> | null = null;
+
   /**
    * The Stomp client for the WebSocket connection.
    */
@@ -54,6 +61,7 @@ export class ChatRoomMediaComponent {
   public readonly ownUsername = input.required<string>();
 
   private readonly chatWebRtcService = inject(ChatWebRtcService);
+  private readonly screenRecordingService = inject(ScreenRecordingService);
 
   private ownVolumeAnalyzerService: VolumeMeterService | null = null;
   private remoteVolumeAnalyzerService: VolumeMeterService | null = null;
@@ -74,6 +82,17 @@ export class ChatRoomMediaComponent {
   public readonly hasWebcamPermissionDenied = signal<boolean>(false);
   public readonly hasMicrophonePermissionDenied = signal<boolean>(false);
   public readonly hasCanceledScreenCast = signal<boolean>(false);
+
+  public readonly isRecording = computed<boolean>(() => {
+    return this.screenRecordingService.isRecording();
+  });
+
+  public readonly screenRecordingBlobs = signal<Blob[]>([]);
+  public readonly screenRecordingObjectUrls = computed<string[]>(() => {
+    return this.screenRecordingBlobs().map((blob: Blob) => {
+      return URL.createObjectURL(blob);
+    });
+  });
 
   public readonly localPeerHasSharedLocalMedia = computed<boolean>(() => {
     const hasSharedLocalFeed: boolean =
@@ -806,5 +825,40 @@ export class ChatRoomMediaComponent {
     }
 
     this.removePictureInPicture();
+  };
+
+  public startRecording = async () => {
+    const recordingStream = await this.screenRecordingService.startRecording(
+      0,
+      this.selectedAudioInputDeviceId()!
+    );
+
+    const videoRecordingElement: HTMLVideoElement =
+      this.videoRecordingElementRef!.nativeElement;
+
+    videoRecordingElement.srcObject = recordingStream;
+  };
+
+  public stopRecording = () => {
+    this.screenRecordingService.stopRecording();
+
+    const screenRecordAsBlob: Blob | null =
+      this.screenRecordingService.recordedBlob();
+    if (!screenRecordAsBlob) {
+      return;
+    }
+
+    this.screenRecordingBlobs.update((prev: Blob[]) => {
+      return [...prev, screenRecordAsBlob!];
+    });
+
+    console.log('Blob:', screenRecordAsBlob);
+    console.log('Blobs:', this.screenRecordingBlobs());
+
+    const downloadLinkElement: HTMLAnchorElement =
+      this.downloadRecordingLinkRef!.nativeElement;
+
+    this.screenRecordingService.setDownloadElement(downloadLinkElement);
+    this.screenRecordingService.setDownloadLink();
   };
 }

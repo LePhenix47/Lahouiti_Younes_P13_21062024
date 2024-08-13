@@ -282,4 +282,14 @@
     [disabled]="currentRoom()">Create new
     room</button>
   }
+
+  <section class="chat-room-media__screen-recording">
+    <video autoPlay playsInline #videoRecordingElementRef></video>
+
+    <button (click)="startRecording()" [disabled]="isRecording()">Start</button>
+    <button (click)="stopRecording()" [disabled]="!isRecording()">Stop</button>
+    <a #downloadRecordingLinkRef>Download screen record</a>
+
+    <p>{{ isRecording() ? '▶️ Recording in progress' : '⏹️ Not recording' }}</p>
+  </section>
 </aside>
