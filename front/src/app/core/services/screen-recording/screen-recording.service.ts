@@ -5,6 +5,7 @@ import { Subject } from 'rxjs';
   providedIn: 'root',
 })
 export class ScreenRecordingService {
+  public screenStream: MediaStream | null = null;
   public mediaRecorder: MediaRecorder | null = null;
 
   private recordedChunks: Blob[] = [];
@@ -12,6 +13,12 @@ export class ScreenRecordingService {
 
   public readonly isRecording = signal<boolean>(false);
   public readonly recordedBlob = signal<Blob | null>(null);
+
+  private onScreenStreamEnd: (...args: any) => any = (): any => {};
+
+  public setOnScreenStreamEnd = (callback: (...args: any) => any) => {
+    this.onScreenStreamEnd = callback;
+  };
 
   public setDownloadElement = (element: HTMLAnchorElement): void => {
     this.downloadElement = element;
@@ -37,31 +44,25 @@ export class ScreenRecordingService {
   };
 
   public startRecording = async (
-    startDelayInMs: number = 0,
     audioDeviceId?: string
   ): Promise<MediaStream | null> => {
-    this.recordedChunks = [];
+    this.resetRecording();
 
     try {
-      if (startDelayInMs < 0) {
-        throw new Error('startDelayInMs must be greater than or equal to 0');
-      }
-
       const supportedConstraints: MediaTrackSupportedConstraints =
         navigator.mediaDevices.getSupportedConstraints();
 
       const supportsDisplaySurface: boolean =
         supportedConstraints.hasOwnProperty('displaySurface');
       // Request screen access
-      const screenStream: MediaStream =
-        await navigator.mediaDevices.getDisplayMedia({
-          video: supportsDisplaySurface
-            ? {
-                displaySurface: 'browser',
-              }
-            : true,
-          audio: true, // Optional, depending on your needs
-        });
+      this.screenStream = await navigator.mediaDevices.getDisplayMedia({
+        video: supportsDisplaySurface
+          ? {
+              displaySurface: 'browser',
+            }
+          : true,
+        audio: true, // Optional, depending on your needs
+      });
 
       const userAudioStream: MediaStream =
         await navigator.mediaDevices.getUserMedia({
@@ -69,7 +70,7 @@ export class ScreenRecordingService {
         });
 
       const combinedTracks: MediaStreamTrack[] = [
-        ...screenStream.getTracks(),
+        ...this.screenStream.getTracks(),
         ...userAudioStream.getTracks(),
       ];
 
@@ -83,13 +84,18 @@ export class ScreenRecordingService {
         this.onDataAvailable
       );
 
-      // Handle stop event
-      this.mediaRecorder.addEventListener('stop', this.onMediaRecordingStop);
-
+      const screenTrack: MediaStreamTrack = mixedStreams.getVideoTracks()[0];
+      screenTrack.addEventListener('ended', this.stopRecording);
       // * Start recording
 
-      this.mediaRecorder.start(startDelayInMs);
+      this.mediaRecorder.start();
       this.isRecording.update(() => true);
+
+      console.log(
+        'Screen recording started !',
+        mixedStreams,
+        this.mediaRecorder
+      );
 
       return mixedStreams;
     } catch (error) {
@@ -98,19 +104,6 @@ export class ScreenRecordingService {
       this.isRecording.update(() => false);
 
       return null;
-    }
-  };
-
-  public stopRecording = (): void => {
-    if (!this.isRecorderReady()) {
-      return;
-    }
-
-    this.mediaRecorder!.stop();
-
-    const tracks: MediaStreamTrack[] = this.mediaRecorder!.stream.getTracks();
-    for (const track of tracks) {
-      track.stop();
     }
   };
 
@@ -130,22 +123,56 @@ export class ScreenRecordingService {
     this.mediaRecorder!.resume();
   };
 
+  public stopRecording = (): void => {
+    if (!this.isRecorderReady()) {
+      console.error('No recorder available to stop recording');
+      return;
+    }
+
+    this.mediaRecorder!.addEventListener('stop', () => {
+      this.onMediaRecordingStop();
+    });
+    this.mediaRecorder!.stop(); // Stop the recorder
+    this.stopStreamTracks(); // Stop the stream tracks
+  };
+
+  private onMediaRecordingStop = (): void => {
+    console.log('Media recording stopped.');
+
+    // Ensure we have recorded chunks before creating a Blob
+    if (this.recordedChunks.length > 0) {
+      const blob = new Blob(this.recordedChunks, { type: 'video/webm' });
+      this.recordedBlob.update(() => blob);
+
+      console.log('Blob created successfully.', { blob }, this.recordedBlob());
+    } else {
+      console.warn('No recorded chunks available for blob creation.');
+    }
+
+    this.onScreenStreamEnd();
+
+    this.isRecording.update(() => false);
+
+    this.mediaRecorder!.removeEventListener('stop', () => {
+      this.onMediaRecordingStop();
+    });
+
+    this.resetRecording(); // Reset the service state
+  };
+
   private onDataAvailable = (event: BlobEvent): void => {
-    const hasNoChunks: boolean = !(event.data.size > 0);
+    const hasNoChunks: boolean = !(event.data?.size > 0);
     if (hasNoChunks) {
+      console.warn(
+        'No data chunks available to record',
+        'recordedChunks',
+        this.recordedChunks
+      );
+
       return;
     }
 
     this.recordedChunks.push(event.data);
-  };
-
-  private onMediaRecordingStop = (event: Event): void => {
-    // Create a Blob from the recorded chunks
-    const blob = new Blob(this.recordedChunks, { type: 'video/webm' });
-
-    this.isRecording.update(() => false);
-    this.recordedBlob.update(() => blob);
-    this.resetRecording();
   };
 
   /**
@@ -165,6 +192,19 @@ export class ScreenRecordingService {
     }
 
     return true;
+  };
+
+  private stopStreamTracks = (): void => {
+    if (!this.mediaRecorder?.stream) {
+      console.error('No stream to stop tracks from');
+
+      return;
+    }
+
+    const tracks: MediaStreamTrack[] = this.mediaRecorder.stream.getTracks();
+    for (const track of tracks) {
+      track.stop();
+    }
   };
 
   private resetRecording = (): void => {

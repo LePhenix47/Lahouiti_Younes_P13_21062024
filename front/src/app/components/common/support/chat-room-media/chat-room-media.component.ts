@@ -89,9 +89,13 @@ export class ChatRoomMediaComponent {
 
   public readonly screenRecordingBlobs = signal<Blob[]>([]);
   public readonly screenRecordingObjectUrls = computed<string[]>(() => {
-    return this.screenRecordingBlobs().map((blob: Blob) => {
-      return URL.createObjectURL(blob);
-    });
+    console.log('Blobs array', this.screenRecordingBlobs());
+
+    return this.screenRecordingBlobs()
+      .map((blob: Blob) => {
+        return URL.createObjectURL(blob);
+      })
+      .reverse();
   });
 
   public readonly localPeerHasSharedLocalMedia = computed<boolean>(() => {
@@ -154,6 +158,7 @@ export class ChatRoomMediaComponent {
     this.chatWebRtcService.addRoomSocketEventListeners();
 
     this.setWebRtcServiceClassCallbacks();
+    this.setScreenRecorderClassCallbacks();
 
     this.hasPiPModeAvailable.update(() => document.pictureInPictureEnabled);
     if (this.hasPiPModeAvailable()) {
@@ -263,6 +268,12 @@ export class ChatRoomMediaComponent {
     );
 
     this.chatWebRtcService.setOnScreenShareEndedCallback(this.onScreenShareEnd);
+  };
+
+  private setScreenRecorderClassCallbacks = () => {
+    this.screenRecordingService.setOnScreenStreamEnd(
+      this.updateVideoRecordingList
+    );
   };
 
   private setWebRtcSessionStarted = (event: RTCTrackEvent) => {
@@ -829,36 +840,48 @@ export class ChatRoomMediaComponent {
 
   public startRecording = async () => {
     const recordingStream = await this.screenRecordingService.startRecording(
-      0,
       this.selectedAudioInputDeviceId()!
     );
 
     const videoRecordingElement: HTMLVideoElement =
       this.videoRecordingElementRef!.nativeElement;
 
-    videoRecordingElement.srcObject = recordingStream;
+    this.setVideoElementStream(videoRecordingElement, recordingStream);
   };
 
   public stopRecording = () => {
     this.screenRecordingService.stopRecording();
+  };
 
+  private updateVideoRecordingList = () => {
     const screenRecordAsBlob: Blob | null =
       this.screenRecordingService.recordedBlob();
     if (!screenRecordAsBlob) {
+      console.error('No blob available to download');
+
       return;
     }
 
     this.screenRecordingBlobs.update((prev: Blob[]) => {
-      return [...prev, screenRecordAsBlob!];
+      return [...prev, screenRecordAsBlob];
     });
 
-    console.log('Blob:', screenRecordAsBlob);
-    console.log('Blobs:', this.screenRecordingBlobs());
+    console.log(
+      'Blob:',
+      screenRecordAsBlob,
+      'Blobs:',
+      this.screenRecordingBlobs()
+    );
 
     const downloadLinkElement: HTMLAnchorElement =
       this.downloadRecordingLinkRef!.nativeElement;
 
     this.screenRecordingService.setDownloadElement(downloadLinkElement);
     this.screenRecordingService.setDownloadLink();
+
+    const videoRecordingElement: HTMLVideoElement =
+      this.videoRecordingElementRef!.nativeElement;
+
+    this.setVideoElementStream(videoRecordingElement, null);
   };
 }
