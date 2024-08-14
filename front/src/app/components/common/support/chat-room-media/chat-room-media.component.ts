@@ -853,6 +853,26 @@ export class ChatRoomMediaComponent {
     this.screenRecordingService.stopRecording();
   };
 
+  public removeBlobFromListByIndex = (index: number) => {
+    const specificBlob: Blob = this.screenRecordingBlobs()[index];
+
+    if (!specificBlob) {
+      console.error('No blob available to remove at index:', index);
+
+      return;
+    }
+
+    const blobObjectUrl: string = this.screenRecordingObjectUrls()[index];
+
+    this.screenRecordingBlobs.update((prev: Blob[]) => {
+      prev.splice(index, 1);
+
+      return [...prev];
+    });
+
+    URL.revokeObjectURL(blobObjectUrl);
+  };
+
   private updateVideoRecordingList = () => {
     const screenRecordAsBlob: Blob | null =
       this.screenRecordingService.recordedBlob();

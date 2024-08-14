@@ -300,6 +300,8 @@
       @for (screenRecording of screenRecordingObjectUrls(); let index = $index; track index) {
       <li class="chat-room-media__screen-recording-item">
         <video src="{{screenRecording}}" controls class="chat-room-media__screen-recording-record"></video>
+
+        <button (click)="removeBlobFromListByIndex(index)">Delete screen recording</button>
       </li>
       }
 
