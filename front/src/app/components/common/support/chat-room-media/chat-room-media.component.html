@@ -175,7 +175,7 @@
           <select class="chat-room-media__audio-input-device" (change)="switchMicrophoneDevice($event)"
             [disabled]="!hasEnabledMicrophoneForWebRTC()">
             @for(device of audioInputsList(); let index = $index; track index){
-            <option value="{{device.deviceId}}" selected="{{device.isDefaultDevice}}">{{device.label}}</option>
+            <option value="{{device.deviceId}}" [selected]="device.isDefaultDevice">{{device.label}}</option>
             }
           </select>
         </label>
