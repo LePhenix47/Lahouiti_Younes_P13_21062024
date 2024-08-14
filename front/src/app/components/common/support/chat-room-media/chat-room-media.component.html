@@ -290,7 +290,9 @@
       [disabled]="isRecording()">Start</button>
     <button class="chat-room-media__screen-recording-stop" (click)="stopRecording()"
       [disabled]="!isRecording()">Stop</button>
-    <a #downloadRecordingLinkRef>Download screen record</a>
+
+    <a #downloadRecordingLinkRef class="{{ screenRecordingBlobs().length <= 0 ? 'hide' : '' }}">Download last screen
+      recording</a>
 
     <p class="chat-room-media__screen-recording-status">{{ isRecording() ? '▶️ Recording in progress' :
       '⏹️ Not recording' }}</p>

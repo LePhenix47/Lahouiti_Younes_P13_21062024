@@ -246,7 +246,7 @@ export class ChatRoomMediaComponent {
     this.remoteVolumeAnalyzerService!.stopVolumeMeasurement();
 
     console.log(
-      '%croomDeletedCallback + End WebRTC session',
+      '%cdisconnectFromWebRtcSession',
       'background: #222; color: #bada55'
     );
   };
@@ -306,6 +306,8 @@ export class ChatRoomMediaComponent {
       videoTracks.length
     );
     console.groupEnd();
+
+    // TODO: Add logic to hide the video element if there is no video track and dB bar if there is no audio track
 
     if (!audioTracks.length) {
       console.warn(
