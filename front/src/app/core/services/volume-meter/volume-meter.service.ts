@@ -17,10 +17,24 @@ export class VolumeMeterService {
    */
   public stopVolumeMeasurement = (): void => {
     if (!this.animationFrameId) {
+      console.error('No animation frame to cancel');
+
       return;
     }
 
     cancelAnimationFrame(this.animationFrameId);
+
+    if (!this.microphoneStream) {
+      console.error('No microphone stream provided to stop tracks from');
+
+      return;
+    }
+
+    this.microphoneStream?.getAudioTracks();
+
+    for (const audioTrack of this.microphoneStream!.getAudioTracks()) {
+      audioTrack.stop();
+    }
   };
 
   /**

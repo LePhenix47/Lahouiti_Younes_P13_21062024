@@ -84,6 +84,8 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
       localTrack.stop();
     }
 
+    this.screenTrack?.stop();
+
     this.localStream = null;
   };
 
