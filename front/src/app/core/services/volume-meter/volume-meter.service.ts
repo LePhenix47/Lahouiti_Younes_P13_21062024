@@ -35,6 +35,8 @@ export class VolumeMeterService {
     for (const audioTrack of this.microphoneStream!.getAudioTracks()) {
       audioTrack.stop();
     }
+
+    this.volumeMeterEl!.value = 0;
   };
 
   /**
