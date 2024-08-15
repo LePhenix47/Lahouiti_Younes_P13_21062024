@@ -120,10 +120,7 @@ export class ChatRoomMediaComponent {
 
   public readonly hasRemotePeerSharedWebCam = signal<boolean>(false);
   public readonly hasRemotePeerSharedMicrophone = signal<boolean>(false);
-  public readonly illegalMediaMismatch = computed<boolean>(() => {
-    // TODO: Add some logic here to check if there's an illegal media mismatch (e.g. video - audio or audio - video)
-    return false;
-  });
+  public readonly hasRemotePeerSharedScreen = signal<boolean>(false);
 
   public readonly isLoadingLocalMedia = signal<boolean>(false);
   public readonly isLoadingRemoteMedia = signal<boolean>(false);
@@ -188,7 +185,7 @@ export class ChatRoomMediaComponent {
     }
 
     this.roomsList.update(() => {
-      return [...this.chatWebRtcService.getRoomList()];
+      return [...this.chatWebRtcService.getRoomsList()];
     });
 
     this.socketIO()!.on(
@@ -292,6 +289,9 @@ export class ChatRoomMediaComponent {
       this.setWebRtcSessionStarted
     );
 
+    this.chatWebRtcService.setOnReceiveToggledScreenShare(
+      this.setRemoteScreenShareStatus
+    );
     this.chatWebRtcService.setOnScreenShareEndedCallback(this.onScreenShareEnd);
   };
 
@@ -702,6 +702,8 @@ export class ChatRoomMediaComponent {
   };
 
   private onScreenShareEnd = (event?: Event): void => {
+    this.sendScreenShareStatus(false);
+
     this.showScreenCast.update(() => false);
 
     const videoElement: HTMLVideoElement =
@@ -773,7 +775,6 @@ export class ChatRoomMediaComponent {
   public startScreenCast = async (): Promise<void> => {
     try {
       this.showScreenCast.update(() => true);
-
       this.hasCanceledScreenCast.update(() => false);
 
       const webcamVideoElement: HTMLVideoElement =
@@ -788,15 +789,28 @@ export class ChatRoomMediaComponent {
         await this.chatWebRtcService.startScreenShare();
 
       this.setVideoElementStream(webcamVideoElement, screenStream!);
+
+      this.sendScreenShareStatus(true);
     } catch (error) {
       console.error('Error accessing screen stream.', error);
 
       this.showScreenCast.update(() => false);
       this.hasCanceledScreenCast.update(() => true);
 
+      this.sendScreenShareStatus(false);
+
       console.log(this.showScreenCast());
     }
   };
+
+  private sendScreenShareStatus = (isSharingScreen: boolean): void => {
+    this.chatWebRtcService.notifyRemotePeerOfScreenShare(isSharingScreen);
+  };
+
+  private setRemoteScreenShareStatus = (isSharingScreen: boolean): void => {
+    this.hasRemotePeerSharedScreen.update(() => isSharingScreen);
+  };
+
   /**
    * Toggles the screen cast state based on the given event.
    *
@@ -805,7 +819,9 @@ export class ChatRoomMediaComponent {
     try {
       this.showScreenCast.update(() => false);
       this.chatWebRtcService.stopScreenShare();
+      this.sendScreenShareStatus(false);
     } catch (error) {
+      this.sendScreenShareStatus(true);
       console.error('Error stopping screen stream.', error);
     }
   };

@@ -230,6 +230,16 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
     }
   );
 
+  socket.on("toggled-screen-share", ({ roomName, isSharingScreen }) => {
+    console.log(
+      `toggled-screen-share from ${userName.toUpperCase()} (in room ${roomName}), is user sharing screen ? ${
+        isSharingScreen ? "yes" : "no"
+      }`
+    );
+
+    socket.to(roomName).emit("toggled-screen-share", isSharingScreen);
+  });
+
   // Handle an offer event within a room
   socket.on("offer", (data) => {
     const { roomName, offer } = data;

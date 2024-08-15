@@ -50,6 +50,10 @@
 
 
       <progress value="0" max="0.25" #ownAudioVolumeIndicatorRef class="chat-room-media__audio-indicator"></progress>
+
+      @if(showScreenCast()){
+      <p>You are sharing your own screen</p>
+      }
     </div>
 
     <h3 class="chat-room-media__remote-stream-title">
@@ -63,6 +67,12 @@
 
       <progress value="0" max="0.25" #remotePeerAudioVolumeIndicatorRef
         class="chat-room-media__audio-indicator"></progress>
+
+      <p>{{otherPeerUserName}}</p>
+
+      @if(hasRemotePeerSharedScreen()){
+      <p>{{otherPeerUserName}} is sharing their screen</p>
+      }
     </div>
 
     @if (hasPiPModeAvailable() && webRtcSessionStarted){
@@ -134,8 +144,7 @@
           Start screen-cast
         </button>
 
-        <button type="button" (click)="stopScreenCast()"
-          [disabled]="!showScreenCast() &&  !hasEnabledWebcamForWebRTC()">
+        <button type="button" (click)="stopScreenCast()" [disabled]="!showScreenCast() && !hasEnabledWebcamForWebRTC()">
           Stop screen-cast
         </button>
 

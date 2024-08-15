@@ -35,6 +35,9 @@ export class ChatWebRtcService extends WebRTCService {
   private onTrackAddedCallback: ((...args: any[]) => void) | null = null;
 
   private onScreenShareEndCallback: ((...args: any[]) => void) | null = null;
+  private onReceiveToggledScreenShare:
+    | ((isSharingScreen: boolean) => void)
+    | null = null;
 
   public override handleScreenShareEndEvent = () => {
     this.onScreenShareEndCallback?.();
@@ -178,12 +181,18 @@ export class ChatWebRtcService extends WebRTCService {
       }
     );
 
+    this.socketio.on('toggled-screen-share', (isSharingScreen: boolean) => {
+      console.log('toggled-screen-share received:', isSharingScreen);
+
+      this.onReceiveToggledScreenShare?.(isSharingScreen);
+    });
+
     this.hasAddedRoomSocketListeners = true;
   };
 
   // * Getters
 
-  public getRoomList() {
+  public getRoomsList() {
     return this.roomList;
   }
 
@@ -243,6 +252,12 @@ export class ChatWebRtcService extends WebRTCService {
     callback: (...args: any[]) => void
   ): void => {
     this.onScreenShareEndCallback = callback;
+  };
+
+  public setOnReceiveToggledScreenShare = (
+    callback: (...args: any[]) => void
+  ): void => {
+    this.onReceiveToggledScreenShare = callback;
   };
 
   /**
@@ -309,6 +324,19 @@ export class ChatWebRtcService extends WebRTCService {
     this.socketio.emit('enabled-local-media', {
       roomName: this.currentRoom,
       remotePeerHasSharedLocalMedia,
+    });
+  };
+
+  public notifyRemotePeerOfScreenShare = (isSharingScreen: boolean): void => {
+    if (!this.socketio) {
+      return;
+    }
+
+    console.log('notifyRemotePeerOfScreenShare method', isSharingScreen);
+
+    this.socketio.emit('toggled-screen-share', {
+      roomName: this.currentRoom,
+      isSharingScreen,
     });
   };
 
