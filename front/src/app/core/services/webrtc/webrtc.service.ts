@@ -75,7 +75,7 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
    */
   public resetLocalStream = (): void => {
     if (!this.localStream) {
-      console.error('Local stream is not set.');
+      console.error(`Cannot reset local stream because it's not set.`);
 
       return;
     }
