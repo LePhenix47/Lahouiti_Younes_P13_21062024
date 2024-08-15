@@ -468,6 +468,23 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
     console.log(this.peerConnection.connectionState);
   };
 
+  protected addTransceiversToPeerConnection = (): void => {
+    if (!this.peerConnection) {
+      console.error('The peer connection was not initiated');
+      return;
+    }
+
+    // Adding an audio transceiver
+    this.peerConnection.addTransceiver('audio', {
+      direction: 'sendrecv',
+    });
+
+    // Adding a video transceiver
+    this.peerConnection.addTransceiver('video', {
+      direction: 'sendrecv',
+    });
+  };
+
   protected removeLocalTracksFromPeerConnection = (): void => {
     if (!this.peerConnection) {
       console.error('The peer connection was not initiated');

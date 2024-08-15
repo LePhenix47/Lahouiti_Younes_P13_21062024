@@ -340,6 +340,8 @@ export class ChatWebRtcService extends WebRTCService {
   public override createOffer = async (): Promise<void> => {
     this.addLocalTracksToPeerConnection();
 
+    this.addTransceiversToPeerConnection();
+
     if (!this.peerConnection) {
       console.error(
         "Cannot create offer because peer connection doesn't exist."
@@ -418,17 +420,18 @@ export class ChatWebRtcService extends WebRTCService {
   public onReceiveOffer = async (offer: RTCSessionDescriptionInit) => {};
 
   protected override handleTrackEvent = (event: RTCTrackEvent): void => {
+    // Check if we have any streams from the event
+    if (!event.streams.length) {
+      console.error(`No streams from remote peer`, event);
+      return;
+    }
+
     console.log(
       `%cReceived tracks from remote peer`,
       'background: crimson; padding: 1rem; font-size: 1.5rem;',
       event
     );
 
-    // Check if we have any streams from the event
-    if (!event.streams.length) {
-      console.error(`No streams from remote peer`, event);
-      return;
-    }
     // * Since only 2 people can make a call, we only need one stream
     const stream: MediaStream = event.streams[0];
     console.log({ 'event.streams': event.streams });
