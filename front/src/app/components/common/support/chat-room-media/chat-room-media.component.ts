@@ -301,7 +301,7 @@ export class ChatRoomMediaComponent {
     );
   };
 
-  private setWebRtcSessionStarted = (event: RTCTrackEvent) => {
+  private setWebRtcSessionStarted = (event: RTCTrackEvent): void => {
     this.webRtcSessionStarted = true;
 
     const remoteStream: MediaStream = event.streams[0];
@@ -335,7 +335,7 @@ export class ChatRoomMediaComponent {
     this.remoteVolumeAnalyzerService!.startVolumeMeasurement();
   };
 
-  private showRoomError = (errorMessage: string) => {
+  private showRoomError = (errorMessage: string): void => {
     this.roomErrorMessage = errorMessage;
   };
 
@@ -350,7 +350,7 @@ export class ChatRoomMediaComponent {
     );
   };
 
-  private populateEnumeratedDevices = async () => {
+  private populateEnumeratedDevices = async (): Promise<void> => {
     const devices: MediaDeviceInfo[] =
       await navigator.mediaDevices.enumerateDevices();
 
@@ -382,7 +382,7 @@ export class ChatRoomMediaComponent {
     this.openMicrophone.update(() => false);
   };
 
-  private getInitialDevicePermissions = async () => {
+  private getInitialDevicePermissions = async (): Promise<void> => {
     const cameraPermissionResult: PermissionStatus =
       await navigator.permissions.query({
         // @ts-ignore TS is drunk
@@ -431,7 +431,7 @@ export class ChatRoomMediaComponent {
     );
   };
 
-  private roomCreatedCallback = (roomName: string) => {
+  private roomCreatedCallback = (roomName: string): void => {
     this.currentRoom.update(() => {
       return roomName;
     });
@@ -469,7 +469,7 @@ export class ChatRoomMediaComponent {
     this.resetWebRTCState();
   };
 
-  private updateRoomsList = (rooms: Room[]) => {
+  private updateRoomsList = (rooms: Room[]): void => {
     this.roomsList.update(() => {
       return rooms;
     });
@@ -497,7 +497,7 @@ export class ChatRoomMediaComponent {
     this.chatWebRtcService.deleteRoom(this.ownUsername());
   };
 
-  public connectToRoom = (roomName: string) => {
+  public connectToRoom = (roomName: string): void => {
     this.chatWebRtcService.initializePeerConnection();
     this.chatWebRtcService.joinRoom(roomName);
 
@@ -523,7 +523,7 @@ export class ChatRoomMediaComponent {
     });
   };
 
-  public initializeConnection = async () => {
+  public initializeConnection = async (): Promise<void> => {
     this.chatWebRtcService.startWebRTCSession();
 
     this.webRtcSessionStarted = true;
@@ -531,7 +531,7 @@ export class ChatRoomMediaComponent {
     this.updateWebRTCDevicesAuthorizations();
   };
 
-  public switchWebcamDevice = async (event: Event) => {
+  public switchWebcamDevice = async (event: Event): Promise<void> => {
     console.log('switchWebcamDevice', event);
     const selectElement = event.target as HTMLSelectElement;
 
@@ -571,7 +571,7 @@ export class ChatRoomMediaComponent {
     }
   };
 
-  public switchMicrophoneDevice = async (event: Event) => {
+  public switchMicrophoneDevice = async (event: Event): Promise<void> => {
     console.log('switchMicrophoneDevice', event);
     const selectElement = event.target as HTMLSelectElement;
 
@@ -620,7 +620,7 @@ export class ChatRoomMediaComponent {
     }
   };
 
-  public switchSpeakerDevice = async (event: Event) => {
+  public switchSpeakerDevice = async (event: Event): Promise<void> => {
     const selectElement = event.target as HTMLSelectElement;
     const audioOutputDeviceId: string = selectElement.value;
 
@@ -631,7 +631,7 @@ export class ChatRoomMediaComponent {
     await remoteVideoElement.setSinkId(audioOutputDeviceId);
   };
 
-  private updateLocalStream = async () => {
+  private updateLocalStream = async (): Promise<void> => {
     try {
       const webcamVideoElement: HTMLVideoElement =
         this.ownWebCamVideoRef!.nativeElement;
@@ -701,7 +701,7 @@ export class ChatRoomMediaComponent {
     }
   };
 
-  private updateScreenCastStream = async () => {
+  private updateScreenCastStream = async (): Promise<void> => {
     try {
       this.hasCanceledScreenCast.update(() => false);
 
@@ -844,13 +844,13 @@ export class ChatRoomMediaComponent {
     await document.exitPictureInPicture();
   };
 
-  public togglePiPOnTabSwitch(event: Event) {
+  public togglePiPOnTabSwitch = (event: Event): void => {
     const checkboxInput = event.target as HTMLInputElement;
 
     this.isPiPToggleEnabledOnTabSwitch.update((prev) => !prev);
-  }
+  };
 
-  private togglePiPVideoElement = (event: Event) => {
+  private togglePiPVideoElement = (event: Event): void => {
     if (!this.isPiPToggleEnabledOnTabSwitch()) {
       return;
     }
@@ -866,7 +866,7 @@ export class ChatRoomMediaComponent {
     this.removePictureInPicture();
   };
 
-  public startRecording = async () => {
+  public startRecording = async (): Promise<void> => {
     const recordingStream = await this.screenRecordingService.startRecording(
       this.selectedAudioInputDeviceId()!
     );
@@ -881,7 +881,7 @@ export class ChatRoomMediaComponent {
     this.screenRecordingService.stopRecording();
   };
 
-  public removeBlobFromListByIndex = (index: number) => {
+  public removeBlobFromListByIndex = (index: number): void => {
     const specificBlob: Blob = this.screenRecordingBlobs()[index];
 
     if (!specificBlob) {
