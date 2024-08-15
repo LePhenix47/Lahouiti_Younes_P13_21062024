@@ -33,11 +33,12 @@ export class ChatRoomMediaComponent {
   @ViewChild('remoteWebCamVideoRef')
   remoteWebCamVideoRef: ElementRef<HTMLVideoElement> | null = null;
 
-  @ViewChild('ownAudioVolumeIndicator')
-  ownAudioVolumeIndicator: ElementRef<HTMLProgressElement> | null = null;
+  @ViewChild('ownAudioVolumeIndicatorRef')
+  ownAudioVolumeIndicatorRef: ElementRef<HTMLProgressElement> | null = null;
 
-  @ViewChild('remotePeerAudioVolumeIndicator')
-  remotePeerAudioVolumeIndicator: ElementRef<HTMLProgressElement> | null = null;
+  @ViewChild('remotePeerAudioVolumeIndicatorRef')
+  remotePeerAudioVolumeIndicatorRef: ElementRef<HTMLProgressElement> | null =
+    null;
 
   @ViewChild('downloadRecordingLinkRef')
   downloadRecordingLinkRef: ElementRef<HTMLAnchorElement> | null = null;
@@ -60,56 +61,17 @@ export class ChatRoomMediaComponent {
    */
   public readonly ownUsername = input.required<string>();
 
+  // * Services
   private readonly chatWebRtcService = inject(ChatWebRtcService);
   private readonly screenRecordingService = inject(ScreenRecordingService);
 
   private ownVolumeAnalyzerService: VolumeMeterService | null = null;
   private remoteVolumeAnalyzerService: VolumeMeterService | null = null;
 
+  // * Local stream state
   public readonly showWebcam = signal<boolean>(false);
   public readonly openMicrophone = signal<boolean>(false);
   public readonly showScreenCast = signal<boolean>(false);
-
-  public readonly hasEnabledWebcamForWebRTC = signal<boolean>(false);
-  public readonly hasEnabledMicrophoneForWebRTC = signal<boolean>(false);
-
-  public readonly isLoadingLocalMedia = signal<boolean>(false);
-  public readonly isLoadingRemoteMedia = signal<boolean>(false);
-
-  public readonly isPiPToggleEnabledOnTabSwitch = signal<boolean>(false);
-
-  public readonly hasPiPModeAvailable = signal<boolean>(false);
-  public readonly hasWebcamPermissionDenied = signal<boolean>(false);
-  public readonly hasMicrophonePermissionDenied = signal<boolean>(false);
-  public readonly hasCanceledScreenCast = signal<boolean>(false);
-
-  public readonly isRecording = computed<boolean>(() => {
-    return this.screenRecordingService.isRecording();
-  });
-
-  public readonly screenRecordingBlobs = signal<Blob[]>([]);
-  public readonly screenRecordingObjectUrls = computed<string[]>(() => {
-    console.log('Blobs array', this.screenRecordingBlobs());
-
-    return this.screenRecordingBlobs()
-      .map((blob: Blob) => {
-        return URL.createObjectURL(blob);
-      })
-      .reverse();
-  });
-
-  public readonly localPeerHasSharedLocalMedia = computed<boolean>(() => {
-    const hasSharedLocalFeed: boolean =
-      this.showWebcam() || this.openMicrophone();
-
-    if (this.currentRoom() && !this.webRtcSessionStarted) {
-      this.chatWebRtcService.notifyRemotePeerOfLocalMediaShare(
-        hasSharedLocalFeed
-      );
-    }
-
-    return hasSharedLocalFeed;
-  });
 
   public readonly enumeratedDevicesList = signal<MediaDeviceInfo[]>([]);
 
@@ -130,20 +92,79 @@ export class ChatRoomMediaComponent {
   public readonly selectedVideoInputDeviceId = signal<string | null>(null);
   public readonly selectedAudioInputDeviceId = signal<string | null>(null);
 
-  public readonly roomsList = signal<Room[]>([]);
-  public readonly currentRoom = signal<string | null>(null);
+  public readonly hasEnabledWebcamForWebRTC = signal<boolean>(false);
+  public readonly hasEnabledMicrophoneForWebRTC = signal<boolean>(false);
 
-  public signalEffect = effect(() => {
-    console.log('effect', this.localPeerHasSharedLocalMedia());
+  public readonly localPeerHasSharedLocalMedia = computed<boolean>(() => {
+    const hasSharedLocalFeed: boolean =
+      this.showWebcam() || this.openMicrophone();
+
+    if (this.currentRoom() && !this.webRtcSessionStarted) {
+      this.chatWebRtcService.notifyRemotePeerOfLocalMediaShare({
+        video: this.showWebcam(),
+        audio: this.openMicrophone(),
+      });
+    }
+
+    return hasSharedLocalFeed;
   });
 
+  // * PiP state
+  public readonly isPiPToggleEnabledOnTabSwitch = signal<boolean>(false);
+
+  // * WebRTC state
+  public webRtcSessionStarted: boolean = false;
   public isReceiver: boolean = false;
   public otherPeerUserName: string | null = null;
   public isRemotePeerMediaActive: boolean = false;
-  public webRtcSessionStarted: boolean = false;
+
+  public readonly hasRemotePeerSharedWebCam = signal<boolean>(false);
+  public readonly hasRemotePeerSharedMicrophone = signal<boolean>(false);
+  public readonly illegalMediaMismatch = computed<boolean>(() => {
+    // TODO: Add some logic here to check if there's an illegal media mismatch (e.g. video - audio or audio - video)
+    return false;
+  });
+
+  public readonly isLoadingLocalMedia = signal<boolean>(false);
+  public readonly isLoadingRemoteMedia = signal<boolean>(false);
+
+  public readonly hasPiPModeAvailable = signal<boolean>(false);
+  public readonly hasWebcamPermissionDenied = signal<boolean>(false);
+  public readonly hasMicrophonePermissionDenied = signal<boolean>(false);
+  public readonly hasCanceledScreenCast = signal<boolean>(false);
+
+  // * Screen recording states
+  public readonly isRecording = computed<boolean>(() => {
+    return this.screenRecordingService.isRecording();
+  });
+
+  public readonly screenRecordingBlobs = signal<Blob[]>([]);
+  public readonly screenRecordingObjectUrls = computed<string[]>(() => {
+    console.log('Blobs array', this.screenRecordingBlobs());
+
+    return this.screenRecordingBlobs()
+      .map((blob: Blob) => {
+        return URL.createObjectURL(blob);
+      })
+      .reverse();
+  });
+
+  // * Room states
+  public readonly roomsList = signal<Room[]>([]);
+  public readonly currentRoom = signal<string | null>(null);
 
   public roomErrorMessage: string | null = null;
 
+  public signalEffect = effect(() => {
+    console.log(
+      'effect',
+      this.localPeerHasSharedLocalMedia(),
+      'remote:',
+      this.hasRemotePeerSharedWebCam(),
+      this.hasRemotePeerSharedMicrophone()
+    );
+  });
+  // * Methods
   async ngOnInit() {
     console.group('ngOnInit()');
     this.getInitialDevicePermissions();
@@ -214,14 +235,14 @@ export class ChatRoomMediaComponent {
 
   private setVolumeMeterServiceElements = () => {
     const ownProgressElement: HTMLProgressElement =
-      this.ownAudioVolumeIndicator!.nativeElement;
+      this.ownAudioVolumeIndicatorRef!.nativeElement;
 
     console.log('ownProgressElement', ownProgressElement);
 
     this.ownVolumeAnalyzerService!.setVolumeMeterElement(ownProgressElement);
 
     const remoteProgressElement: HTMLProgressElement =
-      this.remotePeerAudioVolumeIndicator!.nativeElement;
+      this.remotePeerAudioVolumeIndicatorRef!.nativeElement;
 
     this.remoteVolumeAnalyzerService!.setVolumeMeterElement(
       remoteProgressElement
@@ -284,39 +305,27 @@ export class ChatRoomMediaComponent {
     this.updateWebRTCDevicesAuthorizations();
 
     // Check if the remote stream contains any audio tracks
-    const audioTracks: MediaStreamTrack[] = remoteStream.getAudioTracks();
-
-    console.group('audioTracks');
-    console.log(
-      'audioTracks',
-      audioTracks,
-      'audioTracks.length',
-      audioTracks.length
-    );
-    console.groupEnd();
+    const remoteAudioTracks: MediaStreamTrack[] = remoteStream.getAudioTracks();
 
     // Check if the remote stream contains any audio tracks
-    const videoTracks: MediaStreamTrack[] = remoteStream.getVideoTracks();
-
-    console.group('videoTracks');
-    console.log(
-      'videoTracks',
-      videoTracks,
-      'videoTracks.length',
-      videoTracks.length
-    );
-    console.groupEnd();
+    const remoteVideoTracks: MediaStreamTrack[] = remoteStream.getVideoTracks();
 
     // TODO: Add logic to hide the video element if there is no video track and dB bar if there is no audio track
 
-    if (!audioTracks.length) {
+    this.hasRemotePeerSharedWebCam.update(() => {
+      return remoteVideoTracks.length > 0;
+    });
+    this.hasRemotePeerSharedMicrophone.update(() => {
+      return remoteAudioTracks.length > 0;
+    });
+
+    if (!this.hasRemotePeerSharedMicrophone()) {
       console.warn(
         'No audio tracks in remote stream, skipping volume measurement'
       );
 
       return;
     }
-
     this.remoteVolumeAnalyzerService!.setMicrophoneStream(remoteStream);
 
     this.remoteVolumeAnalyzerService!.startVolumeMeasurement();
@@ -351,6 +360,9 @@ export class ChatRoomMediaComponent {
     this.otherPeerUserName = null;
     this.isRemotePeerMediaActive = false;
     this.webRtcSessionStarted = false;
+
+    this.hasRemotePeerSharedWebCam.update(() => false);
+    this.hasRemotePeerSharedMicrophone.update(() => false);
 
     this.onScreenShareEnd();
 
@@ -388,10 +400,19 @@ export class ChatRoomMediaComponent {
     });
   };
 
-  private remotePeerHasSharedLocalMediaCallback = (
-    isRemotePeerMediaActive: boolean
-  ) => {
-    this.isRemotePeerMediaActive = isRemotePeerMediaActive;
+  private remotePeerHasSharedLocalMediaCallback = ({
+    video,
+    audio,
+  }: {
+    video: boolean;
+    audio: boolean;
+  }) => {
+    console.log({ video, audio });
+
+    this.isRemotePeerMediaActive = video || audio;
+
+    this.hasRemotePeerSharedWebCam.update(() => video);
+    this.hasRemotePeerSharedMicrophone.update(() => audio);
   };
 
   private setWebRtcVideoElements = () => {
@@ -426,9 +447,10 @@ export class ChatRoomMediaComponent {
 
     this.otherPeerUserName = otherPeerUserName;
 
-    this.chatWebRtcService.notifyRemotePeerOfLocalMediaShare(
-      this.localPeerHasSharedLocalMedia()
-    );
+    this.chatWebRtcService.notifyRemotePeerOfLocalMediaShare({
+      video: this.showWebcam(),
+      audio: this.openMicrophone(),
+    });
   };
 
   private roomDeletedCallback = () => {

@@ -218,10 +218,10 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
   socket.on(
     "enabled-local-media",
     ({ roomName, remotePeerHasSharedLocalMedia }) => {
+      const { video, audio } = remotePeerHasSharedLocalMedia;
+
       console.log(
-        `enabled-local-media from ${userName.toUpperCase()} (in room ${roomName}), have they shared their local media? ${
-          remotePeerHasSharedLocalMedia ? "YES" : "NO"
-        }`
+        `enabled-local-media from ${userName.toUpperCase()} (in room ${roomName}), local media shared: {video: ${video}, audio: ${audio}}`
       );
 
       socket

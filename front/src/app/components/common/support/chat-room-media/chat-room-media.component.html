@@ -49,7 +49,7 @@
         class="chat-room-media__webcam-video chat-room-media__webcam-video--local"></video>
 
 
-      <progress value="0" max="0.25" #ownAudioVolumeIndicator class="chat-room-media__audio-indicator"></progress>
+      <progress value="0" max="0.25" #ownAudioVolumeIndicatorRef class="chat-room-media__audio-indicator"></progress>
     </div>
 
     <h3 class="chat-room-media__remote-stream-title">
@@ -61,7 +61,7 @@
         class="chat-room-media__webcam-video chat-room-media__webcam-video--remote"></video>
 
 
-      <progress value="0" max="0.25" #remotePeerAudioVolumeIndicator
+      <progress value="0" max="0.25" #remotePeerAudioVolumeIndicatorRef
         class="chat-room-media__audio-indicator"></progress>
     </div>
 
@@ -183,25 +183,27 @@
         }@else {
 
         <label
-          class="chat-room-media__label chat-room-media__control {{ (!showWebcam() && !webRtcSessionStarted) ? 'chat-room-media__control--disabled' : '' }}">
-          Video input device
-          <select class="chat-room-media__video-input-device" (change)="switchWebcamDevice($event)"
-            [disabled]="!showWebcam() && !webRtcSessionStarted">
+          class="chat-room-media__label chat-room-media__control {{ (!showWebcam()) ? 'chat-room-media__control--disabled' : '' }}">
+          Video input device {{videoInputsList().length < 1 || (videoInputsList().length===1 &&
+            !(videoInputsList()[0].deviceId)) ? '(none available)' : '' }} <select
+            class="chat-room-media__video-input-device" (change)="switchWebcamDevice($event)"
+            [disabled]="!showWebcam() || !videoInputsList().length">
             @for(device of videoInputsList(); let index = $index; track index){
             <option value="{{device.deviceId}}" [selected]="device.isDefaultDevice">{{device.label}}</option>
             }
-          </select>
+            </select>
         </label>
 
         <label
-          class="chat-room-media__label chat-room-media__control {{ (!openMicrophone() && !webRtcSessionStarted) ? 'chat-room-media__control--disabled' : '' }}">
-          Audio input device
-          <select class="chat-room-media__audio-input-device" (change)="switchMicrophoneDevice($event)"
-            [disabled]="!openMicrophone() && !webRtcSessionStarted">
+          class="chat-room-media__label chat-room-media__control {{ (!openMicrophone()) ? 'chat-room-media__control--disabled' : '' }}">
+          Audio input device {{audioInputsList().length < 1 || (audioInputsList().length===1 &&
+            !(audioInputsList()[0].deviceId)) ? '(none available)' : '' }} <select
+            class="chat-room-media__audio-input-device" (change)="switchMicrophoneDevice($event)"
+            [disabled]="!openMicrophone() || !audioInputsList().length">
             @for(device of audioInputsList(); let index = $index; track index){
             <option value="{{device.deviceId}}" [selected]="device.isDefaultDevice">{{device.label}}</option>
             }
-          </select>
+            </select>
         </label>
         }
 
@@ -209,12 +211,13 @@
 
 
         <label class="chat-room-media__label chat-room-media__control" (change)="switchSpeakerDevice($event)">
-          Audio output device
-          <select name="audio-output-device">
+          Audio output device {{audioOutputsList().length < 1 || (audioOutputsList().length===1 &&
+            !(audioOutputsList()[0].deviceId)) ? '(none available)' : '' }} <select name="audio-output-device"
+            [disabled]="!audioOutputsList().length">
             @for(device of audioOutputsList(); let index = $index; track index){
-            <option value="{{device.deviceId}}" selected="{{device.isDefaultDevice}}">{{device.label}}</option>
+            <option value="{{device.deviceId}}" [selected]="device.isDefaultDevice">{{device.label}}</option>
             }
-          </select>
+            </select>
         </label>
 
       </fieldset>
@@ -252,6 +255,14 @@
   <button type="button" class="chat-room-media__button ycyw__button ycyw__button--1" (click)="initializeConnection()"
     [disabled]="!otherPeerUserName || !isRemotePeerMediaActive || !localPeerHasSharedLocalMedia()">Start</button>
 
+  @if(hasRemotePeerSharedWebCam()){
+  <p>Remote peer has enabled their webcam</p>
+  }
+
+  @if(hasRemotePeerSharedMicrophone()){
+  <p>Remote peer has enabled their microphone</p>
+  }
+
   <p class="chat-room-media__error-message">
     @if(isReceiver){
     <span class="chat-room-media__error-message--span">Waiting for room creator to start the WebRTC session</span>
@@ -271,6 +282,8 @@
     <span class="chat-room-media__error-message--span">Waiting for other peer to share their stream</span>
     }
   </p>
+
+
   }
 
   }

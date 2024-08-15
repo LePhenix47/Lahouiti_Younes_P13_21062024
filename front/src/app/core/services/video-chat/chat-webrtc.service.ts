@@ -26,7 +26,10 @@ export class ChatWebRtcService extends WebRTCService {
   private onRoomDeletedCallback: ((roomName: string) => void) | null = null;
   private onRoomErrorCallback: ((errorMessage: string) => void) | null = null;
   private onReceiveEnabledLocalMedia:
-    | ((remotePeerHasSharedLocalMedia: boolean) => void)
+    | ((remotePeerHasSharedLocalMedia: {
+        video: boolean;
+        audio: boolean;
+      }) => void)
     | null = null;
 
   private onTrackAddedCallback: ((...args: any[]) => void) | null = null;
@@ -166,9 +169,14 @@ export class ChatWebRtcService extends WebRTCService {
       this.onRoomErrorCallback?.(error.message);
     });
 
-    this.socketio.on('enabled-local-media', (remotePeerHasSharedLocalMedia) => {
-      this.onReceiveEnabledLocalMedia?.(remotePeerHasSharedLocalMedia);
-    });
+    this.socketio.on(
+      'enabled-local-media',
+      (remotePeerHasSharedLocalMedia: { video: boolean; audio: boolean }) => {
+        const { video, audio } = remotePeerHasSharedLocalMedia;
+
+        this.onReceiveEnabledLocalMedia?.(remotePeerHasSharedLocalMedia);
+      }
+    );
 
     this.hasAddedRoomSocketListeners = true;
   };
@@ -217,7 +225,10 @@ export class ChatWebRtcService extends WebRTCService {
   };
 
   public setOnReceiveEnabledLocalMediaCallback = (
-    callback: (remotePeerHasSharedLocalMedia: boolean) => void
+    callback: (remotePeerHasSharedLocalMedia: {
+      video: boolean;
+      audio: boolean;
+    }) => void
   ): void => {
     this.onReceiveEnabledLocalMedia = callback;
   };
@@ -289,7 +300,7 @@ export class ChatWebRtcService extends WebRTCService {
   };
 
   public notifyRemotePeerOfLocalMediaShare = (
-    remotePeerHasSharedLocalMedia: boolean
+    remotePeerHasSharedLocalMedia: boolean | { video: boolean; audio: boolean }
   ): void => {
     if (!this.socketio) {
       return;
