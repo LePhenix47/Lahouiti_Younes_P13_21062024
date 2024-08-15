@@ -774,30 +774,23 @@ export class ChatRoomMediaComponent {
    */
   public startScreenCast = async (): Promise<void> => {
     try {
-      this.showScreenCast.update(() => true);
       this.hasCanceledScreenCast.update(() => false);
 
       const webcamVideoElement: HTMLVideoElement =
         this.ownWebCamVideoRef!.nativeElement;
-
-      if (!this.showScreenCast()) {
-        webcamVideoElement.srcObject = null;
-        return;
-      }
 
       const screenStream: MediaStream | null =
         await this.chatWebRtcService.startScreenShare();
 
       this.setVideoElementStream(webcamVideoElement, screenStream!);
 
+      this.showScreenCast.update(() => true);
       this.sendScreenShareStatus(true);
     } catch (error) {
       console.error('Error accessing screen stream.', error);
 
       this.showScreenCast.update(() => false);
       this.hasCanceledScreenCast.update(() => true);
-
-      this.sendScreenShareStatus(false);
 
       console.log(this.showScreenCast());
     }
@@ -821,7 +814,6 @@ export class ChatRoomMediaComponent {
       this.chatWebRtcService.stopScreenShare();
       this.sendScreenShareStatus(false);
     } catch (error) {
-      this.sendScreenShareStatus(true);
       console.error('Error stopping screen stream.', error);
     }
   };
