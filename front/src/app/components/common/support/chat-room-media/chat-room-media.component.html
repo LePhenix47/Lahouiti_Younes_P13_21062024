@@ -129,9 +129,14 @@
           }
         </label>
 
-        <button type="button" (click)="toggleScreenCast($event)"
+        <button type="button" (click)="startScreenCast()"
           [disabled]="showScreenCast() ||  !hasEnabledWebcamForWebRTC()">
-          Screen cast ({{ showScreenCast() ? 'Stop' : 'Start' }})
+          Start screen-cast
+        </button>
+
+        <button type="button" (click)="stopScreenCast()"
+          [disabled]="!showScreenCast() &&  !hasEnabledWebcamForWebRTC()">
+          Stop screen-cast
         </button>
 
         }@else {

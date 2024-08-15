@@ -701,32 +701,6 @@ export class ChatRoomMediaComponent {
     }
   };
 
-  private updateScreenCastStream = async (): Promise<void> => {
-    try {
-      this.hasCanceledScreenCast.update(() => false);
-
-      const webcamVideoElement: HTMLVideoElement =
-        this.ownWebCamVideoRef!.nativeElement;
-
-      if (!this.showScreenCast()) {
-        webcamVideoElement.srcObject = null;
-        return;
-      }
-
-      const screenStream: MediaStream | null =
-        await this.chatWebRtcService.startScreenShare();
-
-      this.setVideoElementStream(webcamVideoElement, screenStream!);
-    } catch (error) {
-      console.error('Error accessing screen stream.', error);
-
-      this.showScreenCast.update(() => false);
-      this.hasCanceledScreenCast.update(() => true);
-
-      console.log(this.showScreenCast());
-    }
-  };
-
   private onScreenShareEnd = (event?: Event): void => {
     this.showScreenCast.update(() => false);
 
@@ -795,12 +769,45 @@ export class ChatRoomMediaComponent {
   /**
    * Toggles the screen cast state based on the given event.
    *
-   * @param {Event} event - The event that triggered the toggle.
    */
-  public toggleScreenCast = (event: Event): void => {
-    this.showScreenCast.update(() => true);
+  public startScreenCast = async (): Promise<void> => {
+    try {
+      this.showScreenCast.update(() => true);
 
-    this.updateScreenCastStream();
+      this.hasCanceledScreenCast.update(() => false);
+
+      const webcamVideoElement: HTMLVideoElement =
+        this.ownWebCamVideoRef!.nativeElement;
+
+      if (!this.showScreenCast()) {
+        webcamVideoElement.srcObject = null;
+        return;
+      }
+
+      const screenStream: MediaStream | null =
+        await this.chatWebRtcService.startScreenShare();
+
+      this.setVideoElementStream(webcamVideoElement, screenStream!);
+    } catch (error) {
+      console.error('Error accessing screen stream.', error);
+
+      this.showScreenCast.update(() => false);
+      this.hasCanceledScreenCast.update(() => true);
+
+      console.log(this.showScreenCast());
+    }
+  };
+  /**
+   * Toggles the screen cast state based on the given event.
+   *
+   */
+  public stopScreenCast = (): void => {
+    try {
+      this.showScreenCast.update(() => false);
+      this.chatWebRtcService.stopScreenShare();
+    } catch (error) {
+      console.error('Error stopping screen stream.', error);
+    }
   };
 
   public requestPictureInPicture = async (): Promise<void> => {

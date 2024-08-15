@@ -160,7 +160,7 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
   };
 
   // When the user stops screen sharing
-  public stopScreenShare = (event: Event): void => {
+  public stopScreenShare = (): void => {
     // Replace the screen track with the original webcam track
     if (!this.screenTrack || !this.webcamTrack) {
       console.warn(
@@ -169,14 +169,17 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
         this.webcamTrack
       );
 
-      this.handleScreenShareEndEvent(event);
+      this.handleScreenShareEndEvent();
       return;
     }
 
     this.replaceTrackInPeerConnection(this.screenTrack, this.webcamTrack);
+
+    this.screenTrack.stop();
+
     this.screenTrack = null; // Reset the screen track reference
 
-    this.handleScreenShareEndEvent(event);
+    this.handleScreenShareEndEvent();
   };
 
   public async manageLocalStream(
@@ -582,7 +585,7 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
    * Handles the end of a screen share.
    * @param {Event} event - The event.
    */
-  protected abstract handleScreenShareEndEvent(event: Event): void;
+  protected abstract handleScreenShareEndEvent(): void;
 
   /**
    * Handles the creation of an offer.

@@ -36,8 +36,8 @@ export class ChatWebRtcService extends WebRTCService {
 
   private onScreenShareEndCallback: ((...args: any[]) => void) | null = null;
 
-  public override handleScreenShareEndEvent = (event: Event) => {
-    this.onScreenShareEndCallback?.(event);
+  public override handleScreenShareEndEvent = () => {
+    this.onScreenShareEndCallback?.();
   };
 
   /**
