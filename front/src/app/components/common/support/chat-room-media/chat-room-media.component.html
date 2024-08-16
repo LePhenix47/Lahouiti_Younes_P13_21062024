@@ -260,6 +260,14 @@
     <span class="chat-room-media__error-message--span">Waiting for other peer to share their stream</span>
     }
   </p>
+
+  @if(hasRemotePeerSharedWebCam()){
+  <p>Remote peer has enabled their webcam</p>
+  }
+
+  @if(hasRemotePeerSharedMicrophone()){
+  <p>Remote peer has enabled their microphone</p>
+  }
   }
   }@else {
   <button type="button" class="chat-room-media__button ycyw__button ycyw__button--2" (click)="deleteRoom()">Delete
@@ -270,13 +278,6 @@
   <button type="button" class="chat-room-media__button ycyw__button ycyw__button--1" (click)="initializeConnection()"
     [disabled]="!otherPeerUserName || !isRemotePeerMediaActive || !localPeerHasSharedLocalMedia()">Start</button>
 
-  @if(hasRemotePeerSharedWebCam()){
-  <p>Remote peer has enabled their webcam</p>
-  }
-
-  @if(hasRemotePeerSharedMicrophone()){
-  <p>Remote peer has enabled their microphone</p>
-  }
 
   <p class="chat-room-media__error-message">
     @if(isReceiver){
@@ -302,8 +303,7 @@
   }
 
   }
-  <!-- <button type="button" class="chat-room-media__button ycyw__button ycyw__button--1" (click)="sendTestMessage()">Send
-    test message</button> -->
+
   } @else {
 
   <button type="button" class="chat-room-media__button ycyw__button ycyw__button--1" (click)="createRoom()"

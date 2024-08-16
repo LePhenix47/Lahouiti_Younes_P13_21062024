@@ -8,6 +8,7 @@ import {
   signal,
   ViewChild,
 } from '@angular/core';
+import { Title } from '@angular/platform-browser';
 import { ScreenRecordingService } from '@core/services/screen-recording/screen-recording.service';
 import { ChatWebRtcService } from '@core/services/video-chat/chat-webrtc.service';
 import { VolumeMeterService } from '@core/services/volume-meter/volume-meter.service';
@@ -62,9 +63,11 @@ export class ChatRoomMediaComponent {
   public readonly ownUsername = input.required<string>();
 
   // * Services
+  private readonly titlePageService = inject(Title);
   private readonly chatWebRtcService = inject(ChatWebRtcService);
   private readonly screenRecordingService = inject(ScreenRecordingService);
 
+  // ? Since in Angular you cannot have independent service instances using inject(), we have to instantiate them manually
   private ownVolumeAnalyzerService: VolumeMeterService | null = null;
   private remoteVolumeAnalyzerService: VolumeMeterService | null = null;
 
@@ -250,6 +253,10 @@ export class ChatRoomMediaComponent {
     }
   }
 
+  private setPageTitle = (title: string): void => {
+    this.titlePageService.setTitle(title);
+  };
+
   private updateWebRTCDevicesAuthorizations = (): void => {
     this.hasEnabledWebcamForWebRTC.update(() => this.showWebcam());
     this.hasEnabledMicrophoneForWebRTC.update(() => this.openMicrophone());
@@ -259,8 +266,6 @@ export class ChatRoomMediaComponent {
     const ownProgressElement: HTMLProgressElement =
       this.ownAudioVolumeIndicatorRef!.nativeElement;
 
-    console.log('ownProgressElement', ownProgressElement);
-
     this.ownVolumeAnalyzerService!.setVolumeMeterElement(ownProgressElement);
 
     const remoteProgressElement: HTMLProgressElement =
@@ -269,14 +274,11 @@ export class ChatRoomMediaComponent {
     this.remoteVolumeAnalyzerService!.setVolumeMeterElement(
       remoteProgressElement
     );
-
-    console.log(
-      this.ownVolumeAnalyzerService,
-      this.remoteVolumeAnalyzerService
-    );
   };
 
   private disconnectFromWebRtcSession = (): void => {
+    this.resetRoomState();
+
     if (!this.webRtcSessionStarted) {
       return;
     }
@@ -387,10 +389,13 @@ export class ChatRoomMediaComponent {
     });
   };
 
-  private resetWebRTCState = (): void => {
+  private resetRoomState = (): void => {
     this.isReceiver = false;
     this.otherPeerUserName = null;
     this.isRemotePeerMediaActive = false;
+  };
+
+  private resetWebRTCState = (): void => {
     this.webRtcSessionStarted = false;
 
     this.hasRemotePeerSharedWebCam.update(() => false);
@@ -494,6 +499,7 @@ export class ChatRoomMediaComponent {
       return null;
     });
 
+    this.resetRoomState();
     this.resetWebRTCState();
   };
 
