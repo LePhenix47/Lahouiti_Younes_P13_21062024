@@ -12,10 +12,12 @@ import { Title } from '@angular/platform-browser';
 import { ScreenRecordingService } from '@core/services/screen-recording/screen-recording.service';
 import { ChatWebRtcService } from '@core/services/video-chat/chat-webrtc.service';
 import { VolumeMeterService } from '@core/services/volume-meter/volume-meter.service';
+import { ScreenRecordBlob } from '@core/types/screen-recording/screen-recording.types';
 import {
   DeviceInfo,
   Room,
 } from '@core/types/videoconference/videoconference.types';
+import { formatTimeValues } from '@core/utils/numbers/time.utils';
 import { createDeviceList } from '@core/utils/videoconference/videoconference.utils';
 import { Socket } from 'socket.io-client';
 
@@ -40,9 +42,6 @@ export class ChatRoomMediaComponent {
   @ViewChild('remotePeerAudioVolumeIndicatorRef')
   remotePeerAudioVolumeIndicatorRef: ElementRef<HTMLProgressElement> | null =
     null;
-
-  @ViewChild('downloadRecordingLinkRef')
-  downloadRecordingLinkRef: ElementRef<HTMLAnchorElement> | null = null;
 
   @ViewChild('videoRecordingElementRef')
   videoRecordingElementRef: ElementRef<HTMLVideoElement> | null = null;
@@ -152,9 +151,10 @@ export class ChatRoomMediaComponent {
   public readonly isLoadingLocalMedia = signal<boolean>(false);
   public readonly isLoadingRemoteMedia = signal<boolean>(false);
 
-  public readonly hasPiPModeAvailable = signal<boolean>(false);
   public readonly hasWebcamPermissionDenied = signal<boolean>(false);
   public readonly hasMicrophonePermissionDenied = signal<boolean>(false);
+
+  public readonly hasPiPModeAvailable = signal<boolean>(false);
   public readonly hasCanceledScreenCast = signal<boolean>(false);
 
   // * Screen recording states
@@ -162,16 +162,7 @@ export class ChatRoomMediaComponent {
     return this.screenRecordingService.isRecording();
   });
 
-  public readonly screenRecordingBlobs = signal<Blob[]>([]);
-  public readonly screenRecordingObjectUrls = computed<string[]>(() => {
-    console.log('Blobs array', this.screenRecordingBlobs());
-
-    return this.screenRecordingBlobs()
-      .map((blob: Blob) => {
-        return URL.createObjectURL(blob);
-      })
-      .reverse();
-  });
+  public readonly screenRecordingBlobs = signal<ScreenRecordBlob[]>([]);
 
   // * Room states
   public readonly roomsList = signal<Room[]>([]);
@@ -255,6 +246,21 @@ export class ChatRoomMediaComponent {
 
   private setPageTitle = (title: string): void => {
     this.titlePageService.setTitle(title);
+  };
+
+  public formatDuration = (durationInSeconds: number) => {
+    const { hours, minutes, seconds } = formatTimeValues(durationInSeconds, {
+      formatTimeUnderTenMinutesAndUnderOneHour: true,
+      removeLeadingZerosFromHours: true,
+    });
+
+    return `${10}:${minutes}:${seconds}`;
+
+    if (hours) {
+      return `${hours}:${minutes}:${seconds}`;
+    }
+
+    return `${minutes}:${seconds}`;
   };
 
   private updateWebRTCDevicesAuthorizations = (): void => {
@@ -939,7 +945,7 @@ export class ChatRoomMediaComponent {
   };
 
   public removeBlobFromListByIndex = (index: number): void => {
-    const specificBlob: Blob = this.screenRecordingBlobs()[index];
+    const specificBlob: ScreenRecordBlob = this.screenRecordingBlobs()[index];
 
     if (!specificBlob) {
       console.error('No blob available to remove at index:', index);
@@ -947,27 +953,26 @@ export class ChatRoomMediaComponent {
       return;
     }
 
-    const blobObjectUrl: string = this.screenRecordingObjectUrls()[index];
-
-    this.screenRecordingBlobs.update((prev: Blob[]) => {
+    this.screenRecordingBlobs.update((prev: ScreenRecordBlob[]) => {
       prev.splice(index, 1);
 
       return [...prev];
     });
 
-    URL.revokeObjectURL(blobObjectUrl);
+    const { objectUrl } = specificBlob;
+    URL.revokeObjectURL(objectUrl);
   };
 
   private updateVideoRecordingList = (): void => {
-    const screenRecordAsBlob: Blob | null =
+    const screenRecordAsBlob: ScreenRecordBlob | null =
       this.screenRecordingService.recordedBlob();
-    if (!screenRecordAsBlob) {
+    if (!screenRecordAsBlob?.blob) {
       console.error('No blob available to download');
 
       return;
     }
 
-    this.screenRecordingBlobs.update((prev: Blob[]) => {
+    this.screenRecordingBlobs.update((prev: ScreenRecordBlob[]) => {
       return [...prev, screenRecordAsBlob];
     });
 
@@ -977,12 +982,6 @@ export class ChatRoomMediaComponent {
       'Blobs:',
       this.screenRecordingBlobs()
     );
-
-    const downloadLinkElement: HTMLAnchorElement =
-      this.downloadRecordingLinkRef!.nativeElement;
-
-    this.screenRecordingService.setDownloadElement(downloadLinkElement);
-    this.screenRecordingService.setDownloadLink();
 
     const videoRecordingElement: HTMLVideoElement =
       this.videoRecordingElementRef!.nativeElement;

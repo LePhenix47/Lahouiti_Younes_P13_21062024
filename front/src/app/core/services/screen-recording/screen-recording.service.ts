@@ -1,4 +1,7 @@
 import { Injectable, signal } from '@angular/core';
+import { FormattedDuration } from '@core/types/helpers/time.types';
+import { ScreenRecordBlob } from '@core/types/screen-recording/screen-recording.types';
+import { formatTimeValues } from '@core/utils/numbers/time.utils';
 
 @Injectable({
   providedIn: 'root',
@@ -10,10 +13,12 @@ export class ScreenRecordingService {
   public mediaRecorder: MediaRecorder | null = null;
 
   private recordedChunks: Blob[] = [];
-  private downloadElement: HTMLAnchorElement | null = null;
 
   public readonly isRecording = signal<boolean>(false);
-  public readonly recordedBlob = signal<Blob | null>(null);
+  public readonly recordedBlob = signal<ScreenRecordBlob | null>(null);
+
+  public startTime: number = NaN;
+  public endTime: number = NaN;
 
   public setRemoteAudioStream = (
     stream: MediaStream | null,
@@ -32,29 +37,6 @@ export class ScreenRecordingService {
 
   public setOnScreenStreamEnd = (callback: (...args: any) => any) => {
     this.onScreenStreamEnd = callback;
-  };
-
-  public setDownloadElement = (element: HTMLAnchorElement): void => {
-    this.downloadElement = element;
-  };
-
-  public setDownloadLink = (): void => {
-    if (!this.recordedBlob()) {
-      console.error('No blob to download');
-
-      return;
-    }
-
-    if (!this.downloadElement) {
-      console.error('No download element provided');
-
-      return;
-    }
-
-    const objectUrl: string = URL.createObjectURL(this.recordedBlob()!);
-
-    this.downloadElement.download = 'screen-recording.webm';
-    this.downloadElement.href = objectUrl;
   };
 
   public startRecording = async (
@@ -108,6 +90,7 @@ export class ScreenRecordingService {
 
       this.mediaRecorder.start();
       this.isRecording.update(() => true);
+      this.startTime = performance.now();
 
       console.log(
         'Screen recording started !',
@@ -120,25 +103,10 @@ export class ScreenRecordingService {
       console.error('Error accessing screen stream for recording: ', error);
 
       this.isRecording.update(() => false);
+      this.startTime = NaN;
 
       return null;
     }
-  };
-
-  public pauseRecording = (): void => {
-    if (!this.isRecorderReady()) {
-      return;
-    }
-
-    this.mediaRecorder!.pause();
-  };
-
-  public resumeRecording = (): void => {
-    if (!this.isRecorderReady()) {
-      return;
-    }
-
-    this.mediaRecorder!.resume();
   };
 
   public stopRecording = (): void => {
@@ -147,22 +115,38 @@ export class ScreenRecordingService {
       return;
     }
 
-    this.mediaRecorder!.addEventListener('stop', () => {
-      this.onMediaRecordingStop();
+    this.endTime = performance.now();
+
+    this.mediaRecorder!.addEventListener('stop', async () => {
+      await this.onMediaRecordingStop();
     });
     this.mediaRecorder!.stop(); // Stop the recorder
     this.stopStreamTracks(); // Stop the stream tracks
   };
 
-  private onMediaRecordingStop = (): void => {
+  private onMediaRecordingStop = async (): Promise<void> => {
     console.log('Media recording stopped.');
 
     // Ensure we have recorded chunks before creating a Blob
     if (this.recordedChunks.length > 0) {
       const blob = new Blob(this.recordedChunks, { type: 'video/webm' });
-      this.recordedBlob.update(() => blob);
+      const duration = this.computeDuration() as number;
+      const { size } = blob;
 
-      console.log('Blob created successfully.', { blob }, this.recordedBlob());
+      const objectUrl = URL.createObjectURL(blob);
+
+      this.recordedBlob.update(() => {
+        return {
+          blob,
+          duration,
+          size,
+          objectUrl,
+        };
+      });
+
+      console.log('Blob created successfully.', { blob }, this.recordedBlob(), {
+        duration,
+      });
     } else {
       console.warn('No recorded chunks available for blob creation.');
     }
@@ -171,8 +155,8 @@ export class ScreenRecordingService {
 
     this.isRecording.update(() => false);
 
-    this.mediaRecorder!.removeEventListener('stop', () => {
-      this.onMediaRecordingStop();
+    this.mediaRecorder!.removeEventListener('stop', async () => {
+      await this.onMediaRecordingStop();
     });
 
     this.resetRecording(); // Reset the service state
@@ -228,5 +212,34 @@ export class ScreenRecordingService {
   private resetRecording = (): void => {
     this.recordedChunks = [];
     this.mediaRecorder = null;
+
+    this.startTime = NaN;
+    this.endTime = NaN;
   };
+
+  private computeDuration = (
+    format: boolean = false
+  ): FormattedDuration | number => {
+    if (Number.isNaN(this.startTime) || Number.isNaN(this.endTime)) {
+      throw new TypeError(
+        `startTime or endTime is not a number \n Start: ${this.startTime}, End: ${this.endTime}`
+      );
+    }
+
+    const timeDifferenceInSeconds: number = Math.floor(
+      (this.endTime - this.startTime) / 1_000
+    );
+
+    if (!format) {
+      return timeDifferenceInSeconds;
+    }
+
+    const { hours, minutes, seconds } = formatTimeValues(
+      timeDifferenceInSeconds
+    );
+
+    return { hours, minutes, seconds };
+  };
+
+  private computeVideoSize = (blob: Blob): any => {};
 }

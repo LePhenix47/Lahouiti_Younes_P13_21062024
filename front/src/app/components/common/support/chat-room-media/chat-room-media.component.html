@@ -319,18 +319,17 @@
     <button class="chat-room-media__screen-recording-stop" (click)="stopRecording()"
       [disabled]="!isRecording()">Stop</button>
 
-    <a #downloadRecordingLinkRef class="{{ screenRecordingBlobs().length <= 0 ? 'hide' : '' }}">Download last screen
-      recording</a>
-
     <p class="chat-room-media__screen-recording-status">{{ isRecording() ? '▶️ Recording in progress' :
       '⏹️ Not recording' }}</p>
 
     <ul class="chat-room-media__screen-recording-list">
 
-      @for (screenRecording of screenRecordingObjectUrls(); let index = $index; track index) {
+      @for (screenRecording of screenRecordingBlobs(); let index = $index; track index) {
       <li class="chat-room-media__screen-recording-item">
-        <video src="{{screenRecording}}" controls class="chat-room-media__screen-recording-record"></video>
+        <video src="{{screenRecording.objectUrl}}" controls class="chat-room-media__screen-recording-record"></video>
 
+        <a download="screen-recording-{{index}}.webm" href="{{screenRecording.objectUrl}}">Download screen recording</a>
+        <p>{{formatDuration(screenRecording.duration)}} ({{screenRecording.size}} bytes)</p>
         <button (click)="removeBlobFromListByIndex(index)">Delete screen recording</button>
       </li>
       }
