@@ -1,3 +1,5 @@
+const { getRoomsArrayFromMap } = require("../utils/map.utils.cjs");
+
 module.exports = (io, socket, connectedUsersMap, roomsMap) => {
   const { userName } = socket.handshake.auth;
   // Handle a user creating a room
@@ -41,17 +43,7 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
 
     connectedUsersMap.set(userName, userInfo);
 
-    io.emit(
-      "room-list",
-      Array.from(roomsMap.entries()).map(
-        ([creator, [creatorName, joinerName]]) => {
-          return {
-            roomName: creatorName,
-            isFull: joinerName !== null, // * The room is full if there's a joiner
-          };
-        }
-      )
-    );
+    io.emit("room-list", getRoomsArrayFromMap(roomsMap));
   });
 
   socket.on("room-deleted", (roomName) => {
@@ -70,17 +62,7 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
     userInfo.joinedRoom = null;
 
     connectedUsersMap.set(userName, userInfo);
-    io.emit(
-      "room-list",
-      Array.from(roomsMap.entries()).map(
-        ([creator, [creatorName, joinerName]]) => {
-          return {
-            roomName: creatorName,
-            isFull: joinerName !== null, // * The room is full if there's a joiner
-          };
-        }
-      )
-    );
+    io.emit("room-list", getRoomsArrayFromMap(roomsMap));
 
     io.emit("room-deleted", true);
     console.log(`Room deleted: ${roomName}`, roomsMap);
@@ -131,17 +113,7 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
     // Emit a success message back to the joiner and update the room list
     socket.emit("room-joined", { roomName, userName });
     socket.to(roomName).emit("room-joined", { roomName, userName });
-    io.emit(
-      "room-list",
-      Array.from(roomsMap.entries()).map(
-        ([creator, [creatorName, joinerName]]) => {
-          return {
-            roomName: creatorName,
-            isFull: joinerName !== null, // * The room is full if there's a joiner
-          };
-        }
-      )
-    );
+    io.emit("room-list", getRoomsArrayFromMap(roomsMap));
   });
 
   // Handle a user leaving a room
@@ -186,17 +158,7 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
 
     // Notify both users that the room is deleted
     socket.to(roomName).emit("room-deleted", { roomName, userName });
-    io.emit(
-      "room-list",
-      Array.from(roomsMap.entries()).map(
-        ([creator, [creatorName, joinerName]]) => {
-          return {
-            roomName: creatorName,
-            isFull: joinerName !== null, // * The room is full if there's a joiner
-          };
-        }
-      )
-    );
+    io.emit("room-list", getRoomsArrayFromMap(roomsMap));
   });
 
   socket.on("wrtc-test", ({ roomName, message }) => {

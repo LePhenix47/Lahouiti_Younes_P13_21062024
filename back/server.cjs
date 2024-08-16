@@ -8,10 +8,11 @@ const chatSocketListener = require("./src/websockets/chat.websockets.cjs");
 const testSocketListener = require("./src/websockets/test.websockets.cjs");
 const webRtcSocketListener = require("./src/websockets/web-rtc.websockets.cjs");
 
-const { connectedUsersMap, roomsMap } = require("./src/user.management.cjs"); // Update the path
+const { connectedUsersMap, roomsMap } = require("./src/user.management.cjs");
+const { getRoomsArrayFromMap } = require("./src/utils/map.utils.cjs");
 
 const normalizePort = (val) => {
-  const port = parseInt(val, 10);
+  const port = Number(val);
   if (isNaN(port)) {
     return val;
   }
@@ -33,7 +34,7 @@ app.set("port", port);
  */
 const errorHandler = (error) => {
   if (error.sycall !== "listen") {
-    throw error;
+    throw new Error(error);
   }
   const address = server.address();
   const bind = typeof address === "string" ? "pipe" + address : "port" + port;
@@ -49,7 +50,7 @@ const errorHandler = (error) => {
       process.exit(1);
     }
     default:
-      throw error;
+      throw new Error(error);
   }
 };
 
@@ -120,17 +121,7 @@ io.on("connection", (socket) => {
 
     connectedUsersMap.delete(userName);
     roomsMap.delete(userName);
-    io.emit(
-      "room-list",
-      Array.from(roomsMap.entries()).map(
-        ([creator, [creatorName, joinerName]]) => {
-          return {
-            roomName: creatorName,
-            isFull: joinerName !== null, // * The room is full if there's a joiner
-          };
-        }
-      )
-    );
+    io.emit("room-list", getRoomsArrayFromMap(roomsMap));
     console.log(`User disconnected: ${socket.id}`, connectedUsersMap, roomsMap);
   });
 });
