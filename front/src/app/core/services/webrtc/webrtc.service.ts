@@ -58,6 +58,8 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
   protected audioInputTrack: MediaStreamTrack | null = null;
   protected microphoneDeviceId: string | null = null;
 
+  protected arrayOfPreviousStreamsTracks: MediaStreamTrack[] = [];
+
   /**
    * Sets the Socket.io client for signaling.
    * @param {Socket} socketio - The Socket.io client.
@@ -148,7 +150,10 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
         return null;
       }
       // Replace the webcam track with the screen track
-      this.replaceTrackInPeerConnection(this.webcamTrack, this.screenTrack);
+      await this.replaceTrackInPeerConnection(
+        this.webcamTrack,
+        this.screenTrack
+      );
 
       // Handle the ended event to know when to switch back
     } catch (error) {
@@ -160,7 +165,7 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
   };
 
   // When the user stops screen sharing
-  public stopScreenShare = (): void => {
+  public stopScreenShare = async (): Promise<void> => {
     // Replace the screen track with the original webcam track
     if (!this.screenTrack || !this.webcamTrack) {
       console.warn(
@@ -173,10 +178,9 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
       return;
     }
 
-    this.replaceTrackInPeerConnection(this.screenTrack, this.webcamTrack);
+    await this.replaceTrackInPeerConnection(this.screenTrack, this.webcamTrack);
 
     this.screenTrack.stop();
-
     this.screenTrack = null; // Reset the screen track reference
 
     this.handleScreenShareEndEvent();
@@ -236,7 +240,10 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
       if (userIsInWebRtcSession && !this.screenTrack) {
         // Replace the webcam track if it exists
         if (this.webcamTrack && newWebcamTrack) {
-          this.replaceTrackInPeerConnection(this.webcamTrack, newWebcamTrack);
+          await this.replaceTrackInPeerConnection(
+            this.webcamTrack,
+            newWebcamTrack
+          );
         } else {
           console.warn(
             'Webcam track not found, webcamTrack:',
@@ -248,7 +255,7 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
 
         // Replace the audio track if it exists
         if (this.audioInputTrack && newAudioInputTrack) {
-          this.replaceTrackInPeerConnection(
+          await this.replaceTrackInPeerConnection(
             this.audioInputTrack,
             newAudioInputTrack
           );
@@ -277,10 +284,10 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
   }
 
   // Method to replace a track in the peer connection
-  private replaceTrackInPeerConnection = (
+  private replaceTrackInPeerConnection = async (
     oldTrack: MediaStreamTrack,
     newTrack: MediaStreamTrack
-  ): void => {
+  ): Promise<void> => {
     if (!this.peerConnection) {
       console.warn(
         'Peer connection is not initialized, could not replace track'
@@ -300,9 +307,10 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
       return;
     }
 
-    sender.replaceTrack(newTrack);
+    await sender.replaceTrack(newTrack);
+    console.log(sender, newTrack);
 
-    oldTrack.stop();
+    this.arrayOfPreviousStreamsTracks.push(oldTrack);
   };
 
   /**
@@ -511,9 +519,14 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
     // Get the senders for the current peer connection
     const senders = this.peerConnection.getSenders();
 
-    for (const track of this.localStream.getTracks()) {
+    const allTracks = [...this.localStream.getTracks()].concat(
+      this.arrayOfPreviousStreamsTracks
+    );
+
+    for (const track of allTracks) {
       // Find the sender that corresponds to the track
-      const sender = senders.find((s) => s.track === track);
+      const sender: RTCRtpSender | null =
+        senders.find((s) => s.track === track) || null;
 
       if (!sender) {
         console.warn('Sender for track not found:', track);

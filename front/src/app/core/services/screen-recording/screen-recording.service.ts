@@ -30,7 +30,12 @@ export class ScreenRecordingService {
       }
     }
 
-    this.remotePeerStream = stream;
+    if (!stream) {
+      return;
+    }
+
+    const clonedStream: MediaStream = stream?.clone();
+    this.remotePeerStream = clonedStream;
   };
 
   private onScreenStreamEnd: (...args: any) => any = (): any => {};
@@ -70,11 +75,13 @@ export class ScreenRecordingService {
         ...userAudioStream.getTracks(),
       ];
 
-      if (this.remotePeerStream) {
-        combinedTracks.push(...this.remotePeerStream.getAudioTracks());
-      }
-
       const mixedStreams = new MediaStream(combinedTracks);
+
+      if (this.remotePeerStream) {
+        const audioTracks: MediaStreamTrack =
+          this.remotePeerStream.getAudioTracks()[0];
+        mixedStreams.addTrack(audioTracks);
+      }
       // Create a MediaRecorder instance
       this.mediaRecorder = new MediaRecorder(mixedStreams);
 

@@ -254,8 +254,6 @@ export class ChatRoomMediaComponent {
       removeLeadingZerosFromHours: true,
     });
 
-    return `${10}:${minutes}:${seconds}`;
-
     if (hours) {
       return `${hours}:${minutes}:${seconds}`;
     }
@@ -644,7 +642,8 @@ export class ChatRoomMediaComponent {
       if (!this.showScreenCast()) {
         this.setVideoElementStream(
           webcamVideoElement,
-          this.chatWebRtcService.localStream
+          this.chatWebRtcService.localStream,
+          true
         );
       }
 
@@ -699,7 +698,8 @@ export class ChatRoomMediaComponent {
       if (!this.showScreenCast()) {
         this.setVideoElementStream(
           webcamVideoElement,
-          this.chatWebRtcService.localStream
+          this.chatWebRtcService.localStream,
+          true
         );
       }
 
@@ -753,15 +753,26 @@ export class ChatRoomMediaComponent {
 
     this.setVideoElementStream(
       videoElement,
-      this.chatWebRtcService.localStream!
+      this.chatWebRtcService.localStream!,
+      true
     );
   };
 
   private setVideoElementStream = (
     videoElement: HTMLVideoElement,
-    stream: MediaStream | null
+    stream: MediaStream | null,
+    onlyVideo: boolean = false
   ) => {
-    videoElement.srcObject = stream;
+    if (onlyVideo && stream) {
+      // Create a new MediaStream with only video tracks
+      const videoOnlyStream = new MediaStream(stream.getVideoTracks());
+
+      // Set the video element's source to the video-only stream
+      videoElement.srcObject = videoOnlyStream;
+    } else {
+      // Set the video element's source to the full stream (with both audio and video)
+      videoElement.srcObject = stream;
+    }
   };
 
   public toggleInputDevicesOnWebRtc = (event: Event): void => {
@@ -975,13 +986,6 @@ export class ChatRoomMediaComponent {
     this.screenRecordingBlobs.update((prev: ScreenRecordBlob[]) => {
       return [...prev, screenRecordAsBlob];
     });
-
-    console.log(
-      'Blob:',
-      screenRecordAsBlob,
-      'Blobs:',
-      this.screenRecordingBlobs()
-    );
 
     const videoRecordingElement: HTMLVideoElement =
       this.videoRecordingElementRef!.nativeElement;
