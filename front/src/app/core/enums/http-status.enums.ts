@@ -3,7 +3,7 @@
  *
  * @see [MDN docs about HTTP Status Codes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status)
  */
-export enum HttpStatus {
+export const enum HttpStatus {
   // ? 1xx Informational
 
   /** 100 Continue. */
@@ -159,7 +159,7 @@ export enum HttpStatus {
 }
 
 /** Enumeration of HTTP status code series. */
-export enum HttpSeries {
+export const enum HttpSeries {
   INFORMATIONAL = 'Informational',
   SUCCESSFUL = 'Successful',
   REDIRECTION = 'Redirection',
