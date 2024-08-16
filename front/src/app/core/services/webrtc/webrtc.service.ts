@@ -231,10 +231,9 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
       }
 
       // Update tracks in the peer connection if needed
-      if (
-        this.peerConnection?.connectionState === 'connected' &&
-        !this.screenTrack
-      ) {
+      const userIsInWebRtcSession =
+        this.peerConnection?.connectionState === 'connected';
+      if (userIsInWebRtcSession && !this.screenTrack) {
         // Replace the webcam track if it exists
         if (this.webcamTrack && newWebcamTrack) {
           this.replaceTrackInPeerConnection(this.webcamTrack, newWebcamTrack);
@@ -261,6 +260,9 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
             newAudioInputTrack
           );
         }
+      } else {
+        this.webcamTrack?.stop();
+        this.audioInputTrack?.stop();
       }
 
       this.webcamTrack = newWebcamTrack;
@@ -299,7 +301,10 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
     }
 
     sender.replaceTrack(newTrack);
+
+    oldTrack.stop();
   };
+
   /**
    * Creates a new peer connection and adds event listeners.
    * @returns {RTCPeerConnection}

@@ -75,18 +75,42 @@ export class ChatRoomMediaComponent {
 
   public readonly enumeratedDevicesList = signal<MediaDeviceInfo[]>([]);
 
-  // Filter for video input devices
+  // * Input-Output devices
   public readonly videoInputsList = computed<DeviceInfo[]>(() => {
     return createDeviceList(this.enumeratedDevicesList(), 'videoinput');
+  });
+
+  public readonly hasNoVideoInputsInList = computed<boolean>(() => {
+    return (
+      this.videoInputsList().length < 1 ||
+      (this.videoInputsList().length === 1 &&
+        !this.videoInputsList()[0].deviceId)
+    );
   });
 
   public readonly audioInputsList = computed<DeviceInfo[]>(() => {
     return createDeviceList(this.enumeratedDevicesList(), 'audioinput');
   });
 
+  public readonly hasNoAudioInputsInList = computed<boolean>(() => {
+    return (
+      this.audioInputsList().length < 1 ||
+      (this.audioInputsList().length === 1 &&
+        !this.audioInputsList()[0].deviceId)
+    );
+  });
+
   // Filter for audio output devices
   public readonly audioOutputsList = computed<DeviceInfo[]>(() => {
     return createDeviceList(this.enumeratedDevicesList(), 'audiooutput');
+  });
+
+  public readonly hasNoAudioOutputsInList = computed<boolean>(() => {
+    return (
+      this.audioOutputsList().length < 1 ||
+      (this.audioOutputsList().length === 1 &&
+        !this.audioOutputsList()[0].deviceId)
+    );
   });
 
   public readonly selectedVideoInputDeviceId = signal<string | null>(null);
@@ -262,6 +286,8 @@ export class ChatRoomMediaComponent {
     this.resetMediaCheckboxes();
 
     this.resetVolumeBars();
+
+    this.screenRecordingService.setRemoteAudioStream(null, true);
     console.log(
       '%cdisconnectFromWebRtcSession',
       'background: #222; color: #bada55'
@@ -331,6 +357,8 @@ export class ChatRoomMediaComponent {
       return;
     }
     this.remoteVolumeAnalyzerService!.setMicrophoneStream(remoteStream);
+
+    this.screenRecordingService.setRemoteAudioStream(remoteStream);
 
     this.remoteVolumeAnalyzerService!.startVolumeMeasurement();
   };
@@ -702,7 +730,9 @@ export class ChatRoomMediaComponent {
   };
 
   private onScreenShareEnd = (event?: Event): void => {
-    this.sendScreenShareStatus(false);
+    if (this.showScreenCast()) {
+      this.sendScreenShareStatus(false);
+    }
 
     this.showScreenCast.update(() => false);
 
@@ -810,6 +840,12 @@ export class ChatRoomMediaComponent {
    */
   public stopScreenCast = (): void => {
     try {
+      if (!this.webRtcSessionStarted) {
+        throw new Error(
+          'WebRTC session has not started yet, cannot stop screen share'
+        );
+      }
+
       this.showScreenCast.update(() => false);
       this.chatWebRtcService.stopScreenShare();
       this.sendScreenShareStatus(false);

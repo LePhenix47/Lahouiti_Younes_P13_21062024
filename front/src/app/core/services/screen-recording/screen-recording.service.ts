@@ -1,11 +1,12 @@
 import { Injectable, signal } from '@angular/core';
-import { Subject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ScreenRecordingService {
   public screenStream: MediaStream | null = null;
+  public remotePeerStream: MediaStream | null = null;
+
   public mediaRecorder: MediaRecorder | null = null;
 
   private recordedChunks: Blob[] = [];
@@ -13,6 +14,19 @@ export class ScreenRecordingService {
 
   public readonly isRecording = signal<boolean>(false);
   public readonly recordedBlob = signal<Blob | null>(null);
+
+  public setRemoteAudioStream = (
+    stream: MediaStream | null,
+    stopTracks?: boolean
+  ): void => {
+    if (!stream && this.remotePeerStream && stopTracks) {
+      for (const track of this.remotePeerStream.getTracks()) {
+        track.stop();
+      }
+    }
+
+    this.remotePeerStream = stream;
+  };
 
   private onScreenStreamEnd: (...args: any) => any = (): any => {};
 
@@ -61,7 +75,7 @@ export class ScreenRecordingService {
               displaySurface: 'browser',
             }
           : true,
-        audio: true, // Optional, depending on your needs
+        audio: true, // ? Optional, depending on your needs
       });
 
       const userAudioStream: MediaStream =
@@ -73,6 +87,10 @@ export class ScreenRecordingService {
         ...this.screenStream.getTracks(),
         ...userAudioStream.getTracks(),
       ];
+
+      if (this.remotePeerStream) {
+        combinedTracks.push(...this.remotePeerStream.getAudioTracks());
+      }
 
       const mixedStreams = new MediaStream(combinedTracks);
       // Create a MediaRecorder instance

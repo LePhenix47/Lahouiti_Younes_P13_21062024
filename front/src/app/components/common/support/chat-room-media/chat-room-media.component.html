@@ -144,7 +144,7 @@
           Start screen-cast
         </button>
 
-        <button type="button" (click)="stopScreenCast()" [disabled]="!showScreenCast() && !hasEnabledWebcamForWebRTC()">
+        <button type="button" (click)="stopScreenCast()" [disabled]="!showScreenCast() && hasEnabledWebcamForWebRTC()">
           Stop screen-cast
         </button>
 
@@ -197,41 +197,42 @@
         }@else {
 
         <label
-          class="chat-room-media__label chat-room-media__control {{ (!showWebcam()) ? 'chat-room-media__control--disabled' : '' }}">
-          Video input device {{videoInputsList().length < 1 || (videoInputsList().length===1 &&
-            !(videoInputsList()[0].deviceId)) ? '(none available)' : '' }} <select
-            class="chat-room-media__video-input-device" (change)="switchWebcamDevice($event)"
-            [disabled]="!showWebcam() || !videoInputsList().length">
+          class="chat-room-media__label chat-room-media__control {{ !showWebcam() ? 'chat-room-media__control--disabled' : '' }}">
+          Video input device {{hasNoVideoInputsInList() ? '(none available)' : '' }}
+          <select class="chat-room-media__video-input-device" (change)="switchWebcamDevice($event)"
+            [disabled]="!showWebcam() || hasNoVideoInputsInList()">
+
             @for(device of videoInputsList(); let index = $index; track index){
             <option value="{{device.deviceId}}" [selected]="device.isDefaultDevice">{{device.label}}</option>
             }
-            </select>
+
+          </select>
         </label>
 
         <label
-          class="chat-room-media__label chat-room-media__control {{ (!openMicrophone()) ? 'chat-room-media__control--disabled' : '' }}">
-          Audio input device {{audioInputsList().length < 1 || (audioInputsList().length===1 &&
-            !(audioInputsList()[0].deviceId)) ? '(none available)' : '' }} <select
-            class="chat-room-media__audio-input-device" (change)="switchMicrophoneDevice($event)"
-            [disabled]="!openMicrophone() || !audioInputsList().length">
+          class="chat-room-media__label chat-room-media__control {{ !openMicrophone() ? 'chat-room-media__control--disabled' : '' }}">
+          Audio input device {{hasNoAudioInputsInList() ? '(none available)' : '' }}
+          <select class="chat-room-media__audio-input-device" (change)="switchMicrophoneDevice($event)"
+            [disabled]="!openMicrophone() || hasNoAudioInputsInList()">
             @for(device of audioInputsList(); let index = $index; track index){
             <option value="{{device.deviceId}}" [selected]="device.isDefaultDevice">{{device.label}}</option>
             }
-            </select>
+          </select>
         </label>
         }
 
 
 
 
-        <label class="chat-room-media__label chat-room-media__control" (change)="switchSpeakerDevice($event)">
-          Audio output device {{audioOutputsList().length < 1 || (audioOutputsList().length===1 &&
-            !(audioOutputsList()[0].deviceId)) ? '(none available)' : '' }} <select name="audio-output-device"
-            [disabled]="!audioOutputsList().length">
+        <label
+          class="chat-room-media__label chat-room-media__control {{ hasNoAudioOutputsInList() ? 'chat-room-media__control--disabled' : '' }}"
+          (change)="switchSpeakerDevice($event)">
+          Audio output device {{hasNoAudioOutputsInList() ? '(none available)' : '' }} <select
+            name="audio-output-device" [disabled]="hasNoAudioOutputsInList()">
             @for(device of audioOutputsList(); let index = $index; track index){
             <option value="{{device.deviceId}}" [selected]="device.isDefaultDevice">{{device.label}}</option>
             }
-            </select>
+          </select>
         </label>
 
       </fieldset>
