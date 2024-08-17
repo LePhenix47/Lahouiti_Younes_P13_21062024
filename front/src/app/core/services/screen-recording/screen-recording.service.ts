@@ -8,7 +8,9 @@ import { formatTimeValues } from '@core/utils/numbers/time.utils';
 })
 export class ScreenRecordingService {
   public screenStream: MediaStream | null = null;
+  public ownMicrophoneStream: MediaStream | null = null;
   public remotePeerStream: MediaStream | null = null;
+  public mixedStreams: MediaStream | null = null;
 
   public mediaRecorder: MediaRecorder | null = null;
 
@@ -25,9 +27,9 @@ export class ScreenRecordingService {
     stopTracks?: boolean
   ): void => {
     if (!stream && this.remotePeerStream && stopTracks) {
-      for (const track of this.remotePeerStream.getTracks()) {
-        track.stop();
-      }
+      const remotePeerAudioTrack = this.remotePeerStream.getAudioTracks()?.[0];
+
+      this.mixedStreams?.removeTrack(remotePeerAudioTrack);
     }
 
     if (!stream) {
@@ -59,31 +61,33 @@ export class ScreenRecordingService {
       this.screenStream = await navigator.mediaDevices.getDisplayMedia({
         video: supportsDisplaySurface
           ? {
-              displaySurface: 'browser',
+              displaySurface: 'window',
             }
           : true,
-        audio: true, // ? Optional, depending on your needs
+        audio: true,
       });
 
-      const userAudioStream: MediaStream =
-        await navigator.mediaDevices.getUserMedia({
-          audio: Boolean(audioDeviceId) ? { deviceId: audioDeviceId } : true,
-        });
+      this.ownMicrophoneStream = await navigator.mediaDevices.getUserMedia({
+        audio: Boolean(audioDeviceId) ? { deviceId: audioDeviceId } : true,
+      });
 
       const combinedTracks: MediaStreamTrack[] = [
         ...this.screenStream.getTracks(),
-        ...userAudioStream.getTracks(),
+        ...this.ownMicrophoneStream.getAudioTracks(),
       ];
-
-      const mixedStreams = new MediaStream(combinedTracks);
-
       if (this.remotePeerStream) {
         const audioTracks: MediaStreamTrack =
           this.remotePeerStream.getAudioTracks()[0];
-        mixedStreams.addTrack(audioTracks);
+
+        combinedTracks.push(audioTracks);
       }
+
+      this.mixedStreams = new MediaStream(combinedTracks);
+
+      console.log('mixedStreams:', this.mixedStreams);
+
       // Create a MediaRecorder instance
-      this.mediaRecorder = new MediaRecorder(mixedStreams);
+      this.mediaRecorder = new MediaRecorder(this.mixedStreams);
 
       // Handle data available event
       this.mediaRecorder.addEventListener(
@@ -91,7 +95,8 @@ export class ScreenRecordingService {
         this.onDataAvailable
       );
 
-      const screenTrack: MediaStreamTrack = mixedStreams.getVideoTracks()[0];
+      const screenTrack: MediaStreamTrack =
+        this.mixedStreams.getVideoTracks()[0];
       screenTrack.addEventListener('ended', this.stopRecording);
       // * Start recording
 
@@ -101,18 +106,18 @@ export class ScreenRecordingService {
 
       console.log(
         'Screen recording started !',
-        mixedStreams,
+        this.mixedStreams,
         this.mediaRecorder
       );
 
-      return mixedStreams;
+      return this.mixedStreams;
     } catch (error) {
       console.error('Error accessing screen stream for recording: ', error);
 
       this.isRecording.update(() => false);
       this.startTime = NaN;
 
-      return null;
+      throw error;
     }
   };
 
@@ -210,7 +215,8 @@ export class ScreenRecordingService {
       return;
     }
 
-    const tracks: MediaStreamTrack[] = this.mediaRecorder.stream.getTracks();
+    const tracks: MediaStreamTrack[] =
+      this.mediaRecorder.stream.getVideoTracks();
     for (const track of tracks) {
       track.stop();
     }

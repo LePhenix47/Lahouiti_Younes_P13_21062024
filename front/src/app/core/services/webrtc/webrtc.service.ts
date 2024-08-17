@@ -198,8 +198,6 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
 
       const currentAudioId: string | undefined =
         this.microphoneDeviceId || this.audioInputTrack?.getSettings().deviceId;
-      console.log({ video, audio });
-      console.log({ currentVideoId, currentAudioId });
 
       const mediaOptions: MediaStreamConstraints = {
         video:
@@ -224,15 +222,27 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
       let newAudioInputTrack: MediaStreamTrack | null = null;
       if (video) {
         newWebcamTrack = localStream.getVideoTracks()[0];
-        this.webcamDeviceId = newWebcamTrack.getSettings().deviceId || null; // Set the webcam device ID
+        this.webcamDeviceId =
+          videoDeviceId || newWebcamTrack.getSettings().deviceId || null; // Set the webcam device ID
       }
 
       // Update the audio track and device ID
       if (audio) {
         newAudioInputTrack = localStream.getAudioTracks()[0];
         this.microphoneDeviceId =
-          newAudioInputTrack.getSettings().deviceId || null; // Set the microphone device ID
+          audioDeviceId || newAudioInputTrack.getSettings().deviceId || null; // Set the microphone device ID
       }
+
+      console.group('manageLocalStream()');
+
+      console.log(
+        'audioDeviceId',
+        audioDeviceId,
+        'other options',
+        this.microphoneDeviceId,
+        this.audioInputTrack?.getSettings().deviceId
+      );
+      console.groupEnd();
 
       // Update tracks in the peer connection if needed
       const userIsInWebRtcSession: boolean =
@@ -519,9 +529,9 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
     // Get the senders for the current peer connection
     const senders = this.peerConnection.getSenders();
 
-    const allTracks = [...this.localStream.getTracks()].concat(
-      this.arrayOfPreviousStreamsTracks
-    );
+    const allTracks: MediaStreamTrack[] = [
+      ...this.localStream.getTracks(),
+    ].concat(this.arrayOfPreviousStreamsTracks);
 
     for (const track of allTracks) {
       // Find the sender that corresponds to the track

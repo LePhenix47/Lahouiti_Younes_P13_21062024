@@ -281,6 +281,8 @@ export class ChatRoomMediaComponent {
   };
 
   private disconnectFromWebRtcSession = (): void => {
+    this.stopRecording();
+
     this.resetRoomState();
 
     if (!this.webRtcSessionStarted) {
@@ -317,9 +319,7 @@ export class ChatRoomMediaComponent {
 
     // this.chatWebRtcService.setOnRoomLeftCallback();
 
-    this.chatWebRtcService.setOnTrackAddedCallback(
-      this.setWebRtcSessionStarted
-    );
+    this.chatWebRtcService.setOnTrackAddedCallback(this.connectToWebRtcSession);
 
     this.chatWebRtcService.setOnReceiveToggledScreenShare(
       this.setRemoteScreenShareStatus
@@ -333,7 +333,7 @@ export class ChatRoomMediaComponent {
     );
   };
 
-  private setWebRtcSessionStarted = (event: RTCTrackEvent): void => {
+  private connectToWebRtcSession = (event: RTCTrackEvent): void => {
     this.webRtcSessionStarted = true;
 
     const remoteStream: MediaStream = event.streams[0];
@@ -345,8 +345,6 @@ export class ChatRoomMediaComponent {
 
     // Check if the remote stream contains any audio tracks
     const remoteVideoTracks: MediaStreamTrack[] = remoteStream.getVideoTracks();
-
-    // TODO: Add logic to hide the video element if there is no video track and dB bar if there is no audio track
 
     this.hasRemotePeerSharedWebCam.update(() => {
       return remoteVideoTracks.length > 0;
@@ -391,6 +389,30 @@ export class ChatRoomMediaComponent {
     this.enumeratedDevicesList.update(() => {
       return devices;
     });
+
+    const hasVideoInputDevices: boolean = !this.hasNoVideoInputsInList();
+    if (hasVideoInputDevices) {
+      this.selectedVideoInputDeviceId.update(() => {
+        const defaultDevice: DeviceInfo | null =
+          this.videoInputsList().find(
+            (videoInput: DeviceInfo) => videoInput.isDefaultDevice
+          ) || null;
+
+        return defaultDevice?.deviceId || null;
+      });
+    }
+
+    const hasAudioInputDevices: boolean = !this.hasNoAudioInputsInList();
+    if (hasAudioInputDevices) {
+      this.selectedAudioInputDeviceId.update(() => {
+        const defaultDevice: DeviceInfo | null =
+          this.audioInputsList().find(
+            (audioInput: DeviceInfo) => audioInput.isDefaultDevice
+          ) || null;
+
+        return defaultDevice?.deviceId || null;
+      });
+    }
   };
 
   private resetRoomState = (): void => {
@@ -570,36 +592,39 @@ export class ChatRoomMediaComponent {
   };
 
   public switchWebcamDevice = async (event: Event): Promise<void> => {
-    console.log('switchWebcamDevice', event);
-    const selectElement = event.target as HTMLSelectElement;
-
-    this.selectedVideoInputDeviceId.update(() => {
-      return selectElement.value;
-    });
-
     try {
-      const videoInputDeviceId: string = selectElement.value;
+      this.chatWebRtcService.resetLocalStream();
 
-      const localStream = await this.chatWebRtcService.manageLocalStream(
-        this.showWebcam(),
-        this.openMicrophone(),
-        this.selectedVideoInputDeviceId(),
-        this.selectedAudioInputDeviceId()
-      );
+      const selectElement = event.target as HTMLSelectElement;
 
-      console.log({ videoInputDeviceId, localStream });
+      this.selectedVideoInputDeviceId.update(() => {
+        return selectElement.value;
+      });
+
+      if (!this.selectedAudioInputDeviceId()) {
+        console.warn(
+          'No audio input device selected! Has device ID value: ',
+          this.selectedAudioInputDeviceId()
+        );
+      }
+
+      const localStream: MediaStream | null =
+        await this.chatWebRtcService.manageLocalStream(
+          this.showWebcam(),
+          this.openMicrophone(),
+          this.selectedVideoInputDeviceId(),
+          this.selectedAudioInputDeviceId()
+        );
 
       const webcamVideoElement: HTMLVideoElement =
         this.ownWebCamVideoRef!.nativeElement;
 
       if (!this.showScreenCast()) {
-        this.setVideoElementStream(
-          webcamVideoElement,
-          this.chatWebRtcService.localStream
-        );
+        this.setVideoElementStream(webcamVideoElement, localStream, true);
       }
 
       if (this.openMicrophone()) {
+        this.ownVolumeAnalyzerService!.setMicrophoneStream(localStream!);
         this.ownVolumeAnalyzerService!.startVolumeMeasurement();
       }
     } catch (error) {
@@ -610,14 +635,20 @@ export class ChatRoomMediaComponent {
   };
 
   public switchMicrophoneDevice = async (event: Event): Promise<void> => {
-    console.log('switchMicrophoneDevice', event);
     const selectElement = event.target as HTMLSelectElement;
 
     this.selectedAudioInputDeviceId.update(() => {
       return selectElement.value;
     });
+    console.log(
+      'switchMicrophoneDevice',
+      this.selectedVideoInputDeviceId(),
+      this.selectedAudioInputDeviceId()
+    );
 
     try {
+      this.chatWebRtcService.resetLocalStream();
+
       const audioInputDeviceId: string = selectElement.value;
 
       const localStream: MediaStream | null =
@@ -647,9 +678,8 @@ export class ChatRoomMediaComponent {
         );
       }
 
-      this.ownVolumeAnalyzerService!.setMicrophoneStream(localStream);
-
       if (this.openMicrophone()) {
+        this.ownVolumeAnalyzerService!.setMicrophoneStream(localStream);
         this.ownVolumeAnalyzerService!.startVolumeMeasurement();
       }
     } catch (error) {
@@ -695,18 +725,28 @@ export class ChatRoomMediaComponent {
         return;
       }
 
+      console.log(
+        { 'this.showWebcam()': this.showWebcam() },
+        { 'this.openMicrophone()': this.openMicrophone() },
+        'localStream.getAudioTracks()',
+        localStream.getAudioTracks()
+      );
+
+      const audioTracks: MediaStreamTrack[] = localStream.getAudioTracks();
+
+      if (this.openMicrophone() && audioTracks.length > 0) {
+        this.ownVolumeAnalyzerService!.setMicrophoneStream(localStream);
+        this.ownVolumeAnalyzerService!.startVolumeMeasurement();
+      } else {
+        console.warn('No audio tracks available (updateLocalStream)');
+      }
+
       if (!this.showScreenCast()) {
         this.setVideoElementStream(
           webcamVideoElement,
           this.chatWebRtcService.localStream,
           true
         );
-      }
-
-      this.ownVolumeAnalyzerService!.setMicrophoneStream(localStream);
-
-      if (this.openMicrophone()) {
-        this.ownVolumeAnalyzerService!.startVolumeMeasurement();
       }
 
       this.hasWebcamPermissionDenied.update(() => false);
@@ -941,14 +981,19 @@ export class ChatRoomMediaComponent {
   };
 
   public startRecording = async (): Promise<void> => {
-    const recordingStream = await this.screenRecordingService.startRecording(
-      this.selectedAudioInputDeviceId()!
-    );
+    const recordingStream: MediaStream | null =
+      await this.screenRecordingService.startRecording(
+        this.selectedAudioInputDeviceId()!
+      );
+
+    const videoTracks: MediaStreamTrack[] = recordingStream!.getVideoTracks();
+
+    const recordingStreamNoSound = new MediaStream(videoTracks);
 
     const videoRecordingElement: HTMLVideoElement =
       this.videoRecordingElementRef!.nativeElement;
 
-    this.setVideoElementStream(videoRecordingElement, recordingStream);
+    this.setVideoElementStream(videoRecordingElement, recordingStreamNoSound);
   };
 
   public stopRecording = (): void => {

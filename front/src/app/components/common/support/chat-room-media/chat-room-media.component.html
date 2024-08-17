@@ -3,7 +3,7 @@
     @for(user of usersList(); let index = $index; track index){
     <li class="chat-room-media__user">
       <p class="chat-room-media__username">
-        {{user}}
+        {{user === ownUsername() ? user + ' (you)' : user}}
       </p>
     </li>
     }
@@ -261,13 +261,6 @@
     }
   </p>
 
-  @if(hasRemotePeerSharedWebCam()){
-  <p>Remote peer has enabled their webcam</p>
-  }
-
-  @if(hasRemotePeerSharedMicrophone()){
-  <p>Remote peer has enabled their microphone</p>
-  }
   }
   }@else {
   <button type="button" class="chat-room-media__button ycyw__button ycyw__button--2" (click)="deleteRoom()">Delete
@@ -302,6 +295,14 @@
 
   }
 
+  }
+
+  @if(hasRemotePeerSharedWebCam()){
+  <p>Remote peer has enabled their webcam</p>
+  }
+
+  @if(hasRemotePeerSharedMicrophone()){
+  <p>Remote peer has enabled their microphone</p>
   }
 
   } @else {
