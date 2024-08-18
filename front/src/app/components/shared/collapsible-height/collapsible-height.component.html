@@ -1,0 +1,15 @@
+<div class="collapsible-height">
+  @if(withSemantics()){
+  <details class="collapsible-height__wrapper {{isOpen() ? 'collapsible-height__wrapper--open' : ''}}">
+    <summary class="collapsible-height__container">
+      <ng-content></ng-content>
+    </summary>
+  </details>
+  }@else {
+  <div class="collapsible-height__wrapper {{isOpen() ? 'collapsible-height__wrapper--open' : ''}}">
+    <div class="collapsible-height__container">
+      <ng-content></ng-content>
+    </div>
+  </div>
+  }
+</div>

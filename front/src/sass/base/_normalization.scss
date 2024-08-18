@@ -149,6 +149,12 @@
     min-width: 0;
   }
 
+  details {
+    &>summary {
+      list-style: none;
+    }
+  }
+
   a {
     text-decoration: none;
     color: inherit;
