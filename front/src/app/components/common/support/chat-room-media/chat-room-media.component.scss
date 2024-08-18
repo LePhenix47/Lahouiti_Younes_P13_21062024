@@ -39,16 +39,18 @@
     background-image: var(--ycyw-gradient);
     border-radius: 100vmax;
 
+    color: white;
+
     &--is-ourselves {
       outline: 2px solid currentColor;
     }
 
     &--room-remote-peer {
-      outline: 2px solid yellowgreen;
+      outline: 2px solid yellow;
     }
 
     &--connected-remote-peer {
-      outline: 2px solid yellowgreen;
+      outline: 2px solid yellow;
       animation: blink-outline 2s ease-in-out infinite alternate;
     }
   }

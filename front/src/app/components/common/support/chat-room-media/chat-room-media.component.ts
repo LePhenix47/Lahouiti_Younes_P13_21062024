@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { CollapsibleHeightComponent } from '@components/shared/collapsible-height/collapsible-height.component';
+import { MediaDisplayModeService } from '@core/services/media-display-mode/media-display-mode.service';
 import { ScreenRecordingService } from '@core/services/screen-recording/screen-recording.service';
 import { ChatWebRtcService } from '@core/services/video-chat/chat-webrtc.service';
 import { VolumeMeterService } from '@core/services/volume-meter/volume-meter.service';
@@ -66,6 +67,7 @@ export class ChatRoomMediaComponent {
   private readonly titlePageService = inject(Title);
   private readonly chatWebRtcService = inject(ChatWebRtcService);
   private readonly screenRecordingService = inject(ScreenRecordingService);
+  private readonly mediaDisplayModeService = inject(MediaDisplayModeService);
 
   // ? Since in Angular you cannot have independent service instances using inject(), we have to instantiate them manually
   private ownVolumeAnalyzerService: VolumeMeterService | null = null;
@@ -935,20 +937,12 @@ export class ChatRoomMediaComponent {
 
   public requestPictureInPicture = async (): Promise<void> => {
     try {
-      if (!document.pictureInPictureEnabled) {
-        throw new Error(
-          'Cannot enable picture-in-picture: PiP mode is not supported by your browser'
-        );
-      }
-
-      if (document.pictureInPictureElement) {
-        throw new Error('Already in picture-in-picture mode');
-      }
-
       const peerRemoteVideoElement: HTMLVideoElement =
         this.remoteWebCamVideoRef!.nativeElement;
 
-      await peerRemoteVideoElement.requestPictureInPicture();
+      await this.mediaDisplayModeService.requestPictureInPicture(
+        peerRemoteVideoElement
+      );
     } catch (error) {
       console.error('Error requesting picture-in-picture', error);
 
@@ -957,30 +951,14 @@ export class ChatRoomMediaComponent {
   };
 
   public removePictureInPicture = async (): Promise<void> => {
-    if (!document.pictureInPictureEnabled) {
-      console.warn(
-        'Cannot disable picture-in-picture: PiP is not supported by your browser'
-      );
-
-      return;
-    }
-
-    if (!document.pictureInPictureElement) {
-      console.warn('Not in picture-in-picture mode');
-
-      return;
-    }
-
-    await document.exitPictureInPicture();
+    await this.mediaDisplayModeService.removePictureInPicture();
   };
 
-  public togglePiPOnTabSwitch = (event: Event): void => {
-    const checkboxInput = event.target as HTMLInputElement;
-
+  public togglePiPOnTabSwitch = (): void => {
     this.isPiPToggleEnabledOnTabSwitch.update((prev) => !prev);
   };
 
-  private togglePiPVideoElement = (event: Event): void => {
+  private togglePiPVideoElement = (): void => {
     if (!this.isPiPToggleEnabledOnTabSwitch()) {
       return;
     }
@@ -994,6 +972,19 @@ export class ChatRoomMediaComponent {
     }
 
     this.removePictureInPicture();
+  };
+
+  public requestRemoteScreenShareFullscreen = async (): Promise<void> => {
+    const peerRemoteVideoElement: HTMLVideoElement =
+      this.remoteWebCamVideoRef!.nativeElement;
+
+    await this.mediaDisplayModeService.enterFullscreenMode(
+      peerRemoteVideoElement
+    );
+  };
+
+  public stopRemoteScreenShareFullscreen = async (): Promise<void> => {
+    await this.mediaDisplayModeService.exitFullscreenMode();
   };
 
   public startRecording = async (): Promise<void> => {
@@ -1033,6 +1024,16 @@ export class ChatRoomMediaComponent {
 
     const { objectUrl } = specificBlob;
     URL.revokeObjectURL(objectUrl);
+  };
+
+  public removeAllBlobs = (): void => {
+    for (const screenRecordingBlob of this.screenRecordingBlobs()) {
+      const { objectUrl } = screenRecordingBlob;
+
+      URL.revokeObjectURL(objectUrl);
+    }
+
+    this.screenRecordingBlobs.update(() => []);
   };
 
   private updateVideoRecordingList = (): void => {

@@ -38,6 +38,7 @@ export class MediaDisplayModeService {
       await videoElement.requestPictureInPicture();
     } catch (error) {
       console.error('Error requesting picture-in-picture', error);
+      throw error;
     }
   };
 
@@ -48,21 +49,26 @@ export class MediaDisplayModeService {
    * @throws {Error} If the browser does not support picture-in-picture mode.
    */
   public removePictureInPicture = async (): Promise<void> => {
-    if (!document.pictureInPictureEnabled) {
-      console.error(
-        'Cannot disable picture-in-picture: PiP is not supported by your browser'
-      );
+    try {
+      if (!document.pictureInPictureEnabled) {
+        console.error(
+          'Cannot disable picture-in-picture: PiP is not supported by your browser'
+        );
 
-      return;
+        return;
+      }
+
+      if (!document.pictureInPictureElement) {
+        console.warn('Not in picture-in-picture mode');
+
+        return;
+      }
+
+      await document.exitPictureInPicture();
+    } catch (error) {
+      console.error('Error removing picture-in-picture', error);
+      throw error;
     }
-
-    if (!document.pictureInPictureElement) {
-      console.warn('Not in picture-in-picture mode');
-
-      return;
-    }
-
-    await document.exitPictureInPicture();
   };
 
   /**
@@ -75,7 +81,7 @@ export class MediaDisplayModeService {
    */
   public enterFullscreenMode = async (
     htmlElement: HTMLElement,
-    options: FullscreenOptions
+    options?: Partial<FullscreenOptions>
   ): Promise<void> => {
     try {
       if (!htmlElement) {
@@ -106,6 +112,7 @@ export class MediaDisplayModeService {
       await fullscreenRequest.call(htmlElement, options);
     } catch (error) {
       console.error(error);
+      throw error;
     }
   };
 
@@ -134,6 +141,7 @@ export class MediaDisplayModeService {
       await exitFullscreen.call(document);
     } catch (error) {
       console.error(error);
+      throw error;
     }
   };
 }
