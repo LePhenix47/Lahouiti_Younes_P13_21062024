@@ -506,9 +506,21 @@ export class ChatRoomMediaComponent {
       return roomName;
     });
 
-    this.isReceiver = otherPeerUserName === this.ownUsername();
+    this.isReceiver =
+      otherPeerUserName === this.ownUsername() &&
+      otherPeerUserName !== this.currentRoom();
+    console.log(
+      'isReceiver',
+      this.isReceiver,
+      'otherPeerUserName',
+      otherPeerUserName,
+      'ownUsername',
+      this.ownUsername()
+    );
 
-    this.otherPeerUserName = otherPeerUserName;
+    this.otherPeerUserName = this.isReceiver
+      ? this.currentRoom()
+      : otherPeerUserName;
 
     this.chatWebRtcService.notifyRemotePeerOfLocalMediaShare({
       video: this.showWebcam(),
@@ -559,7 +571,7 @@ export class ChatRoomMediaComponent {
 
   public connectToRoom = (roomName: string): void => {
     this.chatWebRtcService.initializePeerConnection();
-    this.chatWebRtcService.joinRoom(roomName);
+    this.chatWebRtcService.joinRoom(roomName, this.ownUsername());
 
     this.setWebRtcVideoElements();
 

@@ -69,7 +69,7 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
   });
 
   // Handle a user joining a room
-  socket.on("join-room", (roomName) => {
+  socket.on("join-room", ({ roomName, joinerName }) => {
     // Check if the user is already in a room
     for (const [name, participants] of roomsMap.entries()) {
       if (!participants.includes(userName)) {
@@ -111,8 +111,8 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
     );
 
     // Emit a success message back to the joiner and update the room list
-    socket.emit("room-joined", { roomName, userName });
-    socket.to(roomName).emit("room-joined", { roomName, userName });
+    socket.emit("room-joined", { roomName, joinerName });
+    socket.to(roomName).emit("room-joined", { roomName, joinerName });
     io.emit("room-list", getRoomsArrayFromMap(roomsMap));
   });
 

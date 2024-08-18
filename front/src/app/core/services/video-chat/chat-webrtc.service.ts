@@ -150,8 +150,8 @@ export class ChatWebRtcService extends WebRTCService {
 
     this.socketio.on(
       'room-joined',
-      (data: { roomName: string; userName: string }) => {
-        this.onRoomJoinedCallback?.(data.roomName, data.userName);
+      (data: { roomName: string; joinerName: string }) => {
+        this.onRoomJoinedCallback?.(data.roomName, data.joinerName);
       }
     );
 
@@ -290,12 +290,12 @@ export class ChatWebRtcService extends WebRTCService {
    *
    * @param {string} roomName The name of the room to be joined.
    */
-  public joinRoom = (roomName: string): void => {
+  public joinRoom = (roomName: string, joinerName: string): void => {
     if (!this.socketio) {
       return;
     }
     this.currentRoom = roomName;
-    this.socketio.emit('join-room', roomName);
+    this.socketio.emit('join-room', { roomName, joinerName });
   };
 
   /**
