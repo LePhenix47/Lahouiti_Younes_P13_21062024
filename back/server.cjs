@@ -115,6 +115,8 @@ io.on("connection", (socket) => {
       roomsMap.get(userName) || connectedUsersMap.get(userName)?.joinedRoom;
 
     if (roomName) {
+      console.log("User disconnected and deleted room", { roomName });
+
       // ? Regardless if the user was the creator or joiner of the room, we'll still delete it
       socket.to(roomName).emit("room-deleted", { roomName, userName });
     }

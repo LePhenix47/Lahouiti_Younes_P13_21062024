@@ -9,6 +9,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { Title } from '@angular/platform-browser';
+import { CollapsibleHeightComponent } from '@components/shared/collapsible-height/collapsible-height.component';
 import { ScreenRecordingService } from '@core/services/screen-recording/screen-recording.service';
 import { ChatWebRtcService } from '@core/services/video-chat/chat-webrtc.service';
 import { VolumeMeterService } from '@core/services/volume-meter/volume-meter.service';
@@ -24,7 +25,7 @@ import { Socket } from 'socket.io-client';
 @Component({
   selector: 'app-chat-room-media',
   standalone: true,
-  imports: [],
+  imports: [CollapsibleHeightComponent],
   templateUrl: './chat-room-media.component.html',
   styleUrl: './chat-room-media.component.scss',
 })
@@ -242,6 +243,8 @@ export class ChatRoomMediaComponent {
     } else {
       this.deleteRoom();
     }
+
+    this.chatWebRtcService.resetPeerConnection();
   }
 
   private setPageTitle = (title: string): void => {
@@ -419,6 +422,7 @@ export class ChatRoomMediaComponent {
     this.isReceiver = false;
     this.otherPeerUserName = null;
     this.isRemotePeerMediaActive = false;
+    this.currentRoom.update(() => null);
   };
 
   private resetWebRTCState = (): void => {

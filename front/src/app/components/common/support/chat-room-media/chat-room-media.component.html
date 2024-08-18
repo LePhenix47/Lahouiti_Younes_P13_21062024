@@ -43,47 +43,54 @@
       Local stream {{!webRtcSessionStarted ? "(preview)" : ""}}
     </h3>
     <div class="chat-room-media__local-media-container">
+      <app-collapsible-height [isOpen]="showWebcam()">
+        <video autoPlay playsInline muted volume="0" disablePictureInPicture #ownWebCamVideoRef
+          class="chat-room-media__webcam-video chat-room-media__webcam-video--local"></video>
+      </app-collapsible-height>
 
-
-      <video autoPlay playsInline muted volume="0" disablePictureInPicture #ownWebCamVideoRef
-        class="chat-room-media__webcam-video chat-room-media__webcam-video--local"></video>
-
-
-      <progress value="0" max="0.25" #ownAudioVolumeIndicatorRef class="chat-room-media__audio-indicator"></progress>
-
-      @if(showScreenCast()){
-      <p>You are sharing your own screen</p>
-      }
+      <app-collapsible-height [isOpen]="openMicrophone()">
+        <progress value="0" max="0.25" #ownAudioVolumeIndicatorRef class="chat-room-media__audio-indicator"></progress>
+      </app-collapsible-height>
     </div>
 
-    <h3 class="chat-room-media__remote-stream-title">
-      Remote stream
-    </h3>
-    <div class="chat-room-media__remote-media-container">
-
-      <video autoPlay playsInline #remoteWebCamVideoRef
-        class="chat-room-media__webcam-video chat-room-media__webcam-video--remote"></video>
-
-
-      <progress value="0" max="0.25" #remotePeerAudioVolumeIndicatorRef
-        class="chat-room-media__audio-indicator"></progress>
-
-      <p>{{otherPeerUserName}}</p>
-
-      @if(hasRemotePeerSharedScreen()){
-      <p>{{otherPeerUserName}} is sharing their screen</p>
-      }
-    </div>
-
-    @if (hasPiPModeAvailable() && webRtcSessionStarted){
-    <button (click)="requestPictureInPicture()">PiP</button>
-
-    <label>
-      <input type="checkbox" name="" [checked]="isPiPToggleEnabledOnTabSwitch()"
-        (click)="togglePiPOnTabSwitch($event)" />
-      Remove Picture-in-picture on current tab switch
-    </label>
+    @if(showScreenCast()){
+    <p>You are sharing your own screen</p>
     }
+
+    <app-collapsible-height [isOpen]="webRtcSessionStarted">
+      <h3 class="chat-room-media__remote-stream-title">
+        Remote stream
+      </h3>
+      <div class="chat-room-media__remote-media-container">
+
+        <app-collapsible-height [isOpen]="hasRemotePeerSharedWebCam() && webRtcSessionStarted">
+          <video autoPlay playsInline #remoteWebCamVideoRef
+            class="chat-room-media__webcam-video chat-room-media__webcam-video--remote {{hasRemotePeerSharedScreen() ? 'chat-room-media__webcam-video--has-screen' : ''}}"></video>
+          @if(hasRemotePeerSharedScreen()){
+          <button type="button" class="chat-room-media__webcam-video-fullscreen">Toggle fullscreen</button>
+          }
+
+          @if (hasPiPModeAvailable() && webRtcSessionStarted){
+          <button (click)="requestPictureInPicture()">PiP</button>
+
+          <label>
+            <input type="checkbox" name="" [checked]="isPiPToggleEnabledOnTabSwitch()"
+              (click)="togglePiPOnTabSwitch($event)" />
+            Remove Picture-in-picture on current tab switch
+          </label>
+          }
+        </app-collapsible-height>
+
+        <app-collapsible-height [isOpen]="hasRemotePeerSharedMicrophone() && webRtcSessionStarted">
+          <progress value="0" max="0.25" #remotePeerAudioVolumeIndicatorRef
+            class="chat-room-media__audio-indicator"></progress>
+        </app-collapsible-height>
+      </div>
+
+      <p>{{otherPeerUserName}} {{hasRemotePeerSharedScreen() ? "is sharing their screen" : ""}}</p>
+    </app-collapsible-height>
+
+
 
   </section>
 
@@ -313,7 +320,10 @@
   }
 
   <section class="chat-room-media__screen-recording">
-    <video autoPlay playsInline #videoRecordingElementRef class="chat-room-media__screen-recording-preview"></video>
+
+    <app-collapsible-height [isOpen]="isRecording()">
+      <video autoPlay playsInline #videoRecordingElementRef class="chat-room-media__screen-recording-preview"></video>
+    </app-collapsible-height>
 
     <button class="chat-room-media__screen-recording-start" (click)="startRecording()"
       [disabled]="isRecording()">Start</button>

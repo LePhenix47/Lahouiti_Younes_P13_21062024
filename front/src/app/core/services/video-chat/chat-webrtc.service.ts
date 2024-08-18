@@ -503,4 +503,8 @@ export class ChatWebRtcService extends WebRTCService {
     this.closeDataChannel();
     this.closePeerConnection();
   };
+
+  public resetPeerConnection = (): void => {
+    this.peerConnection = null;
+  };
 }

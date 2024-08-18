@@ -86,7 +86,14 @@
   }
 
   &__webcam-video {
+    width: 300px;
+    height: 150px;
+
+    @include fit-image(contain);
+
     scale: -100% 100%;
+
+    transition: width 250ms ease-in-out, height 250ms ease-in-out;
 
     &--remote {
       scale: 100% 100%;
@@ -94,14 +101,15 @@
 
       // &:picture-in-picture {      }
     }
+
+    &--has-screen {
+      --_size: 100% !important;
+
+      width: var(--_size);
+      height: var(--_size);
+    }
   }
 
-  video {
-    width: 300px;
-    height: 150px;
-
-    @include fit-image(contain);
-  }
 
   &__calls-item {
     display: flex;
