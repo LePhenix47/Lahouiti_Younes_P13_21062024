@@ -140,7 +140,8 @@ export class ScreenRecordingService {
    */
   private getMergedAudioStreams = (): MediaStream => {
     // * Initialize AudioContext
-    this.audioContext = new AudioContext();
+    this.audioContext = new (AudioContext ||
+      (window as any).webkitAudioContext)();
 
     // * Create a destination node to combine the audio
     const audioDestination: MediaStreamAudioDestinationNode =
@@ -170,11 +171,6 @@ export class ScreenRecordingService {
         this.audioContext.createMediaStreamSource(this.remotePeerStream!);
 
       remoteAudioSource.connect(audioDestination);
-      console.log(
-        this.screenStream,
-        this.ownMicrophoneStream,
-        this.remotePeerStream
-      );
     }
 
     // Return the combined audio stream
@@ -288,8 +284,9 @@ export class ScreenRecordingService {
       return;
     }
 
-    const tracks: MediaStreamTrack[] =
-      this.mediaRecorder.stream.getVideoTracks();
+    const { stream } = this.mediaRecorder;
+
+    const tracks: MediaStreamTrack[] = stream.getTracks();
     for (const track of tracks) {
       track.stop();
     }
