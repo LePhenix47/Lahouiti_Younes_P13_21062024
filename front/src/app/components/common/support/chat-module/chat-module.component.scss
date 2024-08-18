@@ -71,17 +71,17 @@
   &__message-main-info {}
 
   &__sender {
-    --_text-gradient: linear-gradient(90deg, var(--color-ycyw-1), var(--color-ycyw-2));
+    --ycyw-gradient: linear-gradient(90deg, var(--color-ycyw-1), var(--color-ycyw-2));
     font-weight: bolder;
 
     &--join {
-      @include text-background(var(--_text-gradient));
+      @include text-background(var(--ycyw-gradient));
     }
 
     &--chat {}
 
     &--leave {
-      @include text-background(var(--_text-gradient));
+      @include text-background(var(--ycyw-gradient));
     }
 
     &--error {}

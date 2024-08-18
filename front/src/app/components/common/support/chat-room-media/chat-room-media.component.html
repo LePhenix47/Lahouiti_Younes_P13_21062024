@@ -1,7 +1,14 @@
 <aside class="chat-room-media">
+  <h3 class="chat-room-media__local-stream-title">
+    Peers list
+  </h3>
   <ul class="chat-room-media__users-list">
     @for(user of usersList(); let index = $index; track index){
-    <li class="chat-room-media__user">
+    <li class="chat-room-media__user
+      {{user === ownUsername() ? 'chat-room-media__user--is-ourselves' : ''}}
+      {{ user !== ownUsername() && user === otherPeerUserName && !webRtcSessionStarted ? 'chat-room-media__user--room-remote-peer' : ''}}
+      {{ user !== ownUsername() && user === otherPeerUserName && webRtcSessionStarted ? 'chat-room-media__user--connected-remote-peer' : ''}}
+      ">
       <p class="chat-room-media__username">
         {{user === ownUsername() ? user + ' (you)' : user}}
       </p>
@@ -14,7 +21,7 @@
   </h3>
   @if(!roomsList().length){
   <p>No calls have been made yet</p>
-  }
+  }@else {
   <ul class="chat-room-media__calls-list">
 
     @for(room of roomsList(); let index = $index; track index){
@@ -31,6 +38,7 @@
     }
 
   </ul>
+  }
 
   @if(roomErrorMessage){
   <p class="chat-room-media__error-message">
@@ -66,16 +74,13 @@
         <app-collapsible-height [isOpen]="hasRemotePeerSharedWebCam() && webRtcSessionStarted">
           <video autoPlay playsInline #remoteWebCamVideoRef
             class="chat-room-media__webcam-video chat-room-media__webcam-video--remote {{hasRemotePeerSharedScreen() ? 'chat-room-media__webcam-video--has-screen' : ''}}"></video>
-          @if(hasRemotePeerSharedScreen()){
-          <button type="button" class="chat-room-media__webcam-video-fullscreen">Toggle fullscreen</button>
-          }
 
           @if (hasPiPModeAvailable() && webRtcSessionStarted){
           <button (click)="requestPictureInPicture()">PiP</button>
 
           <label>
             <input type="checkbox" name="" [checked]="isPiPToggleEnabledOnTabSwitch()"
-              (click)="togglePiPOnTabSwitch($event)" />
+              (click)="togglePiPOnTabSwitch()" />
             Remove Picture-in-picture on current tab switch
           </label>
           }
@@ -86,6 +91,12 @@
             class="chat-room-media__audio-indicator"></progress>
         </app-collapsible-height>
       </div>
+
+      @if(hasRemotePeerSharedScreen()){
+
+      <button type="button" class="chat-room-media__webcam-video-fullscreen"
+        (click)="requestRemoteScreenShareFullscreen()">Toggle fullscreen</button>
+      }
 
       <p>{{otherPeerUserName}} {{hasRemotePeerSharedScreen() ? "is sharing their screen" : ""}}</p>
     </app-collapsible-height>
@@ -276,7 +287,8 @@
 
   @if(!webRtcSessionStarted){
   <button type="button" class="chat-room-media__button ycyw__button ycyw__button--1" (click)="initializeConnection()"
-    [disabled]="!otherPeerUserName || !isRemotePeerMediaActive || !localPeerHasSharedLocalMedia()">Start</button>
+    [disabled]="!otherPeerUserName || !isRemotePeerMediaActive || !localPeerHasSharedLocalMedia()">Start WebRTC
+    session</button>
 
 
   <p class="chat-room-media__error-message">

@@ -1,6 +1,16 @@
 @use "../../../../../styles.scss" as *;
 
 
+@keyframes blink-outline {
+  from {
+    outline: 2px solid yellowgreen;
+  }
+
+  to {
+    outline: 2px solid transparent;
+  }
+}
+
 :host {
   width: fit-content;
   order: -1;
@@ -15,28 +25,36 @@
   padding: 15px;
 
   &__users-list {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
   }
 
   &__user {
-    min-width: 200px;
-    min-height: 100px;
-    border-radius: 15px;
+    width: fit-content;
 
-    font-family: "Phosphate Pro Solid";
+    padding-inline: 10px;
+    padding-block: 5px;
 
-    border: 2px solid currentColor;
+    background-image: var(--ycyw-gradient);
+    border-radius: 100vmax;
 
-    @include center-flex;
+    &--is-ourselves {
+      outline: 2px solid currentColor;
+    }
 
-    text-align: center;
-    text-transform: uppercase;
-    overflow: hidden;
+    &--room-remote-peer {
+      outline: 2px solid yellowgreen;
+    }
 
-    position: relative;
+    &--connected-remote-peer {
+      outline: 2px solid yellowgreen;
+      animation: blink-outline 2s ease-in-out infinite alternate;
+    }
+  }
 
+  &__username {
+    color: inherit
   }
 
   &__controls-fieldset {
@@ -79,11 +97,6 @@
     }
   }
 
-  &__username {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-  }
 
   &__webcam-video {
     width: 300px;
