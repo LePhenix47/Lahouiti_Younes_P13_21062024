@@ -22,11 +22,12 @@ import {
 import { formatTimeValues } from '@core/utils/numbers/time.utils';
 import { createDeviceList } from '@core/utils/videoconference/videoconference.utils';
 import { Socket } from 'socket.io-client';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-chat-room-media',
   standalone: true,
-  imports: [CollapsibleHeightComponent],
+  imports: [CollapsibleHeightComponent, MatIconModule],
   templateUrl: './chat-room-media.component.html',
   styleUrl: './chat-room-media.component.scss',
 })
