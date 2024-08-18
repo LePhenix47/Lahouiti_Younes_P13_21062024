@@ -20,11 +20,13 @@ export class CheckUsernameService extends ApiService {
   });
 
   // * Selectors
-  public readonly isLoading = computed(() => this.state().isLoading);
+  public readonly isLoading = computed<boolean>(() => this.state().isLoading);
 
   public readonly error = computed(() => this.state().error);
 
-  public readonly isAvailable = computed(() => this.state().isAvailable);
+  public readonly isAvailable = computed<boolean>(
+    () => this.state().isAvailable
+  );
 
   /**
    * Checks the availability of a username.
@@ -44,13 +46,14 @@ export class CheckUsernameService extends ApiService {
             this.setErrorIndicator(err);
 
             reject(err);
+            this.setAvailability(false);
             return of(err);
           })
         )
         .subscribe((result) => {
           resolve(result);
 
-          this.setAvailability(Boolean(result?.error));
+          this.setAvailability(!this.error());
           this.setLoadingIndicator(false);
 
           subscription.unsubscribe();

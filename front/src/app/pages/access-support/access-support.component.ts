@@ -1,10 +1,11 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { setChatUsernameAction } from '@core/ngrx/actions/chat-info.actions';
 import { CheckUsernameService } from '@core/services/check-username/check-username.service';
 import { Store } from '@ngrx/store';
 import { SpinLoaderComponent } from '@components/shared/spin-loader/spin-loader.component';
+import { usernameSuggestions } from '@core/variables/access-support.variables';
 
 @Component({
   selector: 'app-access-support',
@@ -23,6 +24,10 @@ export class AccessSupportComponent {
 
   public readonly isLoading = this.checkUserNameService.isLoading;
   public readonly error = this.checkUserNameService.error;
+  public readonly isAvailable = this.checkUserNameService.isAvailable;
+
+  public readonly usernameSuggestions =
+    signal<typeof usernameSuggestions>(usernameSuggestions);
 
   /**
    * Store for managing application state.

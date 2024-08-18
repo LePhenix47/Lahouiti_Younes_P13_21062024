@@ -12,7 +12,13 @@
         Enter your username
       </label>
       <input type="text" class="access-support__input ycyw__input" id="username" placeholder="Ex: John Doe"
-        formControlName="username" />
+        formControlName="username" list="usernames-datalist" />
+      <datalist id="usernames-datalist">
+        @for (username of usernameSuggestions(); let index = $index; track index) {
+        <option value="{{ username }}">{{ username }}</option>
+        }
+
+      </datalist>
     </fieldset>
 
     <button type="submit" class="access-support__button ycyw__button ycyw__button--1">Join chat</button>
@@ -24,5 +30,8 @@
 
   @if(error()){
   <p>{{ error()?.error?.message }}</p>
+  }
+  @if(isAvailable()){
+  <p>Joining chat</p>
   }
 </section>
