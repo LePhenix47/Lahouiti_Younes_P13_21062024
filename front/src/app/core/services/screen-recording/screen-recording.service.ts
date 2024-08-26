@@ -43,8 +43,7 @@ export class ScreenRecordingService {
       return;
     }
 
-    const clonedStream: MediaStream = stream?.clone();
-    this.remotePeerStream = clonedStream;
+    this.remotePeerStream = stream;
   };
 
   private onScreenStreamEnd: (...args: any) => any = (): any => {};
@@ -242,7 +241,9 @@ export class ScreenRecordingService {
    * @param {BlobEvent} event - The event containing the recorded data chunk.
    */
   private onDataAvailable = (event: BlobEvent): void => {
-    const hasNoChunks: boolean = !(event.data?.size > 0);
+    const { data } = event;
+
+    const hasNoChunks: boolean = !data?.size;
     if (hasNoChunks) {
       console.warn(
         'No data chunks available to record',
@@ -253,7 +254,7 @@ export class ScreenRecordingService {
       return;
     }
 
-    this.recordedChunks.push(event.data);
+    this.recordedChunks.push(data);
   };
 
   /**

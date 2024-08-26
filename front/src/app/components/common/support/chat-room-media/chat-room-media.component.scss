@@ -141,4 +141,23 @@
     flex-direction: column;
   }
 
+
+  &__icon {
+    display: flex;
+  }
+
+  &__icon-checkbox {
+
+    display: block;
+    padding: 10px;
+
+    &--on {
+      background-color: var(--bg-icon-enabled);
+    }
+
+    &--off {
+      background-color: var(--bg-icon-disabled);
+    }
+  }
+
 }

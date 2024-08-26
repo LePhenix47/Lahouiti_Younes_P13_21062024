@@ -834,7 +834,10 @@ export class ChatRoomMediaComponent {
     }
   };
 
-  public toggleInputDevicesOnWebRtc = (event: Event): void => {
+  public toggleInputDevicesOnWebRtc = (
+    event: Event,
+    toggleType: string
+  ): void => {
     if (!this.webRtcSessionStarted) {
       console.error('WebRTC session has not started yet');
 
@@ -842,7 +845,6 @@ export class ChatRoomMediaComponent {
     }
 
     const input = event.currentTarget as HTMLInputElement;
-    const [_, toggleType] = input.name.split(/\s/g);
 
     if (toggleType === 'webcam') {
       this.hasEnabledWebcamForWebRTC.update(() => input.checked);
