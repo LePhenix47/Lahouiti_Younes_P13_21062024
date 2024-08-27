@@ -144,20 +144,82 @@
 
   &__icon {
     display: flex;
+    width: fit-content;
+
+    isolation: isolate;
+
+    outline: 2px solid burlywood;
+
+    &--on {
+
+      &>.chat-room-media__icon-checkbox {
+        background-color: var(--bg-icon-enabled);
+      }
+
+      &>.chat-room-media__icon-select-label {
+        width: 24px;
+      }
+
+    }
+
+    &--off {
+
+      &>.chat-room-media__icon-checkbox {
+        background-color: var(--bg-icon-disabled);
+      }
+
+      &>.chat-room-media__icon-select-label {
+        width: 0px;
+      }
+
+    }
   }
 
   &__icon-checkbox {
 
     display: block;
     padding: 10px;
+  }
 
-    &--on {
-      background-color: var(--bg-icon-enabled);
-    }
+  &__icon-select-label {
 
-    &--off {
-      background-color: var(--bg-icon-disabled);
-    }
+    position: relative;
+
+    overflow: hidden;
+
+    transition: width 250ms ease-in-out;
+
+    @include center-flex-column;
+
+    color: black;
+    background-color: white;
+  }
+
+
+  &__input-device-select {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    height: 100%;
+    width: 100%;
+
+    z-index: 3;
+
+    text-indent: 100vmax; // * Hides the text on the <select> element by pushing it out of view
+  }
+
+  &__output-device-select {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    height: 100%;
+    width: 100%;
+
+    z-index: 3;
+
+    text-indent: 100vmax; // * Hides the text on the <select> element by pushing it out of view
   }
 
 }

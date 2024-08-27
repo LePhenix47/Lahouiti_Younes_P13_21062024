@@ -1,26 +1,4 @@
 <aside class="chat-room-media">
-
-
-  <mat-icon>videocam</mat-icon>
-  <mat-icon>videocam_off</mat-icon>
-
-  <mat-icon>mic</mat-icon>
-  <mat-icon>mic_off</mat-icon>
-
-  <mat-icon>call_end</mat-icon>
-  <mat-icon>speaker</mat-icon>
-
-  <mat-icon>volume_up</mat-icon>
-  <mat-icon>volume_off</mat-icon>
-  <mat-icon>volume_mute</mat-icon>
-
-  <mat-icon>desktop_windows</mat-icon>
-  <mat-icon>desktop_access_disabled</mat-icon>
-
-  <mat-icon>keyboard_arrow_down</mat-icon>
-  <mat-icon>picture_in_picture</mat-icon>
-  <mat-icon>fullscreen</mat-icon>
-
   <section class="chat-room-media__chat-room-info">
     <h3 class="chat-room-media__local-stream-title">
       Peers list
@@ -227,22 +205,9 @@
     <form class="chat-room-media__controls">
 
       <fieldset class="chat-room-media__controls-fieldset chat-room-media__controls-fieldset--toggles">
-        <legend class="chat-room-media__controls-legend chat-room-media__controls-legend--toggles">Toggle controls
-        </legend>
-        @if(webRtcSessionStarted){
-        <button type="button" (click)="startScreenCast()"
-          [disabled]="showScreenCast() ||  !hasEnabledWebcamForWebRTC()">
-          Start screen-cast
-        </button>
-
-        <button type="button" (click)="stopScreenCast()" [disabled]="!showScreenCast() && hasEnabledWebcamForWebRTC()">
-          Stop screen-cast
-        </button>
-        }
-
-        <div class="chat-room-media__icon">
-          <label
-            class="chat-room-media__icon-checkbox chat-room-media__icon-checkbox--{{(!webRtcSessionStarted && showWebcam()) || (webRtcSessionStarted && hasEnabledWebcamForWebRTC()) ? 'on' : 'off'}}">
+        <div
+          class="chat-room-media__icon chat-room-media__icon--{{(!webRtcSessionStarted && showWebcam()) || (webRtcSessionStarted && hasEnabledWebcamForWebRTC()) ? 'on' : 'off'}}">
+          <label class="chat-room-media__icon-checkbox">
             <input type="checkbox" name="local-connection-control" class="chat-room-media__input hide"
               (change)="webRtcSessionStarted ? toggleInputDevicesOnWebRtc($event, 'webcam') : toggleWebcam($event)"
               [checked]="showWebcam() || (webRtcSessionStarted && !hasEnabledWebcamForWebRTC())" />
@@ -253,10 +218,11 @@
             }
           </label>
 
-          <label class="chat-room-media__icon-select">
+          <label class="chat-room-media__icon-select-label">
             <mat-icon>keyboard_arrow_down</mat-icon>
 
-            <select class="chat-room-media__video-input-device" (change)="switchWebcamDevice($event)"
+            <select class="chat-room-media__input-device-select chat-room-media__input-device-select--video transparent"
+              (change)="switchWebcamDevice($event)"
               [disabled]="!showWebcam() || (webRtcSessionStarted && !hasEnabledWebcamForWebRTC()) || hasNoVideoInputsInList()">
 
               @for(device of videoInputsList(); let index = $index; track index){
@@ -267,10 +233,10 @@
           </label>
         </div>
         <!-- TODO -->
-        <div class="chat-room-media__icon">
+        <div
+          class="chat-room-media__icon chat-room-media__icon--{{(!webRtcSessionStarted && openMicrophone()) || (webRtcSessionStarted && hasEnabledMicrophoneForWebRTC()) ? 'on' : 'off'}}">
 
-          <label
-            class="chat-room-media__icon-checkbox chat-room-media__icon-checkbox--{{(!webRtcSessionStarted && openMicrophone()) || (webRtcSessionStarted && hasEnabledMicrophoneForWebRTC()) ? 'on' : 'off'}}">
+          <label class="chat-room-media__icon-checkbox">
             <input type="checkbox" name="local-connection-control" class="chat-room-media__input hide"
               (change)="webRtcSessionStarted ? toggleInputDevicesOnWebRtc($event, 'microphone') : toggleAudio($event)"
               [checked]="openMicrophone() || (webRtcSessionStarted && !hasEnabledMicrophoneForWebRTC())" />
@@ -282,10 +248,11 @@
             }
           </label>
 
-          <label class="chat-room-media__icon-select">
+          <label class="chat-room-media__icon-select-label">
             <mat-icon>keyboard_arrow_down</mat-icon>
 
-            <select class="chat-room-media__audio-input-device" (change)="switchMicrophoneDevice($event)"
+            <select class="chat-room-media__input-device-select chat-room-media__input-device-select--audio transparent"
+              (change)="switchMicrophoneDevice($event)"
               [disabled]="!openMicrophone() || hasNoAudioInputsInList() || (webRtcSessionStarted && !hasEnabledMicrophoneForWebRTC())">
               @for(device of audioInputsList(); let index = $index; track index){
               <option value="{{device.deviceId}}" [selected]="device.isDefaultDevice">{{device.label}}</option>
@@ -294,50 +261,47 @@
           </label>
         </div>
 
-      </fieldset>
+        <div class="chat-room-media__icon chat-room-media__icon--{{ hasNoAudioOutputsInList() ? 'off' : 'on'}}">
+          <label class="chat-room-media__icon-checkbox">
+            <mat-icon>speaker</mat-icon>
+          </label>
 
-      <fieldset class="chat-room-media__controls-fieldset chat-room-media__controls-fieldset--devices">
-        <legend class="chat-room-media__controls-legend chat-room-media__controls-legend--devices">Device inputs/outputs
-        </legend>
+          <label class="chat-room-media__icon-select-label" (change)="switchSpeakerDevice($event)">
+            <mat-icon>keyboard_arrow_down</mat-icon>
 
-        <label
-          class="chat-room-media__label chat-room-media__control
-           {{ !showWebcam() || (webRtcSessionStarted && !hasEnabledWebcamForWebRTC()) ? 'chat-room-media__control--disabled' : '' }}">
-          Video input device {{hasNoVideoInputsInList() ? '(none available)' : '' }}
+            <select
+              class="chat-room-media__output-device-select chat-room-media__output-device-select--audio transparent"
+              name="audio-output-device" [disabled]="hasNoAudioOutputsInList()">
+              @for(device of audioOutputsList(); let index = $index; track index){
+              <option value="{{device.deviceId}}" [selected]="device.isDefaultDevice">{{device.label}}</option>
+              }
+            </select>
+          </label>
+        </div>
 
-          <select class="chat-room-media__video-input-device" (change)="switchWebcamDevice($event)"
-            [disabled]="!showWebcam() || (webRtcSessionStarted && !hasEnabledWebcamForWebRTC()) || hasNoVideoInputsInList()">
+        <div
+          class="chat-room-media__icon chat-room-media__icon--{{ !webRtcSessionStarted || !hasEnabledWebcamForWebRTC() ? 'off' : 'on'}}">
+          <label class="chat-room-media__icon-checkbox">
+            <input type="checkbox" name="local-connection-control" class="chat-room-media__input hide"
+              (change)="showScreenCast() ? stopScreenCast() : startScreenCast()" [checked]="showScreenCast()"
+              [disabled]="!hasEnabledWebcamForWebRTC()" />
 
-            @for(device of videoInputsList(); let index = $index; track index){
-            <option value="{{device.deviceId}}" selected="{{index === 0}}">{{device.label}}</option>
+            @if(webRtcSessionStarted && hasEnabledWebcamForWebRTC()){
+            @if(showScreenCast()){
+            <mat-icon>desktop_access_disabled</mat-icon>
+            }@else {
+            <mat-icon>desktop_windows</mat-icon>
             }
 
-          </select>
-        </label>
-
-        <label
-          class="chat-room-media__label chat-room-media__control
-           {{ !openMicrophone() || (webRtcSessionStarted && !hasEnabledMicrophoneForWebRTC()) ? 'chat-room-media__control--disabled' : '' }}">
-          Audio input device {{hasNoAudioInputsInList() ? '(none available)' : '' }}
-
-          <select class="chat-room-media__audio-input-device" (change)="switchMicrophoneDevice($event)"
-            [disabled]="!openMicrophone() || hasNoAudioInputsInList() || (webRtcSessionStarted && !hasEnabledMicrophoneForWebRTC())">
-            @for(device of audioInputsList(); let index = $index; track index){
-            <option value="{{device.deviceId}}" [selected]="device.isDefaultDevice">{{device.label}}</option>
+            }@else {
+            <mat-icon>phonelink_off</mat-icon>
             }
-          </select>
-        </label>
 
-        <label
-          class="chat-room-media__label chat-room-media__control {{ hasNoAudioOutputsInList() ? 'chat-room-media__control--disabled' : '' }}"
-          (change)="switchSpeakerDevice($event)">
-          Audio output device {{hasNoAudioOutputsInList() ? '(none available)' : '' }} <select
-            name="audio-output-device" [disabled]="hasNoAudioOutputsInList()">
-            @for(device of audioOutputsList(); let index = $index; track index){
-            <option value="{{device.deviceId}}" [selected]="device.isDefaultDevice">{{device.label}}</option>
+            @if(!webRtcSessionStarted && !hasEnabledWebcamForWebRTC()){
+            no camera was shared
             }
-          </select>
-        </label>
+          </label>
+        </div>
 
       </fieldset>
 
