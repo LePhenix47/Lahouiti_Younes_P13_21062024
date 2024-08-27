@@ -20,7 +20,10 @@ import {
   Room,
 } from '@core/types/videoconference/videoconference.types';
 import { formatTimeValues } from '@core/utils/numbers/time.utils';
-import { createDeviceList } from '@core/utils/videoconference/videoconference.utils';
+import {
+  checkDeviceListAvailability,
+  createDeviceList,
+} from '@core/utils/videoconference/videoconference.utils';
 import { Socket } from 'socket.io-client';
 import { MatIconModule } from '@angular/material/icon';
 
@@ -87,11 +90,7 @@ export class ChatRoomMediaComponent {
   });
 
   public readonly hasNoVideoInputsInList = computed<boolean>(() => {
-    return (
-      this.videoInputsList().length < 1 ||
-      (this.videoInputsList().length === 1 &&
-        !this.videoInputsList()[0].deviceId)
-    );
+    return checkDeviceListAvailability(this.videoInputsList());
   });
 
   public readonly audioInputsList = computed<DeviceInfo[]>(() => {
@@ -99,11 +98,7 @@ export class ChatRoomMediaComponent {
   });
 
   public readonly hasNoAudioInputsInList = computed<boolean>(() => {
-    return (
-      this.audioInputsList().length < 1 ||
-      (this.audioInputsList().length === 1 &&
-        !this.audioInputsList()[0].deviceId)
-    );
+    return checkDeviceListAvailability(this.audioInputsList());
   });
 
   // Filter for audio output devices
@@ -112,11 +107,7 @@ export class ChatRoomMediaComponent {
   });
 
   public readonly hasNoAudioOutputsInList = computed<boolean>(() => {
-    return (
-      this.audioOutputsList().length < 1 ||
-      (this.audioOutputsList().length === 1 &&
-        !this.audioOutputsList()[0].deviceId)
-    );
+    return checkDeviceListAvailability(this.audioOutputsList());
   });
 
   public readonly selectedVideoInputDeviceId = signal<string | null>(null);
@@ -167,6 +158,9 @@ export class ChatRoomMediaComponent {
   });
 
   public readonly screenRecordingBlobs = signal<ScreenRecordBlob[]>([]);
+
+  public screenRecordingIntervalId: NodeJS.Timeout | null = null;
+  public readonly screenRecordingElapsedTimeInSec = signal<number>(0);
 
   // * Room states
   public readonly roomsList = signal<Room[]>([]);
@@ -248,7 +242,30 @@ export class ChatRoomMediaComponent {
     }
 
     this.chatWebRtcService.resetPeerConnection();
+
+    this.resetScreenRecordingIntervalId();
   }
+
+  private resetScreenRecordingIntervalId = (): void => {
+    if (!this.screenRecordingIntervalId) {
+      console.error(
+        'The screen recording interval is not defined, cannot reset interval, received: ',
+        this.screenRecordingIntervalId
+      );
+      return;
+    }
+
+    clearInterval(this.screenRecordingIntervalId);
+    this.screenRecordingIntervalId = null;
+
+    this.screenRecordingElapsedTimeInSec.update(() => 0);
+  };
+
+  private incrementScreenRecordingElapsed = (): void => {
+    this.screenRecordingElapsedTimeInSec.update((prev: number) => {
+      return prev + 1;
+    });
+  };
 
   private setPageTitle = (title: string): void => {
     this.titlePageService.setTitle(title);
@@ -996,6 +1013,11 @@ export class ChatRoomMediaComponent {
         this.selectedAudioInputDeviceId()!
       );
 
+    this.screenRecordingIntervalId = setInterval(
+      this.incrementScreenRecordingElapsed,
+      1_000
+    );
+
     const videoTracks: MediaStreamTrack[] = recordingStream!.getVideoTracks();
 
     const recordingStreamNoSound = new MediaStream(videoTracks);
@@ -1008,6 +1030,8 @@ export class ChatRoomMediaComponent {
 
   public stopRecording = (): void => {
     this.screenRecordingService.stopRecording();
+
+    this.resetScreenRecordingIntervalId();
   };
 
   public removeBlobFromListByIndex = (index: number): void => {
@@ -1040,6 +1064,10 @@ export class ChatRoomMediaComponent {
   };
 
   private updateVideoRecordingList = (): void => {
+    if (this.screenRecordingIntervalId) {
+      this.resetScreenRecordingIntervalId();
+    }
+
     const screenRecordAsBlob: ScreenRecordBlob | null =
       this.screenRecordingService.recordedBlob();
     if (!screenRecordAsBlob?.blob) {

@@ -11,6 +11,18 @@
   }
 }
 
+@keyframes pulse-scale-fade-out {
+  from {
+    scale: 100%;
+    opacity: 100%;
+  }
+
+  to {
+    scale: 150%;
+    opacity: 0%;
+  }
+}
+
 :host {
   width: fit-content;
   order: -1;
@@ -176,9 +188,21 @@
   }
 
   &__icon-checkbox {
+    display: flex;
+    align-items: center;
 
-    display: block;
+    background-color: var(--bg-icon-enabled);
+
     padding: 10px;
+
+    &--recording {
+      width: fit-content;
+      flex-direction: row;
+
+      gap: 5px;
+
+      line-height: 24px;
+    }
   }
 
   &__icon-select-label {
@@ -193,6 +217,14 @@
 
     color: black;
     background-color: white;
+
+    &--recording {
+      width: fit-content;
+      flex-direction: row;
+
+      padding-inline: 5px;
+      line-height: 24px;
+    }
   }
 
 
@@ -220,6 +252,35 @@
     z-index: 3;
 
     text-indent: 100vmax; // * Hides the text on the <select> element by pushing it out of view
+  }
+
+
+  &__recording-status {
+    display: inline-flex;
+    align-items: center;
+
+    line-height: 24px;
+
+    margin-left: 15px;
+  }
+
+  &__recording-status-icon {
+    color: #dd4845;
+
+    &--on {
+      position: absolute;
+      top: 0;
+      left: 0;
+
+      animation: pulse-scale-fade-out 2s linear infinite alternate;
+    }
+  }
+
+  &__recording-status-span {
+    display: inline-flex;
+    align-items: center;
+
+    position: relative;
   }
 
 }

@@ -280,7 +280,7 @@
         </div>
 
         <div
-          class="chat-room-media__icon chat-room-media__icon--{{ !webRtcSessionStarted || !hasEnabledWebcamForWebRTC() ? 'off' : 'on'}}">
+          class="chat-room-media__icon chat-room-media__icon--{{ webRtcSessionStarted && !hasEnabledWebcamForWebRTC() ? 'off' : 'on'}}">
           <label class="chat-room-media__icon-checkbox">
             <input type="checkbox" name="local-connection-control" class="chat-room-media__input hide"
               (change)="showScreenCast() ? stopScreenCast() : startScreenCast()" [checked]="showScreenCast()"
@@ -297,8 +297,35 @@
             <mat-icon>phonelink_off</mat-icon>
             }
 
-            @if(!webRtcSessionStarted && !hasEnabledWebcamForWebRTC()){
+            @if(webRtcSessionStarted && !hasEnabledWebcamForWebRTC()){
             no camera was shared
+            }
+          </label>
+        </div>
+
+
+        <div class="chat-room-media__icon">
+          <label class="chat-room-media__icon-checkbox chat-room-media__icon-checkbox--recording">
+            <input type="checkbox" id="screen-record-toggle" class="chat-room-media__input hide"
+              (change)="isRecording() ? stopRecording() : startRecording()" [checked]="isRecording()" />
+
+            <span class="chat-room-media__recording-status-span">
+              @if(isRecording()){
+              <mat-icon
+                class="chat-room-media__recording-status-icon chat-room-media__recording-status-icon--on">radio_button_checked</mat-icon>
+              }
+              <mat-icon class="chat-room-media__recording-status-icon">radio_button_checked</mat-icon>
+            </span>
+            REC
+          </label>
+
+
+          <label for="screen-record-toggle"
+            class="chat-room-media__icon-select-label chat-room-media__icon-select-label--recording">
+            @if(isRecording()){
+            <mat-icon>stop</mat-icon> {{ formatDuration(screenRecordingElapsedTimeInSec()) }}
+            }@else {
+            <mat-icon>play_arrow</mat-icon>
             }
           </label>
         </div>
@@ -316,17 +343,10 @@
       <video autoPlay playsInline #videoRecordingElementRef class="chat-room-media__screen-recording-preview"></video>
     </app-collapsible-height>
 
-    <button class="chat-room-media__screen-recording-start" (click)="startRecording()"
-      [disabled]="isRecording()">Start</button>
-    <button class="chat-room-media__screen-recording-stop" (click)="stopRecording()"
-      [disabled]="!isRecording()">Stop</button>
-
-    <p class="chat-room-media__screen-recording-status">{{ isRecording() ? '▶️ Recording in progress' :
-      '⏹️ Not recording' }}</p>
 
     <ul class="chat-room-media__screen-recording-list">
 
-      @for (screenRecording of screenRecordingBlobs(); let index = $index; track index) {
+      @for (screenRecording of screenRecordingBlobs().reverse(); let index = $index; track index) {
       <li class="chat-room-media__screen-recording-item">
         <video src="{{screenRecording.objectUrl}}" controls class="chat-room-media__screen-recording-record"></video>
 

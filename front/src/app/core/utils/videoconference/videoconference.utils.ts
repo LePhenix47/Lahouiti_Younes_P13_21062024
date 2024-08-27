@@ -34,3 +34,16 @@ export function createDeviceList(
   // Convert the map back to an array
   return arrayOfDevices;
 }
+
+/**
+ * Checks if the list of device information is empty or contains only one default device that doesn't have a device ID.
+ *
+ * @param deviceInfo The list of device information objects to check.
+ * @returns A boolean indicating whether the list of devices is available or not.
+ */
+export function checkDeviceListAvailability(deviceInfo: DeviceInfo[]) {
+  return (
+    deviceInfo.length < 1 ||
+    (deviceInfo.length === 1 && !deviceInfo[0].deviceId)
+  );
+}
