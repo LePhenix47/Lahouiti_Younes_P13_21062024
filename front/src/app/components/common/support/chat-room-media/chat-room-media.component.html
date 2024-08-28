@@ -205,6 +205,7 @@
     <form class="chat-room-media__controls">
 
       <fieldset class="chat-room-media__controls-fieldset chat-room-media__controls-fieldset--toggles">
+        <!-- * Webcam -->
         <div
           class="chat-room-media__icon chat-room-media__icon--{{(!webRtcSessionStarted && showWebcam()) || (webRtcSessionStarted && hasEnabledWebcamForWebRTC()) ? 'on' : 'off'}}">
           <label class="chat-room-media__icon-checkbox">
@@ -232,7 +233,8 @@
             </select>
           </label>
         </div>
-        <!-- TODO -->
+
+        <!-- * Microphone -->
         <div
           class="chat-room-media__icon chat-room-media__icon--{{(!webRtcSessionStarted && openMicrophone()) || (webRtcSessionStarted && hasEnabledMicrophoneForWebRTC()) ? 'on' : 'off'}}">
 
@@ -261,6 +263,8 @@
           </label>
         </div>
 
+
+        <!-- * Speaker -->
         <div class="chat-room-media__icon chat-room-media__icon--{{ hasNoAudioOutputsInList() ? 'off' : 'on'}}">
           <label class="chat-room-media__icon-checkbox">
             <mat-icon>speaker</mat-icon>
@@ -279,6 +283,8 @@
           </label>
         </div>
 
+
+        <!-- * Screen share -->
         <div
           class="chat-room-media__icon chat-room-media__icon--{{ webRtcSessionStarted && !hasEnabledWebcamForWebRTC() ? 'off' : 'on'}}">
           <label class="chat-room-media__icon-checkbox">
@@ -304,6 +310,8 @@
         </div>
 
 
+
+        <!-- * Screen recording -->
         <div class="chat-room-media__icon">
           <label class="chat-room-media__icon-checkbox chat-room-media__icon-checkbox--recording">
             <input type="checkbox" id="screen-record-toggle" class="chat-room-media__input hide"

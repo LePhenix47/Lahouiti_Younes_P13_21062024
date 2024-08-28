@@ -1,21 +1,25 @@
-export type ChatWebSocketResponse = {
+import { PrettifyObject } from '../ts/ts-helpers.types';
+
+export type ChatWebSocketResponse = Readonly<{
   sender: string;
   message: string;
   date: Date;
-};
+}>;
 
-export type ChatWebSocketJoinLeaveResponse = {
+export type ChatWebSocketJoinLeaveResponse = Readonly<{
   sender: string;
   users: string[];
-};
+}>;
 
-export type ChatLogMessage = ChatWebSocketResponse & {
-  type: 'JOIN' | 'LEAVE' | 'CHAT';
-};
+export type ChatLogMessage = PrettifyObject<
+  ChatWebSocketResponse & {
+    readonly type: 'JOIN' | 'LEAVE' | 'CHAT';
+  }
+>;
 
-export type SignalMessage = {
+export type SignalMessage = Readonly<{
   type: string;
   sdp: string;
   fromUsername: string;
   toUsernames: string[];
-};
+}>;

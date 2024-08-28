@@ -49,7 +49,7 @@ export class ChatModuleComponent {
    */
   public readonly ownUsername = input.required<string>();
 
-  public groupChatUsers = signal<string[]>([]);
+  public readonly groupChatUsers = signal<string[]>([]);
 
   public readonly usersPresenceOutput = output<string[]>();
 
