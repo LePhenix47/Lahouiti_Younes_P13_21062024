@@ -26,6 +26,7 @@
 :host {
   width: fit-content;
   order: -1;
+  flex: 1;
 }
 
 .chat-room-media {
@@ -35,6 +36,13 @@
   width: 100%;
 
   padding: 15px;
+
+
+  &__element {
+    &--outline {
+      outline: 2px solid burlywood;
+    }
+  }
 
   &__users-list {
     display: flex;
@@ -73,7 +81,7 @@
 
   &__controls-fieldset {
     display: flex;
-    flex-direction: column;
+    gap: 10px;
   }
 
   &__control {
@@ -138,9 +146,68 @@
   }
 
 
-  &__calls-item {
+  &__calls-list {
     display: flex;
+    flex-wrap: wrap;
 
+    gap: 15px;
+
+  }
+
+  &__calls-item {
+    --_padding: 5px;
+    --_current-el-radius: calc(var(--_child-el-radius) + var(--_padding));
+    --_child-el-radius: 5px;
+
+    display: flex;
+    flex-direction: column;
+
+    flex: 1;
+    min-height: 75px;
+
+    background-color: #3c3c3c;
+
+    gap: 10px;
+    padding: var(--_padding);
+
+    border-radius: var(--_current-el-radius);
+
+    &--create-room {
+      max-width: 75px;
+    }
+  }
+
+  &__room-buttons-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  &__button {
+    flex: 1;
+  }
+
+  &__room-button {
+    background-color: #2c2c2c;
+
+    align-self: flex-end;
+
+    padding: 5px;
+    border-radius: var(--_child-el-radius);
+
+    &:disabled {
+      filter: grayscale(1) contrast(0.5);
+    }
+  }
+
+  &__room-info {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  &__remote-peer-info {
+    display: inline-flex;
+    align-items: center;
   }
 
   &__audio-indicator {}
@@ -160,7 +227,7 @@
 
     isolation: isolate;
 
-    outline: 2px solid burlywood;
+    color: white;
 
     &--on {
 
@@ -219,6 +286,7 @@
     background-color: white;
 
     &--recording {
+      font-variant-numeric: tabular-nums;
       width: fit-content;
       flex-direction: row;
 

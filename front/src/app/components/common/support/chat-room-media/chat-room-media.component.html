@@ -20,105 +20,102 @@
     <h3 class="chat-room-media__local-stream-title">
       Awaiting calls
     </h3>
-    @if(!roomsList().length){
-    <p>No calls have been made yet</p>
-    }@else {
-    <ul class="chat-room-media__calls-list">
 
+    <ul class="chat-room-media__calls-list">
+      <li class="chat-room-media__calls-item chat-room-media__calls-item--create-room">
+        <button type="button" class="chat-room-media__button ycyw__button ycyw__button--1" (click)="createRoom()"
+          [disabled]="currentRoom()"><mat-icon>add_circle</mat-icon></button>
+      </li>
       @for(room of roomsList(); let index = $index; track index){
       <li class="chat-room-media__calls-item">
-        Incoming call request from: {{room.roomName}}
-        <button type="button"
-          class="ycyw__button ycyw__button--2 chat-room-media__{{currentRoom() ? 'has-joined' : 'no-join'}} {{room.isFull ? 'chat-room-media__join-button--is-full' : 'chat-room-media__join-button'}}"
-          (click)="connectToRoom(room.roomName)"
-          [disabled]="room.roomName === ownUsername() || currentRoom() || room.isFull">
-          {{room.isFull ? 'Full' :
-          'Join'}}
-        </button>
+        <p class="chat-room-media__room-name">
+          Call from: <strong>{{ room.roomName }} {{room.roomName === ownUsername() ? '(own room)' : ''}}</strong>
+        </p>
+
+        @if(currentRoom() && otherPeerUserName && !webRtcSessionStarted && (hasRemotePeerSharedWebCam() ||
+        hasRemotePeerSharedMicrophone()) &&
+        localPeerHasSharedLocalMedia()){
+        @if(isReceiver){
+        <span class="chat-room-media__remote-peer-info">Waiting for room creator to start the WebRTC session</span>
+        }@else{
+        <span class="chat-room-media__remote-peer-info">You can start the WebRTC session</span>
+        }
+        }
+
+        <p class="chat-room-media__room-info">
+          @if(currentRoom() && otherPeerUserName && !webRtcSessionStarted){
+
+          <span
+            class="chat-room-media__remote-peer-info {{!hasRemotePeerSharedWebCam() && !hasRemotePeerSharedMicrophone() ? 'chat-room-media__element--outline' : ''}}">
+            Remote peer shared:
+            @if(hasRemotePeerSharedMicrophone()){
+            <mat-icon>mic</mat-icon>
+            }@else {
+            <mat-icon>mic_off</mat-icon>
+            }
+
+            @if(hasRemotePeerSharedWebCam()){
+            <mat-icon>videocam</mat-icon>
+            }@else {
+            <mat-icon>videocam_off</mat-icon>
+            }
+
+          </span>
+          }
+
+          <button type="button"
+            class="chat-room-media__room-button chat-room-media__{{currentRoom() ? 'has-joined' : 'no-join'}} {{room.isFull ? 'chat-room-media__join-button--is-full' : 'chat-room-media__join-button'}}"
+            (click)="connectToRoom(room.roomName)"
+            [disabled]="room.roomName === ownUsername() || currentRoom() || room.isFull">
+            @if(room.roomName === ownUsername()){
+            @if(otherPeerUserName){
+
+            Other peer joined: {{otherPeerUserName}}
+            }@else {
+            Waiting joiner
+            }
+            }@else {
+            {{room.isFull ? 'Full' :
+            'Join'}}
+            }
+          </button>
+        </p>
+
       </li>
       }
 
     </ul>
-    }
+
+    <div class="chat-room-media__room-buttons-container">
+      @if(currentRoom()){
+      <button type="button" class="chat-room-media__button ycyw__button ycyw__button--2"
+        (click)="currentRoom() === ownUsername() && !isReceiver ? deleteRoom() : disconnectFromRoom()"
+        [disabled]="!currentRoom()">
+        @if(webRtcSessionStarted){
+        <mat-icon>call_end</mat-icon>
+        }@else {
+        <mat-icon>phone_disabled</mat-icon>
+        }
+      </button>
+
+
+      @if(!isReceiver && !webRtcSessionStarted){
+      <button type="button"
+        class="chat-room-media__button ycyw__button ycyw__button--1 {{ !localPeerHasSharedLocalMedia() || (!hasRemotePeerSharedWebCam() && !hasRemotePeerSharedMicrophone()) ? 'chat-room-media__element--outline' : ''  }}"
+        (click)="initializeConnection()"
+        [disabled]="!otherPeerUserName || !isRemotePeerMediaActive || !localPeerHasSharedLocalMedia()">
+        <mat-icon>phone_callback</mat-icon>
+      </button>
+      }
+      }
+
+    </div>
+
 
     @if(roomErrorMessage){
     <p class="chat-room-media__error-message">
       An unexpected error occurred in room: {{roomErrorMessage}}
     </p>
-    }
-  </section>
-
-  <section class="chat-room-media__room-info">
-    @if(currentRoom()){
-    @if(isReceiver){
-    <button type="button" class="chat-room-media__button ycyw__button ycyw__button--2"
-      (click)="disconnectFromRoom()">Disconnect from
-      room</button>
-
-    @if(!webRtcSessionStarted){
-    <p class="chat-room-media__error-message">
-      @if(!localPeerHasSharedLocalMedia()){
-      <span class="chat-room-media__error-message--span">You must share your local stream in to allow the other peer to
-        start a
-        WebRTC session</span>
-      }
-
-
-      @if(otherPeerUserName && !isRemotePeerMediaActive){
-      <span class="chat-room-media__error-message--span">Waiting for other peer to share their stream</span>
-      }
-    </p>
-
-    }
-    }@else {
-    <button type="button" class="chat-room-media__button ycyw__button ycyw__button--2" (click)="deleteRoom()">Delete
-      room</button>
-
-
-    @if(!webRtcSessionStarted){
-    <button type="button" class="chat-room-media__button ycyw__button ycyw__button--1" (click)="initializeConnection()"
-      [disabled]="!otherPeerUserName || !isRemotePeerMediaActive || !localPeerHasSharedLocalMedia()">Start WebRTC
-      session</button>
-
-
-    <p class="chat-room-media__error-message">
-      @if(isReceiver){
-      <span class="chat-room-media__error-message--span">Waiting for room creator to start the WebRTC session</span>
-      }
-
-      @if(!otherPeerUserName){
-      <span class="chat-room-media__error-message--span">Waiting for other peer to join the room</span>
-      }
-
-      @if(!localPeerHasSharedLocalMedia()){
-      <span class="chat-room-media__error-message--span">You must share your local stream in order to start a WebRTC
-        session</span>
-      }
-
-
-      @if(otherPeerUserName && !isRemotePeerMediaActive){
-      <span class="chat-room-media__error-message--span">Waiting for other peer to share their stream</span>
-      }
-    </p>
-
-
-    }
-
-    }
-
-    @if(hasRemotePeerSharedWebCam()){
-    <p>Remote peer has enabled their webcam</p>
-    }
-
-    @if(hasRemotePeerSharedMicrophone()){
-    <p>Remote peer has enabled their microphone</p>
-    }
-
-    } @else {
-
-    <button type="button" class="chat-room-media__button ycyw__button ycyw__button--1" (click)="createRoom()"
-      [disabled]="currentRoom()">Create new
-      room</button>
     }
   </section>
 
@@ -128,20 +125,13 @@
     <h3 class="chat-room-media__local-stream-title">
       Local stream {{!webRtcSessionStarted ? "(preview)" : ""}}
     </h3>
+
     <div class="chat-room-media__local-media-container">
-      <app-collapsible-height [isOpen]="showWebcam()">
-        <video autoPlay playsInline disablePictureInPicture #ownWebCamVideoRef
-          class="chat-room-media__webcam-video chat-room-media__webcam-video--local"></video>
-      </app-collapsible-height>
+      <video autoPlay playsInline disablePictureInPicture #ownWebCamVideoRef
+        class="chat-room-media__webcam-video chat-room-media__webcam-video--local"></video>
 
-      <app-collapsible-height [isOpen]="openMicrophone()">
-        <progress value="0" max="0.25" #ownAudioVolumeIndicatorRef class="chat-room-media__audio-indicator"></progress>
-      </app-collapsible-height>
+      <progress value="0" max="0.25" #ownAudioVolumeIndicatorRef class="chat-room-media__audio-indicator"></progress>
     </div>
-
-    @if(showScreenCast()){
-    <p>You are sharing your own screen</p>
-    }
 
     <app-collapsible-height [isOpen]="webRtcSessionStarted">
       <h3 class="chat-room-media__remote-stream-title">
@@ -193,11 +183,6 @@
       @if(hasMicrophonePermissionDenied()){
       <span class="chat-room-media__error-message--span">Microphone permission has been denied</span>
       }
-
-      @if(hasCanceledScreenCast()){
-      <span class="chat-room-media__error-message--span">Screen cast has been canceled</span>
-      }
-
     </p>
 
 
@@ -207,11 +192,11 @@
       <fieldset class="chat-room-media__controls-fieldset chat-room-media__controls-fieldset--toggles">
         <!-- * Webcam -->
         <div
-          class="chat-room-media__icon chat-room-media__icon--{{(!webRtcSessionStarted && showWebcam()) || (webRtcSessionStarted && hasEnabledWebcamForWebRTC()) ? 'on' : 'off'}}">
+          class="chat-room-media__icon chat-room-media__icon--{{(!webRtcSessionStarted && showWebcam()) || (webRtcSessionStarted && hasEnabledWebcamForWebRTC()) ? 'on' : 'off'}} {{ currentRoom() && !localPeerHasSharedLocalMedia() ? 'chat-room-media__element--outline' : ''  }}">
           <label class="chat-room-media__icon-checkbox">
             <input type="checkbox" name="local-connection-control" class="chat-room-media__input hide"
               (change)="webRtcSessionStarted ? toggleInputDevicesOnWebRtc($event, 'webcam') : toggleWebcam($event)"
-              [checked]="showWebcam() || (webRtcSessionStarted && !hasEnabledWebcamForWebRTC())" />
+              [checked]="showWebcam() || (webRtcSessionStarted && hasEnabledWebcamForWebRTC())" />
             @if((showWebcam() && !webRtcSessionStarted) || (webRtcSessionStarted && hasEnabledWebcamForWebRTC())){
             <mat-icon>videocam</mat-icon>
             }@else {
@@ -236,12 +221,12 @@
 
         <!-- * Microphone -->
         <div
-          class="chat-room-media__icon chat-room-media__icon--{{(!webRtcSessionStarted && openMicrophone()) || (webRtcSessionStarted && hasEnabledMicrophoneForWebRTC()) ? 'on' : 'off'}}">
+          class="chat-room-media__icon chat-room-media__icon--{{(!webRtcSessionStarted && openMicrophone()) || (webRtcSessionStarted && hasEnabledMicrophoneForWebRTC()) ? 'on' : 'off'}} {{ currentRoom() && !localPeerHasSharedLocalMedia() ? 'chat-room-media__element--outline' : ''  }}">
 
           <label class="chat-room-media__icon-checkbox">
             <input type="checkbox" name="local-connection-control" class="chat-room-media__input hide"
               (change)="webRtcSessionStarted ? toggleInputDevicesOnWebRtc($event, 'microphone') : toggleAudio($event)"
-              [checked]="openMicrophone() || (webRtcSessionStarted && !hasEnabledMicrophoneForWebRTC())" />
+              [checked]="openMicrophone() || (webRtcSessionStarted && hasEnabledMicrophoneForWebRTC())" />
             @if((openMicrophone() && !webRtcSessionStarted) || (webRtcSessionStarted &&
             hasEnabledMicrophoneForWebRTC())){
             <mat-icon>mic</mat-icon>
@@ -301,10 +286,6 @@
 
             }@else {
             <mat-icon>phonelink_off</mat-icon>
-            }
-
-            @if(webRtcSessionStarted && !hasEnabledWebcamForWebRTC()){
-            no camera was shared
             }
           </label>
         </div>
