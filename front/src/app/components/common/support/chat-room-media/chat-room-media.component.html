@@ -126,48 +126,54 @@
       Local stream {{!webRtcSessionStarted ? "(preview)" : ""}}
     </h3>
 
-    <div class="chat-room-media__local-media-container">
-      <video autoPlay playsInline disablePictureInPicture #ownWebCamVideoRef
-        class="chat-room-media__webcam-video chat-room-media__webcam-video--local"></video>
 
-      <progress value="0" max="0.25" #ownAudioVolumeIndicatorRef class="chat-room-media__audio-indicator"></progress>
-    </div>
+    <div class="chat-room-media__medias">
+      <div class="chat-room-media__media-container">
+        <video autoPlay playsInline disablePictureInPicture #ownWebCamVideoRef
+          class="chat-room-media__webcam-video chat-room-media__webcam-video--local"></video>
 
-    <app-collapsible-height [isOpen]="webRtcSessionStarted">
-      <h3 class="chat-room-media__remote-stream-title">
-        Remote stream
-      </h3>
-      <div class="chat-room-media__remote-media-container">
-
-        <app-collapsible-height [isOpen]="hasRemotePeerSharedWebCam() && webRtcSessionStarted">
-          <video autoPlay playsInline #remoteWebCamVideoRef
-            class="chat-room-media__webcam-video chat-room-media__webcam-video--remote {{hasRemotePeerSharedScreen() ? 'chat-room-media__webcam-video--has-screen' : ''}}"></video>
-
-          @if (hasPiPModeAvailable() && webRtcSessionStarted){
-          <button (click)="requestPictureInPicture()">PiP</button>
-
-          <label>
-            <input type="checkbox" name="" [checked]="isPiPToggleEnabledOnTabSwitch()"
-              (click)="togglePiPOnTabSwitch()" />
-            Remove Picture-in-picture on current tab switch
-          </label>
-          }
-        </app-collapsible-height>
-
-        <app-collapsible-height [isOpen]="hasRemotePeerSharedMicrophone() && webRtcSessionStarted">
-          <progress value="0" max="0.25" #remotePeerAudioVolumeIndicatorRef
-            class="chat-room-media__audio-indicator"></progress>
-        </app-collapsible-height>
+        <progress value="0" max="0.25" #ownAudioVolumeIndicatorRef class="chat-room-media__audio-indicator"></progress>
       </div>
 
-      @if(hasRemotePeerSharedScreen()){
+      <div class="chat-room-media__media-container">
+        <app-collapsible-height [isOpen]="webRtcSessionStarted">
+          <h3 class="chat-room-media__remote-stream-title">
+            Remote stream
+          </h3>
+          <div class="chat-room-media__remote-media-container">
 
-      <button type="button" class="chat-room-media__webcam-video-fullscreen"
-        (click)="requestRemoteScreenShareFullscreen()">Toggle fullscreen</button>
-      }
+            <app-collapsible-height [isOpen]="hasRemotePeerSharedWebCam() && webRtcSessionStarted">
+              <video autoPlay playsInline #remoteWebCamVideoRef
+                class="chat-room-media__webcam-video chat-room-media__webcam-video--remote {{hasRemotePeerSharedScreen() ? 'chat-room-media__webcam-video--has-screen' : ''}}"></video>
 
-      <p>{{otherPeerUserName}} {{hasRemotePeerSharedScreen() ? "is sharing their screen" : ""}}</p>
-    </app-collapsible-height>
+              @if (hasPiPModeAvailable() && webRtcSessionStarted){
+              <button (click)="requestPictureInPicture()">PiP</button>
+
+              <label>
+                <input type="checkbox" name="" [checked]="isPiPToggleEnabledOnTabSwitch()"
+                  (click)="togglePiPOnTabSwitch()" />
+                Remove Picture-in-picture on current tab switch
+              </label>
+              }
+            </app-collapsible-height>
+
+            <app-collapsible-height [isOpen]="hasRemotePeerSharedMicrophone() && webRtcSessionStarted">
+              <progress value="0" max="0.25" #remotePeerAudioVolumeIndicatorRef
+                class="chat-room-media__audio-indicator"></progress>
+            </app-collapsible-height>
+          </div>
+
+          @if(hasRemotePeerSharedScreen()){
+
+          <button type="button" class="chat-room-media__webcam-video-fullscreen"
+            (click)="requestRemoteScreenShareFullscreen()">Toggle fullscreen</button>
+          }
+
+          <p>{{otherPeerUserName}} {{hasRemotePeerSharedScreen() ? "is sharing their screen" : ""}}</p>
+        </app-collapsible-height>
+      </div>
+    </div>
+
 
 
 

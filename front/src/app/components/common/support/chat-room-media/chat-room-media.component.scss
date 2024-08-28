@@ -124,6 +124,8 @@
     width: 300px;
     height: 150px;
 
+    background-color: black;
+
     @include fit-image(contain);
 
     scale: -100% 100%;
@@ -218,6 +220,15 @@
 
     display: inline-flex;
     flex-direction: column;
+  }
+
+  &__medias {
+    display: flex;
+
+  }
+
+  &__media-container {
+    @include center-flex-column(15px);
   }
 
 
