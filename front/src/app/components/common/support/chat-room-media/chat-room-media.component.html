@@ -231,12 +231,13 @@
       <fieldset class="chat-room-media__controls-fieldset chat-room-media__controls-fieldset--toggles">
         <!-- * Webcam -->
         <div
-          class="chat-room-media__icon chat-room-media__icon--{{(!webRtcSessionStarted && showWebcam()) || (webRtcSessionStarted && hasEnabledWebcamForWebRTC()) ? 'on' : 'off'}} {{ currentRoom() && !localPeerHasSharedLocalMedia() ? 'chat-room-media__element--outline' : ''  }}">
-          <label class="chat-room-media__icon-checkbox">
+          class="chat-room-media__icon chat-room-media__icon--{{(!webRtcSessionStarted && showWebcam()) || (webRtcSessionStarted && hasEnabledWebcamForWebRTC()) ? 'on' : 'off'}}">
+          <label
+            class="chat-room-media__icon-checkbox  {{ currentRoom() && !localPeerHasSharedLocalMedia() ? 'chat-room-media__element--outline' : ''  }}">
             <input type="checkbox" name="local-connection-control" class="chat-room-media__input hide"
               (change)="webRtcSessionStarted ? toggleInputDevicesOnWebRtc($event, 'webcam') : toggleWebcam($event)"
               [checked]="showWebcam() || (webRtcSessionStarted && hasEnabledWebcamForWebRTC())"
-              [disabled]=" (webRtcSessionStarted && !showWebcam()) || hasNoVideoInputsInList()" />
+              [disabled]="(webRtcSessionStarted && !showWebcam())" />
             @if((showWebcam() && !webRtcSessionStarted) || (webRtcSessionStarted && hasEnabledWebcamForWebRTC())){
             <mat-icon>videocam</mat-icon>
             }@else {
@@ -261,13 +262,14 @@
 
         <!-- * Microphone -->
         <div
-          class="chat-room-media__icon chat-room-media__icon--{{(!webRtcSessionStarted && openMicrophone()) || (webRtcSessionStarted && hasEnabledMicrophoneForWebRTC()) ? 'on' : 'off'}} {{ currentRoom() && !localPeerHasSharedLocalMedia() ? 'chat-room-media__element--outline' : ''  }}">
+          class="chat-room-media__icon chat-room-media__icon--{{(!webRtcSessionStarted && openMicrophone()) || (webRtcSessionStarted && hasEnabledMicrophoneForWebRTC()) ? 'on' : 'off'}}">
 
-          <label class="chat-room-media__icon-checkbox">
+          <label
+            class="chat-room-media__icon-checkbox  {{ currentRoom() && !localPeerHasSharedLocalMedia() ? 'chat-room-media__element--outline' : ''  }}">
             <input type="checkbox" name="local-connection-control" class="chat-room-media__input hide"
               (change)="webRtcSessionStarted ? toggleInputDevicesOnWebRtc($event, 'microphone') : toggleAudio($event)"
               [checked]="openMicrophone() || (webRtcSessionStarted && hasEnabledMicrophoneForWebRTC())"
-              [disabled]=" (webRtcSessionStarted && !openMicrophone()) || hasNoAudioInputsInList()" />
+              [disabled]=" (webRtcSessionStarted && !openMicrophone())" />
             @if((openMicrophone() && !webRtcSessionStarted) || (webRtcSessionStarted &&
             hasEnabledMicrophoneForWebRTC())){
             <mat-icon>mic</mat-icon>
@@ -313,7 +315,7 @@
         <!-- * Screen share -->
         <div
           class="chat-room-media__icon chat-room-media__icon--{{ webRtcSessionStarted && !hasEnabledWebcamForWebRTC() ? 'off' : 'on'}}">
-          <label class="chat-room-media__icon-checkbox">
+          <label class="chat-room-media__icon-checkbox  chat-room-media__icon-checkbox--screenshare">
             <input type="checkbox" name="local-connection-control" class="chat-room-media__input hide"
               (change)="showScreenCast() ? stopScreenCast() : startScreenCast()" [checked]="showScreenCast()"
               [disabled]="!hasEnabledWebcamForWebRTC()" />
@@ -362,6 +364,12 @@
 
       </fieldset>
 
+      @if((hasNoVideoInputsInList() && showWebcam()) || (hasNoAudioInputsInList() && openMicrophone())){
+      <p class="chat-room-media__info-message">
+        Please refresh the page
+      </p>
+      }
+
     </form>
 
   </section>
@@ -375,14 +383,26 @@
 
 
     <ul class="chat-room-media__screen-recording-list">
-
       @for (screenRecording of screenRecordingBlobs().reverse(); let index = $index; track index) {
       <li class="chat-room-media__screen-recording-item">
         <video src="{{screenRecording.objectUrl}}" controls class="chat-room-media__screen-recording-record"></video>
 
-        <a download="screen-recording-{{index}}.webm" href="{{screenRecording.objectUrl}}">Download screen recording</a>
-        <p>{{formatDuration(screenRecording.duration)}} ({{screenRecording.size}} bytes)</p>
-        <button (click)="removeBlobFromListByIndex(index)">Delete screen recording</button>
+        <p class="chat-room-media__screen-recording-all-info">
+          <a class="chat-room-media__screen-recording-download" download="screen-recording-{{index}}.webm"
+            href="{{screenRecording.objectUrl}}">
+            <mat-icon>get_app</mat-icon>
+          </a>
+
+          <span class="chat-room-media__screen-recording-file-info">{{formatDuration(screenRecording.duration)}}
+            ({{screenRecording.size}} bytes)
+
+            <mat-icon>description</mat-icon>
+          </span>
+
+          <button class="chat-room-media__screen-recording-delete" (click)="removeBlobFromListByIndex(index)">
+            <mat-icon>delete_forever</mat-icon>
+          </button>
+        </p>
       </li>
       }
 
