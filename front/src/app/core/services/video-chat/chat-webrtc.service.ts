@@ -31,6 +31,9 @@ export class ChatWebRtcService extends WebRTCService {
         audio: boolean;
       }) => void)
     | null = null;
+  private onRemotePeerMediaToggle:
+    | ((deviceToggles: { video: boolean; audio: boolean }) => void)
+    | null = null;
 
   private onTrackAddedCallback: ((...args: any[]) => void) | null = null;
 
@@ -187,6 +190,13 @@ export class ChatWebRtcService extends WebRTCService {
       this.onReceiveToggledScreenShare?.(isSharingScreen);
     });
 
+    this.socketio.on(
+      'toggled-media',
+      (deviceToggles: { video: boolean; audio: boolean }) => {
+        this.onReceiveEnabledLocalMedia?.(deviceToggles);
+      }
+    );
+
     this.hasAddedRoomSocketListeners = true;
   };
 
@@ -240,6 +250,15 @@ export class ChatWebRtcService extends WebRTCService {
     }) => void
   ): void => {
     this.onReceiveEnabledLocalMedia = callback;
+  };
+
+  public setOnRemotePeerMediaToggleCallback = (
+    callback: (remotePeerHasSharedLocalMedia: {
+      video: boolean;
+      audio: boolean;
+    }) => void
+  ): void => {
+    this.onRemotePeerMediaToggle = callback;
   };
 
   public setOnTrackAddedCallback = (
@@ -340,6 +359,22 @@ export class ChatWebRtcService extends WebRTCService {
     });
   };
 
+  public notifyRemotePeerOfDeviceToggle = (deviceToggles: {
+    video: boolean;
+    audio: boolean;
+  }): void => {
+    if (!this.socketio) {
+      return;
+    }
+
+    console.log('notifyRemotePeerOfScreenShare method', deviceToggles);
+
+    this.socketio.emit('toggled-media', {
+      roomName: this.currentRoom,
+      deviceToggles,
+    });
+  };
+
   /**
    * Closes the peer connection.
    */
@@ -361,7 +396,7 @@ export class ChatWebRtcService extends WebRTCService {
       return;
     }
 
-    this.dataChannel!.close();
+    this.dataChannel.close();
     this.dataChannel = null;
   };
 

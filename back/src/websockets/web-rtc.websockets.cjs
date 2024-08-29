@@ -192,6 +192,16 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
     }
   );
 
+  socket.on("toggled-media", ({ roomName, deviceToggles }) => {
+    const { video, audio } = deviceToggles;
+
+    console.log(
+      `toggled-media from ${userName.toUpperCase()} (in room ${roomName}), remote peer has toggled media: {video: ${video}, audio: ${audio}}`
+    );
+
+    socket.to(roomName).emit("toggled-media", deviceToggles);
+  });
+
   socket.on("toggled-screen-share", ({ roomName, isSharingScreen }) => {
     console.log(
       `toggled-screen-share from ${userName.toUpperCase()} (in room ${roomName}), is user sharing screen ? ${

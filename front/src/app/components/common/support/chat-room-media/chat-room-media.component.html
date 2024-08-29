@@ -1,22 +1,24 @@
 <aside class="chat-room-media">
-  <section class="chat-room-media__chat-room-info">
+  <section class="chat-room-media__peers-list">
     <h3 class="chat-room-media__local-stream-title">
       Peers list
     </h3>
     <ul class="chat-room-media__users-list">
       @for(user of usersList(); let index = $index; track index){
       <li class="chat-room-media__user
-        {{user === ownUsername() ? 'chat-room-media__user--is-ourselves' : ''}}
-        {{ user !== ownUsername() && user === otherPeerUserName && !webRtcSessionStarted ? 'chat-room-media__user--room-remote-peer' : ''}}
-        {{ user !== ownUsername() && user === otherPeerUserName && webRtcSessionStarted ? 'chat-room-media__user--connected-remote-peer' : ''}}
-        ">
+      {{user === ownUsername() ? 'chat-room-media__user--is-ourselves' : ''}}
+      {{ user !== ownUsername() && user === otherPeerUserName && !webRtcSessionStarted ? 'chat-room-media__user--room-remote-peer' : ''}}
+      {{ user !== ownUsername() && user === otherPeerUserName && webRtcSessionStarted ? 'chat-room-media__user--connected-remote-peer' : ''}}
+      ">
         <p class="chat-room-media__username">
           {{user === ownUsername() ? user + ' (you)' : user}}
         </p>
       </li>
       }
     </ul>
+  </section>
 
+  <section class="chat-room-media__chat-room-info">
     <h3 class="chat-room-media__local-stream-title">
       Awaiting calls
     </h3>
@@ -123,55 +125,86 @@
   <!-- * Peer-to-peer stream (local and remote media streams) -->
   <section class="chat-room-media__peer-to-peer-stream">
     <h3 class="chat-room-media__local-stream-title">
-      Local stream {{!webRtcSessionStarted ? "(preview)" : ""}}
+      {{webRtcSessionStarted ? "Peer call" : "Local stream (preview)" }}
     </h3>
 
 
-    <div class="chat-room-media__medias">
+    <!-- * Local stream -->
+    <div class="chat-room-media__medias {{hasRemotePeerSharedScreen() ? 'chat-room-media__medias--with-screen' : ''}}">
       <div class="chat-room-media__media-container">
-        <video autoPlay playsInline disablePictureInPicture #ownWebCamVideoRef
-          class="chat-room-media__webcam-video chat-room-media__webcam-video--local"></video>
+        <div class="chat-room-media__video-info">
+          @if(!showWebcam() || (webRtcSessionStarted && !hasEnabledWebcamForWebRTC() && !showScreenCast())){
+          <p class="chat-room-media__profile-letter">{{ownUsername().substring(0,1)}}</p>
+          }
+          <video autoPlay playsInline disablePictureInPicture #ownWebCamVideoRef
+            class="chat-room-media__webcam-video chat-room-media__webcam-video--local"></video>
 
-        <progress value="0" max="0.25" #ownAudioVolumeIndicatorRef class="chat-room-media__audio-indicator"></progress>
-      </div>
-
-      <div class="chat-room-media__media-container">
-        <app-collapsible-height [isOpen]="webRtcSessionStarted">
-          <h3 class="chat-room-media__remote-stream-title">
-            Remote stream
-          </h3>
-          <div class="chat-room-media__remote-media-container">
-
-            <app-collapsible-height [isOpen]="hasRemotePeerSharedWebCam() && webRtcSessionStarted">
-              <video autoPlay playsInline #remoteWebCamVideoRef
-                class="chat-room-media__webcam-video chat-room-media__webcam-video--remote {{hasRemotePeerSharedScreen() ? 'chat-room-media__webcam-video--has-screen' : ''}}"></video>
-
-              @if (hasPiPModeAvailable() && webRtcSessionStarted){
-              <button (click)="requestPictureInPicture()">PiP</button>
-
-              <label>
-                <input type="checkbox" name="" [checked]="isPiPToggleEnabledOnTabSwitch()"
-                  (click)="togglePiPOnTabSwitch()" />
-                Remove Picture-in-picture on current tab switch
-              </label>
-              }
-            </app-collapsible-height>
-
-            <app-collapsible-height [isOpen]="hasRemotePeerSharedMicrophone() && webRtcSessionStarted">
-              <progress value="0" max="0.25" #remotePeerAudioVolumeIndicatorRef
-                class="chat-room-media__audio-indicator"></progress>
-            </app-collapsible-height>
-          </div>
-
-          @if(hasRemotePeerSharedScreen()){
-
-          <button type="button" class="chat-room-media__webcam-video-fullscreen"
-            (click)="requestRemoteScreenShareFullscreen()">Toggle fullscreen</button>
+          <p class="chat-room-media__profile-username">{{ownUsername()}} {{showScreenCast() ? '(you, screen)' :
+            '(you)'}}</p>
+        </div>
+        <div class="chat-room-media__audio-info">
+          @if((!webRtcSessionStarted && openMicrophone()) || (webRtcSessionStarted && hasEnabledMicrophoneForWebRTC())){
+          <mat-icon>mic</mat-icon>
+          }@else {
+          <mat-icon>mic_off</mat-icon>
           }
 
-          <p>{{otherPeerUserName}} {{hasRemotePeerSharedScreen() ? "is sharing their screen" : ""}}</p>
-        </app-collapsible-height>
+          <progress value="0" max="0.25" #ownAudioVolumeIndicatorRef
+            class="chat-room-media__audio-indicator"></progress>
+        </div>
       </div>
+
+      <!-- * Remote stream -->
+      <app-collapsible-height [isOpen]="webRtcSessionStarted">
+        <div class="chat-room-media__media-container">
+
+          <div class="chat-room-media__video-info">
+            @if((!hasRemotePeerSharedWebCam() || !hasRemotePeerEnabledWebCam()) && otherPeerUserName &&
+            !hasRemotePeerSharedScreen()){
+            <p class="chat-room-media__profile-letter">{{otherPeerUserName.substring(0,1)}}</p>
+            }
+            <div class="chat-room-media__pip">
+              @if(
+              webRtcSessionStarted && hasRemotePeerSharedWebCam() && hasRemotePeerEnabledWebCam()){
+              @if(hasRemotePeerSharedScreen()){
+              <button class="chat-room-media__pip-button" (click)="requestRemoteScreenShareFullscreen()">
+                <mat-icon>fullscreen</mat-icon>
+              </button>
+              }
+
+              @if (hasPiPModeAvailable()) {
+              <button class="chat-room-media__pip-button" (click)="requestPictureInPicture()">
+                <mat-icon>picture_in_picture</mat-icon>
+              </button>
+
+              <label class="chat-room-media__pip-checkbox">
+                <input type="checkbox" name="" [checked]="isPiPToggleEnabledOnTabSwitch()"
+                  (click)="togglePiPOnTabSwitch()" />
+                <mat-icon>tab_unselected</mat-icon>
+              </label>
+              }
+              }
+            </div>
+
+            <video autoPlay playsInline #remoteWebCamVideoRef
+              class="chat-room-media__webcam-video chat-room-media__webcam-video--remote {{hasRemotePeerSharedScreen() ? 'chat-room-media__webcam-video--has-screen' : ''}}"></video>
+
+            <p class="chat-room-media__profile-username">{{otherPeerUserName}} {{hasRemotePeerSharedScreen() ?
+              "(sharing screen)" : ""}}</p>
+          </div>
+
+
+          <div class="chat-room-media__audio-info">
+            @if(hasRemotePeerSharedMicrophone() && hasRemotePeerEnabledMicrophone()){
+            <mat-icon>mic</mat-icon>
+            }@else {
+            <mat-icon>mic_off</mat-icon>
+            }
+            <progress value="0" max="0.25" #remotePeerAudioVolumeIndicatorRef
+              class="chat-room-media__audio-indicator"></progress>
+          </div>
+        </div>
+      </app-collapsible-height>
     </div>
 
 
@@ -202,7 +235,8 @@
           <label class="chat-room-media__icon-checkbox">
             <input type="checkbox" name="local-connection-control" class="chat-room-media__input hide"
               (change)="webRtcSessionStarted ? toggleInputDevicesOnWebRtc($event, 'webcam') : toggleWebcam($event)"
-              [checked]="showWebcam() || (webRtcSessionStarted && hasEnabledWebcamForWebRTC())" />
+              [checked]="showWebcam() || (webRtcSessionStarted && hasEnabledWebcamForWebRTC())"
+              [disabled]=" (webRtcSessionStarted && !showWebcam()) || hasNoVideoInputsInList()" />
             @if((showWebcam() && !webRtcSessionStarted) || (webRtcSessionStarted && hasEnabledWebcamForWebRTC())){
             <mat-icon>videocam</mat-icon>
             }@else {
@@ -215,7 +249,7 @@
 
             <select class="chat-room-media__input-device-select chat-room-media__input-device-select--video transparent"
               (change)="switchWebcamDevice($event)"
-              [disabled]="!showWebcam() || (webRtcSessionStarted && !hasEnabledWebcamForWebRTC()) || hasNoVideoInputsInList()">
+              [disabled]="(!webRtcSessionStarted && !showWebcam()) || (webRtcSessionStarted && !hasEnabledWebcamForWebRTC()) || hasNoVideoInputsInList()">
 
               @for(device of videoInputsList(); let index = $index; track index){
               <option value="{{device.deviceId}}" selected="{{index === 0}}">{{device.label}}</option>
@@ -232,7 +266,8 @@
           <label class="chat-room-media__icon-checkbox">
             <input type="checkbox" name="local-connection-control" class="chat-room-media__input hide"
               (change)="webRtcSessionStarted ? toggleInputDevicesOnWebRtc($event, 'microphone') : toggleAudio($event)"
-              [checked]="openMicrophone() || (webRtcSessionStarted && hasEnabledMicrophoneForWebRTC())" />
+              [checked]="openMicrophone() || (webRtcSessionStarted && hasEnabledMicrophoneForWebRTC())"
+              [disabled]=" (webRtcSessionStarted && !openMicrophone()) || hasNoAudioInputsInList()" />
             @if((openMicrophone() && !webRtcSessionStarted) || (webRtcSessionStarted &&
             hasEnabledMicrophoneForWebRTC())){
             <mat-icon>mic</mat-icon>

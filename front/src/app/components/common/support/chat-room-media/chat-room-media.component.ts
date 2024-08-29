@@ -143,6 +143,9 @@ export class ChatRoomMediaComponent {
   public readonly hasRemotePeerSharedMicrophone = signal<boolean>(false);
   public readonly hasRemotePeerSharedScreen = signal<boolean>(false);
 
+  public readonly hasRemotePeerEnabledWebCam = signal<boolean>(false);
+  public readonly hasRemotePeerEnabledMicrophone = signal<boolean>(false);
+
   public readonly isLoadingLocalMedia = signal<boolean>(false);
   public readonly isLoadingRemoteMedia = signal<boolean>(false);
 
@@ -168,7 +171,7 @@ export class ChatRoomMediaComponent {
 
   public roomErrorMessage: string | null = null;
 
-  public signalEffect = effect(() => {
+  public readonly signalEffect = effect(() => {
     console.log(
       'effect',
       this.localPeerHasSharedLocalMedia(),
@@ -339,6 +342,9 @@ export class ChatRoomMediaComponent {
     this.chatWebRtcService.setOnReceiveEnabledLocalMediaCallback(
       this.remotePeerHasSharedLocalMediaCallback
     );
+    this.chatWebRtcService.setOnRemotePeerMediaToggleCallback(
+      this.setRemotePeerMediaToggle
+    );
 
     // this.chatWebRtcService.setOnRoomLeftCallback();
 
@@ -374,6 +380,11 @@ export class ChatRoomMediaComponent {
     });
     this.hasRemotePeerSharedMicrophone.update(() => {
       return remoteAudioTracks.length > 0;
+    });
+
+    this.setRemotePeerMediaToggle({
+      video: remoteVideoTracks.length > 0,
+      audio: remoteAudioTracks.length > 0,
     });
 
     if (!this.hasRemotePeerSharedMicrophone()) {
@@ -450,6 +461,8 @@ export class ChatRoomMediaComponent {
 
     this.hasRemotePeerSharedWebCam.update(() => false);
     this.hasRemotePeerSharedMicrophone.update(() => false);
+
+    this.setRemotePeerMediaToggle({ video: false, audio: false });
 
     this.onScreenShareEnd();
 
@@ -729,10 +742,12 @@ export class ChatRoomMediaComponent {
     const selectElement = event.target as HTMLSelectElement;
     const audioOutputDeviceId: string = selectElement.value;
 
+    // * We switch the sink ID of the remote video element the audio output comes from that element
     const remoteVideoElement: HTMLVideoElement =
       this.remoteWebCamVideoRef!.nativeElement;
 
-    // @ts-ignore Angular compiler complains about not finding this method even though it exists
+    // @ts-ignore
+    // ? The Angular compiler complains about not finding this method even though it exists
     await remoteVideoElement.setSinkId(audioOutputDeviceId);
   };
 
@@ -873,6 +888,23 @@ export class ChatRoomMediaComponent {
       this.hasEnabledWebcamForWebRTC(),
       this.hasEnabledMicrophoneForWebRTC()
     );
+
+    const video: boolean =
+      this.showWebcam() && this.hasEnabledWebcamForWebRTC();
+    const audio: boolean =
+      this.openMicrophone() && this.hasEnabledMicrophoneForWebRTC();
+
+    this.chatWebRtcService.notifyRemotePeerOfDeviceToggle({ video, audio });
+  };
+
+  private setRemotePeerMediaToggle = (deviceToggles: {
+    video: boolean;
+    audio: boolean;
+  }) => {
+    const { video, audio } = deviceToggles;
+
+    this.hasRemotePeerEnabledWebCam.update(() => video);
+    this.hasRemotePeerEnabledMicrophone.update(() => audio);
   };
 
   /**
