@@ -249,7 +249,7 @@
 
             <select class="chat-room-media__input-device-select chat-room-media__input-device-select--video transparent"
               (change)="switchWebcamDevice($event)"
-              [disabled]="(!webRtcSessionStarted && !showWebcam()) || (webRtcSessionStarted && !hasEnabledWebcamForWebRTC()) || hasNoVideoInputsInList()">
+              [disabled]="(!webRtcSessionStarted && !showWebcam()) || (webRtcSessionStarted && !hasEnabledWebcamForWebRTC()) || showScreenCast() || hasNoVideoInputsInList()">
 
               @for(device of videoInputsList(); let index = $index; track index){
               <option value="{{device.deviceId}}" selected="{{index === 0}}">{{device.label}}</option>

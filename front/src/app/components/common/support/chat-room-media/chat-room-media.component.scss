@@ -377,6 +377,11 @@
     color: black;
     background-color: #ebebeb;
 
+    &:has(>select:disabled) {
+      filter: contrast(50%);
+      cursor: not-allowed;
+    }
+
     &--recording {
       font-variant-numeric: tabular-nums;
       width: fit-content;
