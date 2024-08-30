@@ -53,6 +53,7 @@ By developing this PoC, we aim to reassure stakeholders of the viability and eff
         - [Initiating Peer](#initiating-peer)
         - [Receiving Peer](#receiving-peer)
   - [Miscellaneous](#miscellaneous)
+    - [Why Node.js was chosen for the Back-End instead of Java with Spring Boot](#why-nodejs-was-chosen-for-the-back-end-instead-of-java-with-spring-boot)
   - [Conclusion](#conclusion)
 
 ## Tech stack for the PoC
@@ -519,7 +520,6 @@ When negotiation is needed, handle it appropriately (e.g., create and send a new
 
 ## Miscellaneous
 
-
 <details>
   <summary>💻 WebRTC flow chart</summary>
 
@@ -528,6 +528,25 @@ When negotiation is needed, handle it appropriately (e.g., create and send a new
 [View discussion here](https://github.com/LePhenix47/Lahouiti_Younes_P13_21062024/discussions/12)
 </details>
 
+<details>
+  <summary>🛠️ Back-End Stack Explanation</summary>
+
+### Why Node.js was chosen for the Back-End instead of Java with Spring Boot
+
+1. **Outdated and Complex Libraries**: Using Spring Boot's WebSocket dependencies through Spring Initializer would require [StompJS](https://github.com/stomp-js/stompjs) and [SockJS](https://github.com/sockjs/sockjs-client). While the lack of updates since 2021 makes these libraries difficult to work with on the Back-End, the real annoyance lies in the Front-End. Integrating these libraries on the Front-End is complex and cumbersome. Additionally, this stack does not support sending binary data, and its features are limited compared to modern libraries like [Socket.io](https://github.com/socketio/socket.io).
+
+2. **Socket.io with Spring Boot**: While there is a [Socket.io](https://github.com/socketio/socket.io) implementation for Spring Boot ([Netty-Socket.io](https://github.com/mrniko/netty-socketio)), it comes with a major drawback: the library has had no documentation at all, and that since 2012. This forces reliance on third-party articles and YouTube tutorials, which often lead to configuration issues. Despite attempting to configure it myself, I encountered persistent problems.
+
+Given these challenges, Node.js was chosen for WebSocket implementation due to its robust ecosystem and active support.
+
+</details>
+
 ## Conclusion
 
-This README provides a structured approach to understanding and implementing a WebRTC and WebSocket-based chat application. The steps outlined should help in setting up the necessary components and handling the peer-to-peer connections effectively.
+This Proof of Concept (PoC) for "Your Car Your Way" successfully demonstrates the capabilities of WebSockets and WebRTC for real-time communication in an online chat and video-conference environment. Through the seamless integration of these technologies, we've showcased the potential to deliver an interactive, high-quality user experience that meets the expectations of modern digital communication.
+
+The PoC validates the feasibility of implementing such technologies in a production environment, offering insights into both the advantages and challenges encountered during development. While the PoC highlights the robustness of WebSockets for instant messaging and WebRTC for video conferencing, it also sheds light on areas that require further refinement, such as connection feedback, memory management, and room handling.
+
+By using Node.js for the Back-End and Angular for the Front-End, we were able to create a responsive and scalable architecture that aligns with current industry standards. The choice of these technologies also provided flexibility and ease of development, making this PoC not only a demonstration of the proposed solution but also a foundation for future enhancements.
+
+In conclusion, this PoC serves as a strong foundation for the next stages of development, offering stakeholders a clear vision of the technical viability and user experience that can be expected in the final implementation. With further iteration and optimization, this approach has the potential to revolutionize how customers and service representatives interact in real-time, delivering a more personalized and efficient service experience.
