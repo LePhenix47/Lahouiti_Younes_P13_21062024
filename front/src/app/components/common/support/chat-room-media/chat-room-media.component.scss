@@ -43,6 +43,22 @@
     margin-bottom: 10px;
   }
 
+  &__info-message-icon {}
+
+  &__info-message {
+    display: inline-grid;
+    grid-template-columns: 24px 1fr;
+    place-items: center;
+    gap: 5px;
+
+    padding: 5px;
+
+    border-radius: 5px;
+
+    background-color:
+      color-mix(in srgb, var(--bg-primary), var(--color-ycyw-1));
+  }
+
   &__element {
     &--outline {
       outline: 2px solid burlywood;
@@ -225,10 +241,31 @@
 
 
   &__error-message {
-    color: red;
+
+    &:empty {
+      display: none;
+    }
+
+    margin-bottom: 15px;
+
+    background-color: #d93025;
+
+    border-radius: 5px;
 
     display: inline-flex;
     flex-direction: column;
+    gap: 5px;
+
+    padding: 5px;
+
+    &--span {
+      color: white;
+
+      display: inline-flex;
+      align-items: center;
+
+      gap: 10px;
+    }
   }
 
   &__medias {

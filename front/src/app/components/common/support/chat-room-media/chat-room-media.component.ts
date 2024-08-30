@@ -270,7 +270,9 @@ export class ChatRoomMediaComponent {
     });
   };
 
-  private setPageTitle = (title: string): void => {
+  private setTabTitle = (title: string): void => {
+    console.log('Set tab title', { title });
+
     this.titlePageService.setTitle(title);
   };
 
@@ -322,6 +324,8 @@ export class ChatRoomMediaComponent {
     this.resetVolumeBars();
 
     this.screenRecordingService.setRemoteAudioStream(null, true);
+
+    this.setTabTitle('Support chat');
     console.log(
       '%cdisconnectFromWebRtcSession',
       'background: #222; color: #bada55'
@@ -387,6 +391,10 @@ export class ChatRoomMediaComponent {
       audio: remoteAudioTracks.length > 0,
     });
 
+    this.setTabTitle(
+      `WebRTC with ${this.otherPeerUserName} in room: ${this.currentRoom()}`
+    );
+
     if (!this.hasRemotePeerSharedMicrophone()) {
       console.warn(
         'No audio tracks in remote stream, skipping volume measurement'
@@ -399,6 +407,7 @@ export class ChatRoomMediaComponent {
     this.screenRecordingService.setRemoteAudioStream(remoteStream);
 
     this.remoteVolumeAnalyzerService!.startVolumeMeasurement();
+
   };
 
   private showRoomError = (errorMessage: string): void => {
@@ -677,6 +686,7 @@ export class ChatRoomMediaComponent {
         this.ownVolumeAnalyzerService!.startVolumeMeasurement();
       }
     } catch (error) {
+      error as Error;
       console.error(error);
 
       this.ownVolumeAnalyzerService!.stopVolumeMeasurement();
@@ -732,6 +742,7 @@ export class ChatRoomMediaComponent {
         this.ownVolumeAnalyzerService!.startVolumeMeasurement();
       }
     } catch (error) {
+      error as Error;
       console.error(error);
 
       this.ownVolumeAnalyzerService!.stopVolumeMeasurement();
@@ -802,30 +813,34 @@ export class ChatRoomMediaComponent {
 
       this.hasWebcamPermissionDenied.update(() => false);
       this.hasMicrophonePermissionDenied.update(() => false);
-    } catch (error) {
+    } catch (error: any) {
+      error as Error;
+
       if (!(error instanceof Error)) {
         return;
       }
 
-      // Check for permission-related errors
-      const isNotPermissionRelated: boolean =
-        !error.message.includes('NotAllowedError') &&
-        error.name !== 'NotAllowedError';
-
-      if (isNotPermissionRelated) {
-        console.error(`An unexpected error occurred: ${error.message}`);
-      }
+      console.error(
+        `An unexpected error occurred: ${error.message}`,
+        { error },
+        error.message,
+        error.message.includes('NotAllowedError')
+      );
 
       // Check if it was due to the webcam
       if (this.showWebcam()) {
         this.showWebcam.update(() => false);
-        this.hasWebcamPermissionDenied.update(() => isNotPermissionRelated);
+        this.hasWebcamPermissionDenied.update(() =>
+          error.name.includes('NotAllowedError')
+        );
       }
 
       // Check if it was due to the microphone
       if (this.openMicrophone()) {
         this.openMicrophone.update(() => false);
-        this.hasMicrophonePermissionDenied.update(() => isNotPermissionRelated);
+        this.hasMicrophonePermissionDenied.update(() =>
+          error.name.includes('NotAllowedError')
+        );
       }
 
       this.ownVolumeAnalyzerService!.stopVolumeMeasurement();
@@ -950,6 +965,7 @@ export class ChatRoomMediaComponent {
       this.showScreenCast.update(() => true);
       this.sendScreenShareStatus(true);
     } catch (error) {
+      error as Error;
       console.error('Error accessing screen stream.', error);
 
       this.showScreenCast.update(() => false);
@@ -983,6 +999,7 @@ export class ChatRoomMediaComponent {
       this.chatWebRtcService.stopScreenShare();
       this.sendScreenShareStatus(false);
     } catch (error) {
+      error as Error;
       console.error('Error stopping screen stream.', error);
     }
   };
@@ -996,6 +1013,7 @@ export class ChatRoomMediaComponent {
         peerRemoteVideoElement
       );
     } catch (error) {
+      error as Error;
       console.error('Error requesting picture-in-picture', error);
 
       this.isPiPToggleEnabledOnTabSwitch.update(() => false);

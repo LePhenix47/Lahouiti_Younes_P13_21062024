@@ -177,7 +177,7 @@
                 <mat-icon>picture_in_picture</mat-icon>
               </button>
 
-              <label class="chat-room-media__pip-checkbox">
+              <label class="chat-room-media__pip-checkbox" title="Remove PiP on tab switch ?">
                 <input type="checkbox" name="" [checked]="isPiPToggleEnabledOnTabSwitch()"
                   (click)="togglePiPOnTabSwitch()" />
                 <mat-icon>tab_unselected</mat-icon>
@@ -215,12 +215,16 @@
   <!-- * Local webcam, audio and screen cast -->
   <section class="chat-room-media__local-stream">
     <p class="chat-room-media__error-message">
-      @if(hasWebcamPermissionDenied()){
-      <span class="chat-room-media__error-message--span">Webcam permission has been denied</span>
+      @if(hasWebcamPermissionDenied() && !showWebcam()){
+      <span class="chat-room-media__error-message--span">
+        <mat-icon>highlight_off</mat-icon> Webcam permission <mat-icon>videocam</mat-icon> has been denied
+      </span>
       }
 
-      @if(hasMicrophonePermissionDenied()){
-      <span class="chat-room-media__error-message--span">Microphone permission has been denied</span>
+      @if(hasMicrophonePermissionDenied() && !openMicrophone()){
+      <span class="chat-room-media__error-message--span">
+        <mat-icon>highlight_off</mat-icon> Microphone <mat-icon>mic</mat-icon> permission has been denied
+      </span>
       }
     </p>
 
@@ -366,7 +370,11 @@
 
       @if((hasNoVideoInputsInList() && showWebcam()) || (hasNoAudioInputsInList() && openMicrophone())){
       <p class="chat-room-media__info-message">
-        Please refresh the page
+        <mat-icon class="chat-room-media__info-message-icon">info</mat-icon>
+
+        Camera or microphone access has been granted, but no input devices were detected since this is your first time
+        allowing
+        access. Please refresh the page to enable the application to recognize and list your devices.
       </p>
       }
 
