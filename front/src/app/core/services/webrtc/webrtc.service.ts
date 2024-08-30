@@ -157,6 +157,7 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
 
       // Handle the ended event to know when to switch back
     } catch (error) {
+      error as Error;
       console.error('Error starting screen share', error);
       throw error;
     }
@@ -287,6 +288,7 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
 
       return localStream;
     } catch (error) {
+      error as Error;
       console.error('Error accessing media devices:', error);
       // Implement logic for permission denial or other errors
       throw error;

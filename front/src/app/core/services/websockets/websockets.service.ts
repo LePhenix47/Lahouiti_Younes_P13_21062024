@@ -58,6 +58,7 @@ export abstract class WebSocketsService {
         this.handleOnError(error); // Call abstract method on error
       });
     } catch (error) {
+      error as Error;
       console.error(error);
       this.handleOnError(error);
     }
@@ -76,6 +77,7 @@ export abstract class WebSocketsService {
 
       this.resetSocketIO();
     } catch (error) {
+      error as Error;
       console.error(error);
       this.handleOnError(error);
     }

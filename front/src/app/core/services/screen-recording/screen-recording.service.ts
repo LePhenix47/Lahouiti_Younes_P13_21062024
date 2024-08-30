@@ -123,6 +123,7 @@ export class ScreenRecordingService {
 
       return this.mixedStreams;
     } catch (error) {
+      error as Error;
       console.error('Error accessing screen stream for recording: ', error);
 
       this.isRecording.update(() => false);

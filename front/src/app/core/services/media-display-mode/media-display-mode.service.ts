@@ -37,6 +37,7 @@ export class MediaDisplayModeService {
 
       await videoElement.requestPictureInPicture();
     } catch (error) {
+      error as Error;
       console.error('Error requesting picture-in-picture', error);
       throw error;
     }
@@ -66,6 +67,7 @@ export class MediaDisplayModeService {
 
       await document.exitPictureInPicture();
     } catch (error) {
+      error as Error;
       console.error('Error removing picture-in-picture', error);
       throw error;
     }
@@ -111,6 +113,7 @@ export class MediaDisplayModeService {
 
       await fullscreenRequest.call(htmlElement, options);
     } catch (error) {
+      error as Error;
       console.error(error);
       throw error;
     }
@@ -140,6 +143,7 @@ export class MediaDisplayModeService {
 
       await exitFullscreen.call(document);
     } catch (error) {
+      error as Error;
       console.error(error);
       throw error;
     }

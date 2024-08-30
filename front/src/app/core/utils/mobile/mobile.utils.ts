@@ -54,6 +54,7 @@ export async function hasFrontAndRearCameras(): Promise<{
       }
     }
   } catch (error) {
+    error as Error;
     console.error('Error accessing media devices:', error);
   }
 
