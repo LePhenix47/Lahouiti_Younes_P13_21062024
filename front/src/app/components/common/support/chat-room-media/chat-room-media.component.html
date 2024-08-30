@@ -324,11 +324,11 @@
 
         <!-- * Screen share -->
         <div
-          class="chat-room-media__icon chat-room-media__icon--{{ !canShareScreen() || (webRtcSessionStarted && !hasEnabledWebcamForWebRTC()) ? 'off' : 'on'}}">
+          class="chat-room-media__icon chat-room-media__icon--{{ (showScreenCast() && !webRtcSessionStarted) || !canShareScreen() || (webRtcSessionStarted && !hasEnabledWebcamForWebRTC()) ? 'off' : 'on'}}">
           <label class="chat-room-media__icon-checkbox  chat-room-media__icon-checkbox--screenshare">
             <input type="checkbox" name="local-connection-control" class="chat-room-media__input hide"
               (change)="showScreenCast() ? stopScreenCast() : startScreenCast()" [checked]="showScreenCast()"
-              [disabled]="!hasEnabledWebcamForWebRTC() || !canShareScreen()" />
+              [disabled]="!webRtcSessionStarted || !hasEnabledWebcamForWebRTC() || !canShareScreen()" />
 
             @if(webRtcSessionStarted && hasEnabledWebcamForWebRTC()){
             @if(showScreenCast()) {
