@@ -171,15 +171,7 @@ export class ChatRoomMediaComponent {
 
   public roomErrorMessage: string | null = null;
 
-  public readonly signalEffect = effect(() => {
-    console.log(
-      'effect',
-      this.localPeerHasSharedLocalMedia(),
-      'remote:',
-      this.hasRemotePeerSharedWebCam(),
-      this.hasRemotePeerSharedMicrophone()
-    );
-  });
+  public readonly signalEffect = effect(() => {});
 
   // * Methods
   async ngOnInit() {
@@ -209,9 +201,7 @@ export class ChatRoomMediaComponent {
 
     this.socketIO()!.on(
       'wrtc-test',
-      (data: { roomName: string; message: string }) => {
-        console.log('wrtc-test', { data });
-      }
+      (data: { roomName: string; message: string }) => {}
     );
     console.groupEnd();
   }
@@ -271,8 +261,6 @@ export class ChatRoomMediaComponent {
   };
 
   private setTabTitle = (title: string): void => {
-    console.log('Set tab title', { title });
-
     this.titlePageService.setTitle(title);
   };
 
@@ -326,10 +314,6 @@ export class ChatRoomMediaComponent {
     this.screenRecordingService.setRemoteAudioStream(null, true);
 
     this.setTabTitle('Support chat');
-    console.log(
-      '%cdisconnectFromWebRtcSession',
-      'background: #222; color: #bada55'
-    );
   };
 
   private resetVolumeBars = (): void => {
@@ -407,7 +391,6 @@ export class ChatRoomMediaComponent {
     this.screenRecordingService.setRemoteAudioStream(remoteStream);
 
     this.remoteVolumeAnalyzerService!.startVolumeMeasurement();
-
   };
 
   private showRoomError = (errorMessage: string): void => {
@@ -516,8 +499,6 @@ export class ChatRoomMediaComponent {
     video: boolean;
     audio: boolean;
   }) => {
-    console.log({ video, audio });
-
     this.isRemotePeerMediaActive = video || audio;
 
     this.hasRemotePeerSharedWebCam.update(() => video);
@@ -555,14 +536,6 @@ export class ChatRoomMediaComponent {
     this.isReceiver =
       otherPeerUserName === this.ownUsername() &&
       otherPeerUserName !== this.currentRoom();
-    console.log(
-      'isReceiver',
-      this.isReceiver,
-      'otherPeerUserName',
-      otherPeerUserName,
-      'ownUsername',
-      this.ownUsername()
-    );
 
     this.otherPeerUserName = this.isReceiver
       ? this.currentRoom()
@@ -575,8 +548,6 @@ export class ChatRoomMediaComponent {
   };
 
   private roomDeletedCallback = (): void => {
-    console.log('roomDeletedCallback');
-
     this.disconnectFromWebRtcSession();
 
     this.currentRoom.update(() => {
@@ -699,11 +670,6 @@ export class ChatRoomMediaComponent {
     this.selectedAudioInputDeviceId.update(() => {
       return selectElement.value;
     });
-    console.log(
-      'switchMicrophoneDevice',
-      this.selectedVideoInputDeviceId(),
-      this.selectedAudioInputDeviceId()
-    );
 
     try {
       this.chatWebRtcService.resetLocalStream();
@@ -717,8 +683,6 @@ export class ChatRoomMediaComponent {
           this.selectedVideoInputDeviceId(),
           this.selectedAudioInputDeviceId()
         );
-
-      console.log({ audioInputDeviceId, localStream });
 
       if (!localStream) {
         console.warn('No local stream available');
@@ -786,13 +750,6 @@ export class ChatRoomMediaComponent {
         console.warn('No local stream available (updateLocalStream)');
         return;
       }
-
-      console.log(
-        { 'this.showWebcam()': this.showWebcam() },
-        { 'this.openMicrophone()': this.openMicrophone() },
-        'localStream.getAudioTracks()',
-        localStream.getAudioTracks()
-      );
 
       const audioTracks: MediaStreamTrack[] = localStream.getAudioTracks();
 
@@ -970,8 +927,6 @@ export class ChatRoomMediaComponent {
 
       this.showScreenCast.update(() => false);
       this.hasCanceledScreenCast.update(() => true);
-
-      console.log(this.showScreenCast());
     }
   };
 

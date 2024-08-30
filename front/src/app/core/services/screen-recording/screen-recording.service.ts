@@ -115,12 +115,6 @@ export class ScreenRecordingService {
       this.isRecording.update(() => true);
       this.startTime = performance.now();
 
-      console.log(
-        'Screen recording started !',
-        this.mixedStreams,
-        this.mediaRecorder
-      );
-
       return this.mixedStreams;
     } catch (error) {
       error as Error;
@@ -200,8 +194,6 @@ export class ScreenRecordingService {
    * This method finalizes the recorded media into a `Blob` and triggers the screen stream end callback.
    */
   private onMediaRecordingStop = async (): Promise<void> => {
-    console.log('Media recording stopped.');
-
     // Ensure we have recorded chunks before creating a Blob
     if (this.recordedChunks.length > 0) {
       const blob = new Blob(this.recordedChunks, { type: 'video/webm' });
@@ -217,10 +209,6 @@ export class ScreenRecordingService {
           size,
           objectUrl,
         };
-      });
-
-      console.log('Blob created successfully.', { blob }, this.recordedBlob(), {
-        duration,
       });
     } else {
       console.warn('No recorded chunks available for blob creation.');

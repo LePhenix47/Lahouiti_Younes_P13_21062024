@@ -111,11 +111,6 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
     for (const track of this.localStream.getVideoTracks()) {
       track.enabled = video; // Enable or disable video track
     }
-
-    console.log('%cLocal stream toggled:', 'background: orange', {
-      audio,
-      video,
-    });
   };
 
   public resetRemoteStream = (): void => {
@@ -234,17 +229,6 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
           audioDeviceId || newAudioInputTrack.getSettings().deviceId || null; // Set the microphone device ID
       }
 
-      console.group('manageLocalStream()');
-
-      console.log(
-        'audioDeviceId',
-        audioDeviceId,
-        'other options',
-        this.microphoneDeviceId,
-        this.audioInputTrack?.getSettings().deviceId
-      );
-      console.groupEnd();
-
       // Update tracks in the peer connection if needed
       const userIsInWebRtcSession: boolean =
         this.peerConnection?.connectionState === 'connected';
@@ -320,8 +304,6 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
     }
 
     await sender.replaceTrack(newTrack);
-    console.log(sender, newTrack);
-
     this.arrayOfPreviousStreamsTracks.push(oldTrack);
   };
 
@@ -340,38 +322,26 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
 
     this.addWebRtcSocketEventListeners();
 
-    console.log('Creating peer connection');
     return this.peerConnection;
   };
 
   protected setDataChannelAsOffer = (channel: string): void => {
     this.dataChannel = this.peerConnection!.createDataChannel(channel);
 
-    this.dataChannel.addEventListener('message', (e: MessageEvent) => {
-      console.log('new message', e.data);
-    });
+    this.dataChannel.addEventListener('message', (e: MessageEvent) => {});
 
-    this.dataChannel.addEventListener('open', (e: Event) => {
-      console.log('(OFFER) Connected to other peer LETS GOOOO!!!!', e);
-    });
+    this.dataChannel.addEventListener('open', (e: Event) => {});
 
-    this.dataChannel.addEventListener('close', (e: Event) => {
-      console.log('Closed data channel (RIP)', e);
-    });
+    this.dataChannel.addEventListener('close', (e: Event) => {});
   };
 
   protected setDataChannelAsAnswer = (): void => {
     this.peerConnection!.addEventListener('datachannel', (e) => {
-      console.log('Data dataChannel event', e);
       this.dataChannel = e.channel;
 
-      this.dataChannel.addEventListener('message', (e) => {
-        console.log('new message', e.data);
-      });
+      this.dataChannel.addEventListener('message', (e) => {});
 
-      this.dataChannel.addEventListener('open', (e) => {
-        console.log('(ANSWER) Connected to other peer LETS GOOOO!!!!', e);
-      });
+      this.dataChannel.addEventListener('open', (e) => {});
     });
   };
 
@@ -461,13 +431,9 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
     this.handleIceCandidateError(iceErrorEvent);
   };
 
-  private onIceGatheringStateChangeEvent = (event: Event): void => {
-    console.log(this.peerConnection!.iceGatheringState, event);
-  };
+  private onIceGatheringStateChangeEvent = (event: Event): void => {};
 
-  private onSignalingStateChangeEvent = (): void => {
-    console.log('Signaling state:', this.peerConnection!.signalingState);
-  };
+  private onSignalingStateChangeEvent = (): void => {};
 
   /**
    * Adds local tracks to the peer connection.
@@ -478,8 +444,6 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
       return;
     }
 
-    console.log('this.addLocalTracksToPeerConnection');
-
     if (!this.localStream) {
       console.error(
         'The local stream was not initiated, could not add local tracks to peer connection'
@@ -487,13 +451,9 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
 
       return;
     }
-    console.log('this.localStream', this.localStream.getTracks());
-
     for (const track of this.localStream.getTracks()) {
       this.peerConnection.addTrack(track, this.localStream);
     }
-
-    console.log(this.peerConnection.connectionState);
   };
 
   protected addTransceiversToPeerConnection = (): void => {
@@ -524,10 +484,6 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
       return;
     }
 
-    console.log('Removing local tracks from peer connection');
-
-    console.log('Local stream tracks:', this.localStream.getTracks());
-
     // Get the senders for the current peer connection
     const senders = this.peerConnection.getSenders();
 
@@ -549,10 +505,7 @@ export abstract class WebRTCService implements WebRTCLogic, MediaStreamLogic {
       track.stop();
       // Remove the track from the peer connection
       this.peerConnection.removeTrack(sender);
-      console.log(`Removed track: ${track.kind}`);
     }
-
-    console.log('Peer connection state:', this.peerConnection.connectionState);
   };
 
   // ? ===========  ABSTRACT METHODS =========== ?

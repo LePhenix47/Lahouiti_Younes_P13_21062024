@@ -59,11 +59,6 @@ export class ChatWebRtcService extends WebRTCService {
       return;
     }
 
-    console.log(
-      '%cAdding WebRTC socket listeners !!!',
-      'background: white; color: black; padding: 1rem'
-    );
-
     this.socketio.on(
       'ice-candidate',
       async (remotePeerIceCandidate: RTCIceCandidate) => {
@@ -75,8 +70,6 @@ export class ChatWebRtcService extends WebRTCService {
 
     // * If the user is the RECEIVER
     this.socketio.on('offer', async (remoteOffer: RTCSessionDescription) => {
-      console.log('offer', remoteOffer);
-
       const sessionDescription = new RTCSessionDescription(remoteOffer);
       await this.peerConnection!.setRemoteDescription(sessionDescription);
       this.onReceiveOffer(remoteOffer);
@@ -86,8 +79,6 @@ export class ChatWebRtcService extends WebRTCService {
 
     // * If the user is the SENDER
     this.socketio.on('answer', async (remoteAnswer: RTCSessionDescription) => {
-      console.log('answer', remoteAnswer);
-
       const sessionDescription = new RTCSessionDescription(remoteAnswer);
       await this.peerConnection!.setRemoteDescription(sessionDescription);
 
@@ -109,11 +100,6 @@ export class ChatWebRtcService extends WebRTCService {
       console.warn('WebRTC socket listeners not added, skipping removal');
       return;
     }
-
-    console.log(
-      '%cRemoving WebRTC socket listeners !!!',
-      'background: white; color: black; padding: 1rem'
-    );
 
     // Remove the ice-candidate listener
     this.socketio.off('ice-candidate');
@@ -185,8 +171,6 @@ export class ChatWebRtcService extends WebRTCService {
     );
 
     this.socketio.on('toggled-screen-share', (isSharingScreen: boolean) => {
-      console.log('toggled-screen-share received:', isSharingScreen);
-
       this.onReceiveToggledScreenShare?.(isSharingScreen);
     });
 
@@ -322,8 +306,6 @@ export class ChatWebRtcService extends WebRTCService {
    * the room.
    */
   public leaveRoom = (): void => {
-    console.log(this.currentRoom);
-
     if (!this.currentRoom || !this.socketio) {
       return;
     }
@@ -351,8 +333,6 @@ export class ChatWebRtcService extends WebRTCService {
       return;
     }
 
-    console.log('notifyRemotePeerOfScreenShare method', isSharingScreen);
-
     this.socketio.emit('toggled-screen-share', {
       roomName: this.currentRoom,
       isSharingScreen,
@@ -366,8 +346,6 @@ export class ChatWebRtcService extends WebRTCService {
     if (!this.socketio) {
       return;
     }
-
-    console.log('notifyRemotePeerOfScreenShare method', deviceToggles);
 
     this.socketio.emit('toggled-media', {
       roomName: this.currentRoom,
@@ -431,13 +409,6 @@ export class ChatWebRtcService extends WebRTCService {
     } as const;
 
     this.socketio!.emit('offer', offerPayload);
-
-    console.log(
-      '%cEmitting an offer, localStream:',
-      'background: red; padding: 1rem',
-      this.localStream?.getAudioTracks(),
-      this.localStream?.getVideoTracks()
-    );
   };
 
   public override createAnswer = async (): Promise<void> => {
@@ -467,13 +438,6 @@ export class ChatWebRtcService extends WebRTCService {
     } as const;
 
     this.socketio!.emit('answer', answerPayload);
-
-    console.log(
-      '%cEmitting an answer, localStream:',
-      'background: red; padding: 1rem',
-      this.localStream?.getAudioTracks(),
-      this.localStream?.getVideoTracks()
-    );
   };
 
   public onReceiveAnswer = async (answer: RTCSessionDescriptionInit) => {};
@@ -489,15 +453,8 @@ export class ChatWebRtcService extends WebRTCService {
       return;
     }
 
-    console.log(
-      `%cReceived tracks from remote peer`,
-      'background: crimson; padding: 1rem; font-size: 1.5rem;',
-      event
-    );
-
     // * Since only 2 people can make a call, we only need one stream
     const stream: MediaStream = event.streams[0];
-    console.log({ 'event.streams': event.streams });
     this.remoteVideoElement!.srcObject = stream;
 
     this.onTrackAddedCallback?.(event);

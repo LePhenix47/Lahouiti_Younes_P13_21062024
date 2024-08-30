@@ -41,9 +41,7 @@ export abstract class WebSocketsService {
       this.socketio = socket;
 
       this.socketio.emit('test', 'test (client)');
-      this.socketio.on('test', (msg) => {
-        console.log('TEST response from server:', msg);
-      });
+      this.socketio.on('test', (msg) => {});
 
       this.socketio.on('connect', () => {
         this.handleOnConnect(); // Call abstract method when connected
