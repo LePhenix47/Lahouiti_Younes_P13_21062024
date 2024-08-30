@@ -1,5 +1,0 @@
-<app-chat-module [ownUsername]="ownUsername" (usersPresenceOutput)="setUsersArray($event)"
-  (groupChatUsersStompClientOutput)="setStompClient($event)"></app-chat-module>
-
-<app-chat-room-media [stompClient]="sharedStompClient" [ownUsername]="ownUsername"
-  [usersList]="usersList"></app-chat-room-media>

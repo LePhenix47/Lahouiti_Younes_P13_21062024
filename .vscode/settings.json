@@ -10,11 +10,6 @@
         ".husky": true,
         ".vscode": true,
         ".next": true,
-        "**/node_modules": true,
-        "[!f]*/**": true,
-        "f[!r]*/**": true,
-        "fr[!o]*/**": true,
-        "fro[!n]*/**": true,
-        "fron[!t]*/**": true
+        "**/node_modules": true
     }
 }
