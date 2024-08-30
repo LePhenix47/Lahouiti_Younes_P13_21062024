@@ -1,0 +1,37 @@
+<section class="access-support">
+
+  <h1>Your car your way PoC</h1>
+
+  <img src="/assets/png/your-car-your-way-logo.png" alt="Your car your way logo" class="access-support__logo" />
+
+  <form class="access-support__form" [formGroup]="enterChatForm" (ngSubmit)="onSubmit($event)">
+    <fieldset class="access-support__fieldset">
+      <legend class="access-support__legend">WebSockets and WebRTC</legend>
+
+      <label class="access-support__label" for="username">
+        Enter your username
+      </label>
+      <input type="text" class="access-support__input ycyw__input" id="username" placeholder="Ex: John Doe"
+        formControlName="username" list="usernames-datalist" />
+      <datalist id="usernames-datalist">
+        @for (username of usernameSuggestions(); let index = $index; track index) {
+        <option value="{{ username }}">{{ username }}</option>
+        }
+
+      </datalist>
+    </fieldset>
+
+    <button type="submit" class="access-support__button ycyw__button ycyw__button--1">Join chat</button>
+  </form>
+
+  @if(isLoading()){
+  <app-spin-loader />
+  }
+
+  @if(error()){
+  <p>{{ error()?.error?.message }}</p>
+  }
+  @if(isAvailable()){
+  <p>Joining chat</p>
+  }
+</section>

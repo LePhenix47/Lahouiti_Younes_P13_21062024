@@ -1,0 +1,5 @@
+<app-chat-module [ownUsername]="ownUsername" (usersPresenceOutput)="setUsersArray($event)"
+  (groupChatUsersStompClientOutput)="setSocket($event)"></app-chat-module>
+
+<app-chat-room-media [socketIO]="sharedSocket" [ownUsername]="ownUsername"
+  [usersList]="usersList"></app-chat-room-media>

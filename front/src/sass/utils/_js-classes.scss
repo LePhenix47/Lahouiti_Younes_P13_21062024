@@ -1,0 +1,50 @@
+// * Simple classes to show or hide elements
+.hide {
+  display: none !important;
+}
+
+.show {
+  display: initial !important;
+}
+
+
+.transparent {
+  opacity: 0%;
+}
+
+
+// * Your car your way (ycyw) classes
+.ycyw {
+  &__button {
+    width: 100%;
+
+    padding: 5px;
+    font-family: "Phosphate Pro Solid";
+
+    border-radius: 5px;
+
+    &:disabled {
+      filter: contrast(55%)
+    }
+
+    &--1 {
+      background-color: var(--color-ycyw-1);
+      color: white;
+
+    }
+
+    &--2 {
+      background-color: var(--color-ycyw-2);
+      color: black;
+
+    }
+  }
+
+
+  &__input {
+    padding: 5px;
+    outline: solid currentColor;
+    outline-width: 1px;
+    border-radius: 5px;
+  }
+}

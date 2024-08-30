@@ -1,0 +1,33 @@
+@media (prefers-color-scheme: dark) {
+
+  //CSS
+  :root {
+    --bg-primary: #121212;
+    --bg-secondary: #ac89ff;
+    --bg-tertiary: #0a0a0a;
+
+    --color-error: #ffb0b0;
+
+    --color-primary: white;
+
+    --default-bg: #d1e6ff;
+    --default-bg-2: #99c8ff;
+
+    --_scrollbar-track-bg-color: black;
+    --_scrollbar-thumb-bg-color: var(--bg-secondary);
+    --_scrollbar-thumb-bg-color--hover: #8a8a8a;
+    --_scrollbar-thumb-bg-color--active: #4f4f4f;
+
+    --selection-bg-color: var(--bg-secondary);
+    --selection-color: black;
+  }
+
+
+  ::backdrop {
+    --_scrollbar-track-bg-color: black;
+
+    --_scrollbar-thumb-bg-color: #ababab;
+    --_scrollbar-thumb-bg-color--hover: #8a8a8a;
+    --_scrollbar-thumb-bg-color--active: #4f4f4f;
+  }
+}
