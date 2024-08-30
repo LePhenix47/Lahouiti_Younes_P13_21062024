@@ -7,53 +7,53 @@ import {
   input,
   signal,
   ViewChild,
-} from "@angular/core";
-import { Title } from "@angular/platform-browser";
-import { CollapsibleHeightComponent } from "@components/shared/collapsible-height/collapsible-height.component";
-import { MediaDisplayModeService } from "@core/services/media-display-mode/media-display-mode.service";
-import { ScreenRecordingService } from "@core/services/screen-recording/screen-recording.service";
-import { ChatWebRtcService } from "@core/services/video-chat/chat-webrtc.service";
-import { VolumeMeterService } from "@core/services/volume-meter/volume-meter.service";
-import { ScreenRecordBlob } from "@core/types/screen-recording/screen-recording.types";
+} from '@angular/core';
+import { Title } from '@angular/platform-browser';
+import { CollapsibleHeightComponent } from '@components/shared/collapsible-height/collapsible-height.component';
+import { MediaDisplayModeService } from '@core/services/media-display-mode/media-display-mode.service';
+import { ScreenRecordingService } from '@core/services/screen-recording/screen-recording.service';
+import { ChatWebRtcService } from '@core/services/video-chat/chat-webrtc.service';
+import { VolumeMeterService } from '@core/services/volume-meter/volume-meter.service';
+import { ScreenRecordBlob } from '@core/types/screen-recording/screen-recording.types';
 import {
   DeviceInfo,
   Room,
-} from "@core/types/videoconference/videoconference.types";
-import { formatTimeValues } from "@core/utils/numbers/time.utils";
+} from '@core/types/videoconference/videoconference.types';
+import { formatTimeValues } from '@core/utils/numbers/time.utils';
 import {
   checkDeviceListAvailability,
   createDeviceList,
-} from "@core/utils/videoconference/videoconference.utils";
-import { Socket } from "socket.io-client";
-import { MatIconModule } from "@angular/material/icon";
+} from '@core/utils/videoconference/videoconference.utils';
+import { Socket } from 'socket.io-client';
+import { MatIconModule } from '@angular/material/icon';
 import {
   hasFrontAndRearCameras,
   isTouchDevice,
-} from "@core/utils/mobile/mobile.utils";
+} from '@core/utils/mobile/mobile.utils';
 
 @Component({
-  selector: "app-chat-room-media",
+  selector: 'app-chat-room-media',
   standalone: true,
   imports: [CollapsibleHeightComponent, MatIconModule],
-  templateUrl: "./chat-room-media.component.html",
-  styleUrl: "./chat-room-media.component.scss",
+  templateUrl: './chat-room-media.component.html',
+  styleUrl: './chat-room-media.component.scss',
 })
 export class ChatRoomMediaComponent {
   // * Refs for the video elements
-  @ViewChild("ownWebCamVideoRef")
+  @ViewChild('ownWebCamVideoRef')
   ownWebCamVideoRef: ElementRef<HTMLVideoElement> | null = null;
 
-  @ViewChild("remoteWebCamVideoRef")
+  @ViewChild('remoteWebCamVideoRef')
   remoteWebCamVideoRef: ElementRef<HTMLVideoElement> | null = null;
 
-  @ViewChild("ownAudioVolumeIndicatorRef")
+  @ViewChild('ownAudioVolumeIndicatorRef')
   ownAudioVolumeIndicatorRef: ElementRef<HTMLProgressElement> | null = null;
 
-  @ViewChild("remotePeerAudioVolumeIndicatorRef")
+  @ViewChild('remotePeerAudioVolumeIndicatorRef')
   remotePeerAudioVolumeIndicatorRef: ElementRef<HTMLProgressElement> | null =
     null;
 
-  @ViewChild("videoRecordingElementRef")
+  @ViewChild('videoRecordingElementRef')
   videoRecordingElementRef: ElementRef<HTMLVideoElement> | null = null;
 
   /**
@@ -88,7 +88,7 @@ export class ChatRoomMediaComponent {
 
   public readonly canShareScreen = signal<boolean>(false);
   public readonly canRecordScreen = computed<boolean>(() => {
-    return typeof MediaRecorder !== "undefined" && this.canShareScreen();
+    return typeof MediaRecorder !== 'undefined' && this.canShareScreen();
   });
   public readonly canSwitchSpeakerDevice = signal<boolean>(false);
 
@@ -96,7 +96,7 @@ export class ChatRoomMediaComponent {
   public readonly enumeratedDevicesList = signal<MediaDeviceInfo[]>([]);
 
   public readonly videoInputsList = computed<DeviceInfo[]>(() => {
-    return createDeviceList(this.enumeratedDevicesList(), "videoinput");
+    return createDeviceList(this.enumeratedDevicesList(), 'videoinput');
   });
 
   public readonly isTouchDeviceWithCameras = computed<boolean>(() => {
@@ -105,7 +105,7 @@ export class ChatRoomMediaComponent {
     );
 
     console.log(
-      "Result of hasFrontAndRearCameras",
+      'Result of hasFrontAndRearCameras',
       hasFrontCamera,
       hasBackCamera
     );
@@ -128,7 +128,7 @@ export class ChatRoomMediaComponent {
     }
 
     return (
-      this.isTouchDeviceWithCameras() && activeCamera.label.includes("back")
+      this.isTouchDeviceWithCameras() && activeCamera.label.includes('back')
     );
   });
 
@@ -137,7 +137,7 @@ export class ChatRoomMediaComponent {
   });
 
   public readonly audioInputsList = computed<DeviceInfo[]>(() => {
-    return createDeviceList(this.enumeratedDevicesList(), "audioinput");
+    return createDeviceList(this.enumeratedDevicesList(), 'audioinput');
   });
 
   public readonly hasNoAudioInputsInList = computed<boolean>(() => {
@@ -146,7 +146,7 @@ export class ChatRoomMediaComponent {
 
   // Filter for audio output devices
   public readonly audioOutputsList = computed<DeviceInfo[]>(() => {
-    return createDeviceList(this.enumeratedDevicesList(), "audiooutput");
+    return createDeviceList(this.enumeratedDevicesList(), 'audiooutput');
   });
 
   public readonly hasNoAudioOutputsInList = computed<boolean>(() => {
@@ -218,7 +218,7 @@ export class ChatRoomMediaComponent {
 
   // * Methods
   async ngOnInit() {
-    console.group("ngOnInit()");
+    console.group('ngOnInit()');
     this.getInitialDevicePermissions();
 
     this.ownVolumeAnalyzerService = new VolumeMeterService();
@@ -235,7 +235,7 @@ export class ChatRoomMediaComponent {
 
     this.hasPiPModeAvailable.update(() => document.pictureInPictureEnabled);
     if (this.hasPiPModeAvailable()) {
-      document.addEventListener("visibilitychange", this.togglePiPVideoElement);
+      document.addEventListener('visibilitychange', this.togglePiPVideoElement);
     }
 
     this.roomsList.update(() => {
@@ -243,14 +243,14 @@ export class ChatRoomMediaComponent {
     });
 
     this.socketIO()!.on(
-      "wrtc-test",
+      'wrtc-test',
       (data: { roomName: string; message: string }) => {}
     );
     console.groupEnd();
   }
 
   ngAfterViewInit(): void {
-    console.group("ngAfterViewInit()");
+    console.group('ngAfterViewInit()');
     this.setWebRtcVideoElements();
     this.setVolumeMeterServiceElements();
     console.groupEnd();
@@ -264,7 +264,7 @@ export class ChatRoomMediaComponent {
 
     if (this.hasPiPModeAvailable()) {
       document.removeEventListener(
-        "visibilitychange",
+        'visibilitychange',
         this.togglePiPVideoElement
       );
     }
@@ -285,7 +285,7 @@ export class ChatRoomMediaComponent {
   private resetScreenRecordingIntervalId = (): void => {
     if (!this.screenRecordingIntervalId) {
       console.error(
-        "The screen recording interval is not defined, cannot reset interval, received: ",
+        'The screen recording interval is not defined, cannot reset interval, received: ',
         this.screenRecordingIntervalId
       );
       return;
@@ -356,7 +356,7 @@ export class ChatRoomMediaComponent {
 
     this.screenRecordingService.setRemoteAudioStream(null, true);
 
-    this.setTabTitle("Support chat");
+    this.setTabTitle('Support chat');
   };
 
   private resetVolumeBars = (): void => {
@@ -424,7 +424,7 @@ export class ChatRoomMediaComponent {
 
     if (!this.hasRemotePeerSharedMicrophone()) {
       console.warn(
-        "No audio tracks in remote stream, skipping volume measurement"
+        'No audio tracks in remote stream, skipping volume measurement'
       );
 
       return;
@@ -441,12 +441,12 @@ export class ChatRoomMediaComponent {
   };
 
   private resetRoomErrorMessage = (): void => {
-    this.roomErrorMessage = "";
+    this.roomErrorMessage = '';
   };
 
   private listenToDeviceChanges = (): void => {
     navigator.mediaDevices.addEventListener(
-      "devicechange",
+      'devicechange',
       this.populateEnumeratedDevices
     );
   };
@@ -517,31 +517,31 @@ export class ChatRoomMediaComponent {
     const cameraPermissionResult: PermissionStatus =
       await navigator.permissions.query({
         // @ts-ignore TS is drunk
-        name: "camera",
+        name: 'camera',
       });
 
     const microphonePermissionResult: PermissionStatus =
       await navigator.permissions.query({
         // @ts-ignore TS is drunk
-        name: "microphone",
+        name: 'microphone',
       });
 
     this.hasWebcamPermissionDenied.update(() => {
-      return cameraPermissionResult.state === "denied";
+      return cameraPermissionResult.state === 'denied';
     });
 
     this.hasMicrophonePermissionDenied.update(() => {
-      return microphonePermissionResult.state === "denied";
+      return microphonePermissionResult.state === 'denied';
     });
 
     this.canShareScreen.update(() => {
-      return "getDisplayMedia" in navigator.mediaDevices;
+      return 'getDisplayMedia' in navigator.mediaDevices;
     });
 
     this.canSwitchSpeakerDevice.update(() => {
-      const videoElement: HTMLVideoElement = document.createElement("video");
+      const videoElement: HTMLVideoElement = document.createElement('video');
 
-      return "sinkId" in videoElement;
+      return 'sinkId' in videoElement;
     });
   };
 
@@ -621,7 +621,7 @@ export class ChatRoomMediaComponent {
     if (this.currentRoom()) {
       console.warn(
         `User already ${
-          this.currentRoom() === this.ownUsername() ? "created" : "joined"
+          this.currentRoom() === this.ownUsername() ? 'created' : 'joined'
         } a room`
       );
 
@@ -659,9 +659,9 @@ export class ChatRoomMediaComponent {
   };
 
   public sendTestMessage = (): void => {
-    this.socketIO()!.emit("wrtc-test", {
+    this.socketIO()!.emit('wrtc-test', {
       roomName: this.currentRoom(),
-      message: "test",
+      message: 'test',
     });
   };
 
@@ -685,7 +685,7 @@ export class ChatRoomMediaComponent {
 
       if (!this.selectedAudioInputDeviceId()) {
         console.warn(
-          "No video input device selected! Has device ID value: ",
+          'No video input device selected! Has device ID value: ',
           this.selectedAudioInputDeviceId()
         );
       }
@@ -738,7 +738,7 @@ export class ChatRoomMediaComponent {
         );
 
       if (!localStream) {
-        console.warn("No local stream available");
+        console.warn('No local stream available');
 
         return;
       }
@@ -800,7 +800,7 @@ export class ChatRoomMediaComponent {
         );
 
       if (!localStream) {
-        console.warn("No local stream available (updateLocalStream)");
+        console.warn('No local stream available (updateLocalStream)');
         return;
       }
 
@@ -810,7 +810,7 @@ export class ChatRoomMediaComponent {
         this.ownVolumeAnalyzerService!.setMicrophoneStream(localStream);
         this.ownVolumeAnalyzerService!.startVolumeMeasurement();
       } else {
-        console.warn("No audio tracks available (updateLocalStream)");
+        console.warn('No audio tracks available (updateLocalStream)');
       }
 
       if (!this.showScreenCast()) {
@@ -834,14 +834,14 @@ export class ChatRoomMediaComponent {
         `An unexpected error occurred: ${error.message}`,
         { error },
         error.message,
-        error.message.includes("NotAllowedError")
+        error.message.includes('NotAllowedError')
       );
 
       // Check if it was due to the webcam
       if (this.showWebcam()) {
         this.showWebcam.update(() => false);
         this.hasWebcamPermissionDenied.update(() =>
-          error.name.includes("NotAllowedError")
+          error.name.includes('NotAllowedError')
         );
       }
 
@@ -849,7 +849,7 @@ export class ChatRoomMediaComponent {
       if (this.openMicrophone()) {
         this.openMicrophone.update(() => false);
         this.hasMicrophonePermissionDenied.update(() =>
-          error.name.includes("NotAllowedError")
+          error.name.includes('NotAllowedError')
         );
       }
 
@@ -896,16 +896,16 @@ export class ChatRoomMediaComponent {
     toggleType: string
   ): void => {
     if (!this.webRtcSessionStarted) {
-      console.error("WebRTC session has not started yet");
+      console.error('WebRTC session has not started yet');
 
       return;
     }
 
     const input = event.currentTarget as HTMLInputElement;
 
-    if (toggleType === "webcam") {
+    if (toggleType === 'webcam') {
       this.hasEnabledWebcamForWebRTC.update(() => input.checked);
-    } else if (toggleType === "microphone") {
+    } else if (toggleType === 'microphone') {
       this.hasEnabledMicrophoneForWebRTC.update(() => input.checked);
     }
 
@@ -976,7 +976,7 @@ export class ChatRoomMediaComponent {
       this.sendScreenShareStatus(true);
     } catch (error) {
       error as Error;
-      console.error("Error accessing screen stream.", error);
+      console.error('Error accessing screen stream.', error);
 
       this.showScreenCast.update(() => false);
       this.hasCanceledScreenCast.update(() => true);
@@ -999,7 +999,7 @@ export class ChatRoomMediaComponent {
     try {
       if (!this.webRtcSessionStarted) {
         throw new Error(
-          "WebRTC session has not started yet, cannot stop screen share"
+          'WebRTC session has not started yet, cannot stop screen share'
         );
       }
 
@@ -1008,7 +1008,7 @@ export class ChatRoomMediaComponent {
       this.sendScreenShareStatus(false);
     } catch (error) {
       error as Error;
-      console.error("Error stopping screen stream.", error);
+      console.error('Error stopping screen stream.', error);
     }
   };
 
@@ -1022,7 +1022,7 @@ export class ChatRoomMediaComponent {
       );
     } catch (error) {
       error as Error;
-      console.error("Error requesting picture-in-picture", error);
+      console.error('Error requesting picture-in-picture', error);
 
       this.isPiPToggleEnabledOnTabSwitch.update(() => false);
     }
@@ -1045,7 +1045,7 @@ export class ChatRoomMediaComponent {
       return;
     }
 
-    if (document.visibilityState === "hidden") {
+    if (document.visibilityState === 'hidden') {
       return;
     }
 
@@ -1096,7 +1096,7 @@ export class ChatRoomMediaComponent {
     const specificBlob: ScreenRecordBlob = this.screenRecordingBlobs()[index];
 
     if (!specificBlob) {
-      console.error("No blob available to remove at index:", index);
+      console.error('No blob available to remove at index:', index);
 
       return;
     }
@@ -1129,7 +1129,7 @@ export class ChatRoomMediaComponent {
     const screenRecordAsBlob: ScreenRecordBlob | null =
       this.screenRecordingService.recordedBlob();
     if (!screenRecordAsBlob?.blob) {
-      console.error("No blob available to download");
+      console.error('No blob available to download');
 
       return;
     }

@@ -1,18 +1,18 @@
-import { Component, inject, signal } from "@angular/core";
-import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
-import { Router } from "@angular/router";
-import { setChatUsernameAction } from "@core/ngrx/actions/chat-info.actions";
-import { CheckUsernameService } from "@core/services/check-username/check-username.service";
-import { Store } from "@ngrx/store";
-import { SpinLoaderComponent } from "@components/shared/spin-loader/spin-loader.component";
-import { usernameSuggestions } from "@core/variables/access-support.variables";
+import { Component, inject, signal } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { setChatUsernameAction } from '@core/ngrx/actions/chat-info.actions';
+import { CheckUsernameService } from '@core/services/check-username/check-username.service';
+import { Store } from '@ngrx/store';
+import { SpinLoaderComponent } from '@components/shared/spin-loader/spin-loader.component';
+import { usernameSuggestions } from '@core/variables/access-support.variables';
 
 @Component({
-  selector: "app-access-support",
+  selector: 'app-access-support',
   standalone: true,
   imports: [ReactiveFormsModule, SpinLoaderComponent],
-  templateUrl: "./access-support.component.html",
-  styleUrl: "./access-support.component.scss",
+  templateUrl: './access-support.component.html',
+  styleUrl: './access-support.component.scss',
 })
 export class AccessSupportComponent {
   /**
@@ -43,7 +43,7 @@ export class AccessSupportComponent {
    * Chat entering form.
    */
   protected readonly enterChatForm = this.formBuilder.group({
-    username: ["", [Validators.required]],
+    username: ['', [Validators.required]],
   });
 
   /**
@@ -75,6 +75,6 @@ export class AccessSupportComponent {
       })
     );
 
-    this.router.navigate(["/support"]);
+    this.router.navigate(['/support']);
   };
 }

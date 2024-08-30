@@ -1,0 +1,47 @@
+<aside class="chat-module">
+  @if(chatWebSocketsService.hasError){
+  <p class="chat-module__error">An unexpected error occurred and couldn't connect to the chat</p>
+  } @else {
+  <ul class="chat-module__messages-list">
+    @for(messageLog of messageLogs(); let index = $index; track index){
+    @switch (messageLog.type) {
+    @case ("JOIN") {
+    <li class="chat-module__message-item chat-module__message-item--join">
+      <span class="chat-module__sender chat-module__sender--join">{{messageLog.sender}}&nbsp;</span>
+      has joined the chat
+    </li>
+    }
+    @case ("CHAT") {
+    <li
+      class="chat-module__message-item chat-module__message-item--chat chat-module__message-item--chat-{{messageLog.sender === this.ownUsername() ? 'user': 'other'}}">
+      <p class="chat-module__message-main-info">
+        <span class="chat-module__sender chat-module__sender--chat">{{messageLog.sender}}&nbsp;</span>
+        <small class="chat-module__date">{{messageLog.date.toLocaleDateString("fr-FR")}}
+          {{messageLog.date.toLocaleTimeString("fr-FR")}}</small>
+      </p>
+      <span class="chat-module__message">{{messageLog.message}}</span>
+    </li>
+    }
+    @case ("LEAVE") {
+    <li class="chat-module__message-item chat-module__message-item--leave">
+      <span class="chat-module__sender chat-module__sender--leave">{{messageLog.sender}}&nbsp;</span>
+      has left the chat
+    </li>
+    }
+    @default {
+    <li class="chat-module__message-item chat-module__message-item--error">An unexpected error occurred, received an
+      unknown message</li>
+    }
+    }
+
+    }
+  </ul>
+
+  <form class="chat-module__send-message-form" [formGroup]="sendMessageForm" (ngSubmit)="onSubmitMessageToChat($event)">
+    <textarea type="text" class="chat-module__textarea ycyw__input" formControlName="message"
+      placeholder="Send a message, ex: Hello world !" (keydown)="submitMessageWithShortcut($event)"></textarea>
+    <button type="submit" class="chat-module__submit-button ycyw__button ycyw__button--2"
+      [disabled]="!sendMessageForm.valid">Send</button>
+  </form>
+  }
+</aside>

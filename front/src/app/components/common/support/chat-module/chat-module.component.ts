@@ -5,21 +5,21 @@ import {
   input,
   output,
   signal,
-} from "@angular/core";
-import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
-import { ChatWebSocketsService } from "@core/services/chat/chat-websockets.service";
+} from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ChatWebSocketsService } from '@core/services/chat/chat-websockets.service';
 import {
   ChatLogMessage,
   ChatWebSocketJoinLeaveResponse,
   ChatWebSocketResponse,
-} from "@core/types/chat/chat.types";
+} from '@core/types/chat/chat.types';
 
 @Component({
-  selector: "app-chat-module",
+  selector: 'app-chat-module',
   standalone: true,
   imports: [ReactiveFormsModule],
-  templateUrl: "./chat-module.component.html",
-  styleUrl: "./chat-module.component.scss",
+  templateUrl: './chat-module.component.html',
+  styleUrl: './chat-module.component.scss',
 })
 export class ChatModuleComponent {
   /**
@@ -31,7 +31,7 @@ export class ChatModuleComponent {
    * The reactive form for sending a chat message.
    */
   protected readonly sendMessageForm = this.formBuilder.group({
-    message: ["", [Validators.required]],
+    message: ['', [Validators.required]],
   });
 
   /**
@@ -58,7 +58,7 @@ export class ChatModuleComponent {
   ngOnInit() {
     this.connectToWebSocket();
 
-    window.addEventListener("beforeunload", (event) => {
+    window.addEventListener('beforeunload', (event) => {
       this.disconnectFromWebSocket();
     });
   }
@@ -66,7 +66,7 @@ export class ChatModuleComponent {
   ngOnDestroy() {
     this.disconnectFromWebSocket();
 
-    window.removeEventListener("beforeunload", (event) => {
+    window.removeEventListener('beforeunload', (event) => {
       this.disconnectFromWebSocket();
     });
   }
@@ -120,10 +120,10 @@ export class ChatModuleComponent {
   onChatNewMemberJoin = (data: ChatWebSocketJoinLeaveResponse): void => {
     const { users } = data;
     this.addNewMessageLog({
-      type: "JOIN",
+      type: 'JOIN',
       sender: data.sender,
       date: new Date(),
-      message: "",
+      message: '',
     });
 
     this.usersPresenceOutput.emit(users);
@@ -134,7 +134,7 @@ export class ChatModuleComponent {
    * @param {ChatWebSocketResponse} data - The data of the new chat message event.
    */
   onChatNewMessage = (data: ChatWebSocketResponse): void => {
-    this.addNewMessageLog({ ...data, type: "CHAT" });
+    this.addNewMessageLog({ ...data, type: 'CHAT' });
   };
 
   /**
@@ -144,10 +144,10 @@ export class ChatModuleComponent {
   onChatMemberLeave = (data: ChatWebSocketJoinLeaveResponse): void => {
     const { users } = data;
     this.addNewMessageLog({
-      type: "LEAVE",
+      type: 'LEAVE',
       sender: data.sender,
       date: new Date(),
-      message: "",
+      message: '',
     });
 
     this.usersPresenceOutput.emit(users);
@@ -172,7 +172,7 @@ export class ChatModuleComponent {
   submitMessageWithShortcut = (event: KeyboardEvent): void => {
     const { ctrlKey, key } = event;
 
-    const usedShortcut: boolean = ctrlKey && key === "Enter";
+    const usedShortcut: boolean = ctrlKey && key === 'Enter';
     if (!usedShortcut) {
       return;
     }
@@ -201,7 +201,7 @@ export class ChatModuleComponent {
    */
   private resetForm = () => {
     this.sendMessageForm.setValue({
-      message: "",
+      message: '',
     });
   };
 }

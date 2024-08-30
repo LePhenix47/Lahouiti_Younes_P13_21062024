@@ -1,16 +1,16 @@
-import { Component, inject } from "@angular/core";
-import { ChatModuleComponent } from "@components/common/support/chat-module/chat-module.component";
-import { Username } from "@core/ngrx/actions/chat-info.actions";
-import { Store } from "@ngrx/store";
+import { Component, inject } from '@angular/core';
+import { ChatModuleComponent } from '@components/common/support/chat-module/chat-module.component';
+import { Username } from '@core/ngrx/actions/chat-info.actions';
+import { Store } from '@ngrx/store';
 
-import { toSignal } from "@angular/core/rxjs-interop";
-import { ChatRoomMediaComponent } from "@components/common/support/chat-room-media/chat-room-media.component";
+import { toSignal } from '@angular/core/rxjs-interop';
+import { ChatRoomMediaComponent } from '@components/common/support/chat-room-media/chat-room-media.component';
 
 @Component({
-  selector: "app-support",
+  selector: 'app-support',
   standalone: true,
-  templateUrl: "./support.component.html",
-  styleUrl: "./support.component.scss",
+  templateUrl: './support.component.html',
+  styleUrl: './support.component.scss',
   imports: [ChatModuleComponent, ChatRoomMediaComponent],
 })
 export class SupportComponent {
@@ -20,7 +20,7 @@ export class SupportComponent {
   private readonly store = inject(Store);
 
   protected readonly ownUsername: string = toSignal<Username>(
-    this.store.select("chatUserInfo")
+    this.store.select('chatUserInfo')
   )()!.username;
 
   protected sharedSocket: any | null = null;
