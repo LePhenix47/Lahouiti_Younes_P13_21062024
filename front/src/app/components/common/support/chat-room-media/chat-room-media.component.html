@@ -137,7 +137,7 @@
           <p class="chat-room-media__profile-letter">{{ownUsername().substring(0,1)}}</p>
           }
           <video autoPlay playsInline disablePictureInPicture #ownWebCamVideoRef
-            class="chat-room-media__webcam-video chat-room-media__webcam-video--local {{hasSelectedBackCamera() ? 'chat-room-media__webcam-video--no-reverse' : ''}}"></video>
+            class="chat-room-media__webcam-video chat-room-media__webcam-video--local {{(hasSelectedBackCamera() && !showScreenCast()) ? 'chat-room-media__webcam-video--no-reverse' : ''}}"></video>
 
           <p class="chat-room-media__profile-username">{{ownUsername()}} {{showScreenCast() ? '(you, screen)' :
             '(you)'}}</p>
