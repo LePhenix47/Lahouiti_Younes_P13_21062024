@@ -26,6 +26,10 @@ import {
 } from '@core/utils/videoconference/videoconference.utils';
 import { Socket } from 'socket.io-client';
 import { MatIconModule } from '@angular/material/icon';
+import {
+  hasFrontAndRearCameras,
+  isTouchDevice,
+} from '@core/utils/mobile/mobile.utils';
 
 @Component({
   selector: 'app-chat-room-media',
@@ -82,11 +86,50 @@ export class ChatRoomMediaComponent {
   public readonly openMicrophone = signal<boolean>(false);
   public readonly showScreenCast = signal<boolean>(false);
 
-  public readonly enumeratedDevicesList = signal<MediaDeviceInfo[]>([]);
+  public readonly canShareScreen = signal<boolean>(false);
+  public readonly canRecordScreen = computed<boolean>(() => {
+    return typeof MediaRecorder !== 'undefined' && this.canShareScreen();
+  });
+  public readonly canSwitchSpeakerDevice = signal<boolean>(false);
 
   // * Input-Output devices
+  public readonly enumeratedDevicesList = signal<MediaDeviceInfo[]>([]);
+
   public readonly videoInputsList = computed<DeviceInfo[]>(() => {
     return createDeviceList(this.enumeratedDevicesList(), 'videoinput');
+  });
+
+  public readonly isTouchDeviceWithCameras = computed<boolean>(() => {
+    const { hasFrontCamera, hasBackCamera } = hasFrontAndRearCameras(
+      this.videoInputsList()
+    );
+
+    console.log(
+      'Result of hasFrontAndRearCameras',
+      hasFrontCamera,
+      hasBackCamera
+    );
+
+    return (
+      isTouchDevice() &&
+      !this.hasNoVideoInputsInList() &&
+      (hasFrontCamera || hasBackCamera)
+    );
+  });
+
+  public readonly hasSelectedBackCamera = computed<boolean>(() => {
+    const activeCamera: DeviceInfo | null =
+      this.videoInputsList().find((device: DeviceInfo) => {
+        return device.deviceId === this.selectedVideoInputDeviceId();
+      }) || null;
+
+    if (!activeCamera) {
+      return false;
+    }
+
+    return (
+      this.isTouchDeviceWithCameras() && activeCamera.label.includes('back')
+    );
   });
 
   public readonly hasNoVideoInputsInList = computed<boolean>(() => {
@@ -490,6 +533,16 @@ export class ChatRoomMediaComponent {
     this.hasMicrophonePermissionDenied.update(() => {
       return microphonePermissionResult.state === 'denied';
     });
+
+    this.canShareScreen.update(() => {
+      return 'getDisplayMedia' in navigator.mediaDevices;
+    });
+
+    this.canSwitchSpeakerDevice.update(() => {
+      const videoElement: HTMLVideoElement = document.createElement('video');
+
+      return 'sinkId' in videoElement;
+    });
   };
 
   private remotePeerHasSharedLocalMediaCallback = ({
@@ -632,7 +685,7 @@ export class ChatRoomMediaComponent {
 
       if (!this.selectedAudioInputDeviceId()) {
         console.warn(
-          'No audio input device selected! Has device ID value: ',
+          'No video input device selected! Has device ID value: ',
           this.selectedAudioInputDeviceId()
         );
       }

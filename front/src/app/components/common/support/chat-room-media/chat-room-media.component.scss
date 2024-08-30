@@ -151,13 +151,19 @@
 
     @include fit-image(contain);
 
-    scale: -100% 100%;
 
     transition: width 250ms ease-in-out, height 250ms ease-in-out;
 
+    &--local {
+      scale: -100% 100%;
+    }
+
     &--remote {
       scale: 100% 100%;
+    }
 
+    &--no-reverse {
+      scale: 100% 100% !important;
     }
 
     &--has-screen {
@@ -189,6 +195,7 @@
     min-height: 75px;
 
     background-color: #3c3c3c;
+    color: white;
 
     gap: 10px;
     padding: var(--_padding);
@@ -288,6 +295,8 @@
     position: relative;
 
     isolation: isolate;
+
+    overflow: hidden;
   }
 
   &__pip {
@@ -303,6 +312,7 @@
     align-items: center;
     gap: 15px;
 
+    color: white;
     background-color: rgba(0, 0, 0, 50%);
 
     border-radius: 5px 0 0 0;
@@ -331,7 +341,7 @@
     color: white;
     background-color: rgba(0, 0, 0, 50%);
 
-    border-radius: 0 5px 0 0;
+    border-radius: 0 5px 0 5px;
     padding: 5px;
   }
 
@@ -361,7 +371,7 @@
 
     color: white;
 
-    &--on {
+    &--on:not(.chat-room-media__icon--recording) {
 
       &>.chat-room-media__icon-checkbox {
         background-color: var(--bg-icon-enabled);
@@ -374,7 +384,7 @@
 
     }
 
-    &--off {
+    &--off:not(.chat-room-media__icon--recording) {
 
       &>.chat-room-media__icon-checkbox {
         background-color: var(--bg-icon-disabled);
@@ -506,7 +516,15 @@
     position: relative;
   }
 
+  &__screen-recording-preview {
+    border-radius: 5px;
+
+    border: 2px dotted orange;
+  }
+
   &__screen-recording-list {
+    margin-top: 15px;
+
     display: flex;
     flex-direction: column;
 
@@ -524,12 +542,8 @@
 
     color: white;
 
-    &:nth-child(even) {
-      background-color: color-mix(in srgb, var(--color-primary) 25%, transparent 75%);
-    }
-
     &:nth-child(odd) {
-      background-color: color-mix(in srgb, var(--color-primary) 75%, transparent 25%);
+      background-color: color-mix(in srgb, var(--color-primary) 25%, transparent 75%);
     }
   }
 

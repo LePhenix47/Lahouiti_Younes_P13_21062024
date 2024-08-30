@@ -137,7 +137,7 @@
           <p class="chat-room-media__profile-letter">{{ownUsername().substring(0,1)}}</p>
           }
           <video autoPlay playsInline disablePictureInPicture #ownWebCamVideoRef
-            class="chat-room-media__webcam-video chat-room-media__webcam-video--local"></video>
+            class="chat-room-media__webcam-video chat-room-media__webcam-video--local {{hasSelectedBackCamera() ? 'chat-room-media__webcam-video--no-reverse' : ''}}"></video>
 
           <p class="chat-room-media__profile-username">{{ownUsername()}} {{showScreenCast() ? '(you, screen)' :
             '(you)'}}</p>
@@ -186,8 +186,10 @@
               }
             </div>
 
-            <video autoPlay playsInline #remoteWebCamVideoRef
-              class="chat-room-media__webcam-video chat-room-media__webcam-video--remote {{hasRemotePeerSharedScreen() ? 'chat-room-media__webcam-video--has-screen' : ''}}"></video>
+            <video autoPlay playsInline #remoteWebCamVideoRef class="chat-room-media__webcam-video chat-room-media__webcam-video--remote
+               {{hasRemotePeerSharedScreen() ? 'chat-room-media__webcam-video--has-screen' : ''}}
+               "></video>
+            <!-- {{(hasSelectedBackCamera()) ? 'chat-room-media__webcam-video--no-reverse' : ''}} -->
 
             <p class="chat-room-media__profile-username">{{otherPeerUserName}} {{hasRemotePeerSharedScreen() ?
               "(sharing screen)" : ""}}</p>
@@ -233,6 +235,7 @@
     <form class="chat-room-media__controls">
 
       <fieldset class="chat-room-media__controls-fieldset chat-room-media__controls-fieldset--toggles">
+
         <!-- * Webcam -->
         <div
           class="chat-room-media__icon chat-room-media__icon--{{(!webRtcSessionStarted && showWebcam()) || (webRtcSessionStarted && hasEnabledWebcamForWebRTC()) ? 'on' : 'off'}}">
@@ -297,8 +300,11 @@
 
 
         <!-- * Speaker -->
-        <div class="chat-room-media__icon chat-room-media__icon--{{ hasNoAudioOutputsInList() ? 'off' : 'on'}}">
+        <div
+          class="chat-room-media__icon chat-room-media__icon--{{ hasNoAudioOutputsInList() || !canSwitchSpeakerDevice() ? 'off' : 'on'}}">
           <label class="chat-room-media__icon-checkbox">
+            <input type="checkbox" name="local-connection-control" class="chat-room-media__input hide"
+              [checked]="canSwitchSpeakerDevice()" [disabled]="!canSwitchSpeakerDevice()" />
             <mat-icon>speaker</mat-icon>
           </label>
 
@@ -318,14 +324,14 @@
 
         <!-- * Screen share -->
         <div
-          class="chat-room-media__icon chat-room-media__icon--{{ webRtcSessionStarted && !hasEnabledWebcamForWebRTC() ? 'off' : 'on'}}">
+          class="chat-room-media__icon chat-room-media__icon--{{ !canShareScreen() || (webRtcSessionStarted && !hasEnabledWebcamForWebRTC()) ? 'off' : 'on'}}">
           <label class="chat-room-media__icon-checkbox  chat-room-media__icon-checkbox--screenshare">
             <input type="checkbox" name="local-connection-control" class="chat-room-media__input hide"
               (change)="showScreenCast() ? stopScreenCast() : startScreenCast()" [checked]="showScreenCast()"
-              [disabled]="!hasEnabledWebcamForWebRTC()" />
+              [disabled]="!hasEnabledWebcamForWebRTC() || !canShareScreen()" />
 
             @if(webRtcSessionStarted && hasEnabledWebcamForWebRTC()){
-            @if(showScreenCast()){
+            @if(showScreenCast()) {
             <mat-icon>desktop_access_disabled</mat-icon>
             }@else {
             <mat-icon>desktop_windows</mat-icon>
@@ -340,10 +346,12 @@
 
 
         <!-- * Screen recording -->
-        <div class="chat-room-media__icon">
+        <div
+          class="chat-room-media__icon chat-room-media__icon--{{ !canRecordScreen() ? 'off' : 'on'}} chat-room-media__icon--recording">
           <label class="chat-room-media__icon-checkbox chat-room-media__icon-checkbox--recording">
             <input type="checkbox" id="screen-record-toggle" class="chat-room-media__input hide"
-              (change)="isRecording() ? stopRecording() : startRecording()" [checked]="isRecording()" />
+              (change)="isRecording() ? stopRecording() : startRecording()" [checked]="isRecording()"
+              [disabled]="!canRecordScreen()" />
 
             <span class="chat-room-media__recording-status-span">
               @if(isRecording()){
@@ -383,13 +391,28 @@
   </section>
 
   <!-- * Screen recording -->
-  <section class="chat-room-media__screen-recording">
+  <section class="chat-room-media__screen-recording {{!canRecordScreen() ? 'hide' : ''}}">
+    <h3 class="chat-room-media__local-stream-title">
+      Screen recordings
+    </h3>
+
 
     <app-collapsible-height [isOpen]="isRecording()">
+      <h3 class="chat-room-media__screen-recording-title">
+        Preview
+      </h3>
+
       <video autoPlay playsInline #videoRecordingElementRef class="chat-room-media__screen-recording-preview"></video>
     </app-collapsible-height>
 
-
+    @if(!screenRecordingBlobs().length){
+    <p>No screen recording to show</p>
+    } @else {
+    <p>List amount:
+      @if(screenRecordingBlobs().length>0){
+      <span>({{ screenRecordingBlobs().length}})</span>
+      }
+    </p>
     <ul class="chat-room-media__screen-recording-list">
       @for (screenRecording of screenRecordingBlobs().reverse(); let index = $index; track index) {
       <li class="chat-room-media__screen-recording-item">
@@ -415,6 +438,7 @@
       }
 
     </ul>
+    }
   </section>
 
 
