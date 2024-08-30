@@ -53,7 +53,7 @@ By developing this PoC, we aim to reassure stakeholders of the viability and eff
         - [Initiating Peer](#initiating-peer)
         - [Receiving Peer](#receiving-peer)
   - [Miscellaneous](#miscellaneous)
-    - [Why Node.js was chosen for the Back-End instead of Java with Spring Boot](#why-nodejs-was-chosen-for-the-back-end-instead-of-java-with-spring-boot)
+    - [](#)
   - [Conclusion](#conclusion)
 
 ## Tech stack for the PoC
@@ -139,7 +139,7 @@ Go to the `nodejs/` folder and slightly rename it, then re-execute `nvm use 20.1
 ## Installation procedure
 
 **Cloning the project:**
-To clone this repository from GitHub, run the following command: `git clone https://github.com/LePhenix47/Lahouiti_Younes_P5_30122023 .`
+To clone this repository from GitHub, run the following command: `git clone https://github.com/LePhenix47/Lahouiti_Younes_P13_21062024 .`
 
 ### Front-End
 
@@ -174,7 +174,7 @@ You can then access the application in your browser at `https://localhost:4200`.
 
 ### Back-End
 
-1. Install the dependencies:
+1. Install the dependencies and configure `.env` file:
 
 To start the NodeJS Back-End project, follow these steps:
 
@@ -188,6 +188,13 @@ cd back
 
 ```shell
 npm install
+```
+
+- Once the dependencies installed you'll need to create a `.env` file, with contents similar to the [`.env.sample` file](./back/.env.example):
+
+```env
+# Any random address is accepted
+LOCAL_IP=
 ```
 
 2. Starting the server
@@ -531,7 +538,9 @@ When negotiation is needed, handle it appropriately (e.g., create and send a new
 <details>
   <summary>🛠️ Back-End Stack Explanation</summary>
 
-### Why Node.js was chosen for the Back-End instead of Java with Spring Boot
+###
+
+<strong>Why Node.js was chosen for the Back-End instead of Java with Spring Boot</strong>
 
 1. **Outdated and Complex Libraries**: Using Spring Boot's WebSocket dependencies through Spring Initializer would require [StompJS](https://github.com/stomp-js/stompjs) and [SockJS](https://github.com/sockjs/sockjs-client). While the lack of updates since 2021 makes these libraries difficult to work with on the Back-End, the real annoyance lies in the Front-End. Integrating these libraries on the Front-End is complex and cumbersome. Additionally, this stack does not support sending binary data, and its features are limited compared to modern libraries like [Socket.io](https://github.com/socketio/socket.io).
 
