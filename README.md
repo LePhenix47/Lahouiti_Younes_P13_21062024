@@ -29,8 +29,10 @@ By developing this PoC, we aim to reassure stakeholders of the viability and eff
   - [Installation procedure](#installation-procedure)
     - [Front-End](#front-end-1)
     - [Back-End](#back-end-1)
-  - [Features and limitations](#features-and-limitations)
-  - [WebRTC dictionary](#webrtc-dictionary)
+  - [Features and Limitations](#features-and-limitations)
+    - [Features](#features)
+    - [Limitations](#limitations)
+  - [WebRTC glossary](#webrtc-glossary)
   - [WebRTC Peer-to-Peer Connection Setup](#webrtc-peer-to-peer-connection-setup)
     - [Get User Media (G.U.M.)](#get-user-media-gum)
     - [Create Peer Connection](#create-peer-connection)
@@ -50,6 +52,7 @@ By developing this PoC, we aim to reassure stakeholders of the viability and eff
       - [Backend (BE)](#backend-be)
         - [Initiating Peer](#initiating-peer)
         - [Receiving Peer](#receiving-peer)
+  - [Miscellaneous](#miscellaneous)
   - [Conclusion](#conclusion)
 
 ## Tech stack for the PoC
@@ -199,20 +202,31 @@ npm start
 This command will start the NodeJS development server.
 You can then access the API with: `https://localhost:3000`.
 
-## Features and limitations
+## Features and Limitations
 
-This PoC has:
+### Features
 
-- WebSockets for a chat
-- WebRTC for a video-conference
-- Device switches for WebRTC and a possibility to screenshare
-- Screen recording with downloads and previews
+This PoC includes the following features:
 
-Limitations:
+- **Chat via WebSockets:** A real-time chat system built using WebSockets, allowing instant communication between users.
 
-- The PoC is buggy if not used a certain way
+- **Video Conferencing with WebRTC:** Peer-to-peer video conferencing implemented using WebRTC, enabling direct audio and video communication.
 
-## WebRTC dictionary
+- **Device Switching and Screen Sharing:** WebRTC-based functionality to switch between different input devices (e.g., cameras, microphones) and the ability to share your screen.
+
+- **Screen Recording:** Ability to record your screen, with options to preview the current recording, view a list of all recordings, and access detailed information (duration and size) and download buttons for each recording
+
+### Limitations
+
+The PoC has some known limitations:
+
+- **Lack of Loading Status and Connection Feedback:** There is no loading status displayed during local media switching or connection feedback during the WebRTC session, which may leave users uncertain about the connection status.
+
+- **Potential Memory Leak During Screen Recording:** Starting a screen recording and then sharing the screen can cause a memory leak, potentially leading to performance issues.
+
+- **Buggy Room Handling:** The room management system has bugs. For example, if two users are in a room and a third user creates and then deletes a new room, it can mistakenly delete all rooms. Additionally, the creator of a full room may be unable to create or delete their room afterward.
+
+## WebRTC glossary
 
 Understanding the key terms and components in WebRTC is crucial for working with this PoC:
 
@@ -502,6 +516,17 @@ When negotiation is needed, handle it appropriately (e.g., create and send a new
      }
    });
    ```
+
+## Miscellaneous
+
+
+<details>
+  <summary>💻 WebRTC flow chart</summary>
+
+<img src="https://private-user-images.githubusercontent.com/78600723/358182094-8117e3d7-780c-4d00-8505-41ec0aad2527.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MjUwMjk4MzgsIm5iZiI6MTcyNTAyOTUzOCwicGF0aCI6Ii83ODYwMDcyMy8zNTgxODIwOTQtODExN2UzZDctNzgwYy00ZDAwLTg1MDUtNDFlYzBhYWQyNTI3LnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNDA4MzAlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjQwODMwVDE0NTIxOFomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPWE0MzVkOTgwYjNmMDc4MThmOGQxOTg5ZGZlNmEwYjliMmJhYWU0NTUxZWJmNWFiMGQ5ZGNmZWY0NzcyYjY0NDEmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JmFjdG9yX2lkPTAma2V5X2lkPTAmcmVwb19pZD0wIn0.OJ70nO_HISqGSazBsS2p3wB7dS49Y42gdWT3tqAD1Wo" alt="WebRTC flow chart" height="500" style="object-fit: contain" />
+
+[View discussion here](https://github.com/LePhenix47/Lahouiti_Younes_P13_21062024/discussions/12)
+</details>
 
 ## Conclusion
 
