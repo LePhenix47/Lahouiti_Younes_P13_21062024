@@ -82,12 +82,16 @@ By developing this PoC, we aim to reassure stakeholders of the viability and eff
 
 - Node.js 20.11.0
 - ExpressJS 4.19.2 (only for HTTP requests)
+- Socket.io 4.7.5
 
 <a href="https://nodejs.org/en/" target="_blank" rel="noreferrer" title="NodeJS">
   <img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/nodejs-colored.svg" width="36" height="36" alt="NodeJS logo" />
 </a>
 <a href="https://expressjs.com/" target="_blank" rel="noreferrer" title="ExpressJS">
   <img src="https://github.com/devicons/devicon/raw/master/icons/express/express-original.svg" width="36" height="36" alt="ExpressJS logo" />
+</a>
+<a href="https://socket.io/" target="_blank" rel="noreferrer" title="Socket.io">
+  <img src="https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fseeklogo.com%2Fimages%2FS%2Fsocketio-logo-B8A7F486CD-seeklogo.com.png&f=1&nofb=1&ipt=8f8f25aa212c981213621e2b5e8c7808bc1201c5e1023b64f8de586e341109d5&ipo=images" width="36" height="36" alt="Socket.io logo" />
 </a>
 
 ## Pre-requisites
