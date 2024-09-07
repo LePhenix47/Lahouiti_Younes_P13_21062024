@@ -1,6 +1,6 @@
-<mxfile host="Electron" modified="2024-06-13T12:55:07.732Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/24.1.0 Chrome/120.0.6099.109 Electron/28.1.0 Safari/537.36" etag="M9Ii-C1Y0Tcu50HAYLwb" version="24.1.0" type="device">
+<mxfile host="Electron" modified="2024-08-31T09:08:52.459Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/24.1.0 Chrome/120.0.6099.109 Electron/28.1.0 Safari/537.36" etag="_j_AoTsbHRkx0WRvMqrM" version="24.1.0" type="device">
   <diagram name="Page-1" id="C9Bw0HUUipQQi55MbYol">
-    <mxGraphModel dx="2876" dy="1263" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1177" dy="216" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -82,7 +82,7 @@
         <mxCell id="6KjDL_NVeDuGdOvyarjw-42" value="EC2 Instance" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;container=0;snapToPoint=0;fontSize=14;" parent="6KjDL_NVeDuGdOvyarjw-40" vertex="1">
           <mxGeometry x="6.674129219580281" y="7.090237274812331" width="116.16260488312416" height="21.28046455796497" as="geometry" />
         </mxCell>
-        <mxCell id="6KjDL_NVeDuGdOvyarjw-43" value="Dockerized Spring Boot&lt;div style=&quot;font-size: 14px;&quot;&gt;Back-End microservice 1 instance 2&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;container=0;snapToPoint=0;fontSize=14;" parent="6KjDL_NVeDuGdOvyarjw-40" vertex="1">
+        <mxCell id="6KjDL_NVeDuGdOvyarjw-43" value="Dockerized Spring Boot&lt;div style=&quot;font-size: 14px;&quot;&gt;Back-End microservice 2 instance 1&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;container=0;snapToPoint=0;fontSize=14;" parent="6KjDL_NVeDuGdOvyarjw-40" vertex="1">
           <mxGeometry x="54.25289089536112" y="39.01093411175977" width="204.72789017117407" height="87.77460175145957" as="geometry" />
         </mxCell>
         <mxCell id="6KjDL_NVeDuGdOvyarjw-44" value="" style="group;snapToPoint=0;fontSize=14;" parent="6KjDL_NVeDuGdOvyarjw-48" vertex="1" connectable="0">
@@ -94,7 +94,7 @@
         <mxCell id="6KjDL_NVeDuGdOvyarjw-46" value="EC2 Instance" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;container=0;snapToPoint=0;fontSize=14;" parent="6KjDL_NVeDuGdOvyarjw-44" vertex="1">
           <mxGeometry x="6.674129219580281" y="7.090237274812331" width="116.16260488312416" height="21.28046455796497" as="geometry" />
         </mxCell>
-        <mxCell id="6KjDL_NVeDuGdOvyarjw-47" value="Dockerized Spring Boot&lt;div style=&quot;font-size: 14px;&quot;&gt;Back-End microservice 2 instance 1&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;container=0;snapToPoint=0;fontSize=14;" parent="6KjDL_NVeDuGdOvyarjw-44" vertex="1">
+        <mxCell id="6KjDL_NVeDuGdOvyarjw-47" value="Dockerized NodeJS&lt;div style=&quot;font-size: 14px;&quot;&gt;WebSockets&lt;/div&gt;&lt;div style=&quot;font-size: 14px;&quot;&gt;Back-End instance 1&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;container=0;snapToPoint=0;fontSize=14;" parent="6KjDL_NVeDuGdOvyarjw-44" vertex="1">
           <mxGeometry x="54.25289089536112" y="39.01093411175977" width="204.72789017117407" height="87.77460175145957" as="geometry" />
         </mxCell>
         <mxCell id="6KjDL_NVeDuGdOvyarjw-49" value="" style="group;snapToPoint=0;fontSize=14;" parent="6KjDL_NVeDuGdOvyarjw-48" vertex="1" connectable="0">
@@ -146,10 +146,12 @@
         <mxCell id="6KjDL_NVeDuGdOvyarjw-84" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;snapToPoint=0;fontSize=14;" parent="6KjDL_NVeDuGdOvyarjw-48" source="6KjDL_NVeDuGdOvyarjw-41" target="6KjDL_NVeDuGdOvyarjw-26" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="6KjDL_NVeDuGdOvyarjw-99" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;snapToPoint=0;startArrow=block;startFill=1;fontSize=14;" parent="6KjDL_NVeDuGdOvyarjw-48" source="6KjDL_NVeDuGdOvyarjw-45" target="6KjDL_NVeDuGdOvyarjw-41" edge="1">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="6KjDL_NVeDuGdOvyarjw-99" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;snapToPoint=0;startArrow=block;startFill=1;fontSize=14;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" parent="6KjDL_NVeDuGdOvyarjw-48" source="6KjDL_NVeDuGdOvyarjw-41" target="6KjDL_NVeDuGdOvyarjw-21" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="506.69421487603313" y="226.60550458715596" as="sourcePoint" />
+          </mxGeometry>
         </mxCell>
-        <mxCell id="pRmJNWu_2FzetfXYODvn-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.001;entryY=0.508;entryDx=0;entryDy=0;entryPerimeter=0;fontSize=14;" edge="1" parent="6KjDL_NVeDuGdOvyarjw-48" source="6KjDL_NVeDuGdOvyarjw-5" target="6KjDL_NVeDuGdOvyarjw-21">
+        <mxCell id="pRmJNWu_2FzetfXYODvn-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.001;entryY=0.508;entryDx=0;entryDy=0;entryPerimeter=0;fontSize=14;" parent="6KjDL_NVeDuGdOvyarjw-48" source="6KjDL_NVeDuGdOvyarjw-5" target="6KjDL_NVeDuGdOvyarjw-21" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="6KjDL_NVeDuGdOvyarjw-69" value="Amazon Web Services" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;snapToPoint=0;fontSize=14;" parent="6KjDL_NVeDuGdOvyarjw-95" vertex="1">
