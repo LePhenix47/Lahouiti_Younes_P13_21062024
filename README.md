@@ -4,7 +4,7 @@
 
 ### Description
 
-This Proof of Concept (PoC) demonstrates the feasibility of real-time communication through an online chat and video-conference service, leveraging [WebSockets](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API) and [WebRTC](https://webrtc.org/?hl=en) technologies.
+This Proof of Concept (PoC) demonstrates the feasibility of real-time communication through an online chat and video-conference service, leveraging [WebSockets](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API) and [WebRTC](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API) technologies.
 The PoC aims to validate our proposal by showcasing a seamless exchange between users and customer service representatives, ensuring a robust and interactive user experience.
 
 ### Why WebSockets & WebRTC?
