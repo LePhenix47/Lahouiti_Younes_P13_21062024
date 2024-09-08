@@ -246,47 +246,31 @@ Understanding the key terms and components in WebRTC is crucial for working with
   <summary>🗺️ <abbr title="Network Address Translation">NAT</abbr></summary>
   <dl>
     <dt>Network Address Translation (NAT):</dt>
-    <dd>A method used to remap one IP address space into another.</dd>
+    <dd>NAT is a method used to remap one IP address space into another. It allows multiple devices on a local area network (LAN) to share a single public IP address. This enables private IP addresses (used within the LAN) to be translated into a public IP address, facilitating access to the internet while also providing a level of security by hiding internal network addresses.</dd>
   </dl>
 </details>
 
 <details>
-  <summary>🔄 <abbr title="Session Traversal Utilities for NAT">STUN</abbr> / <abbr title="Traversal Using Relays around NAT">TURN</abbr></summary>
+  <summary>🔄 <abbr title="Session Traversal Utilities for NAT">STUN</abbr></summary>
   <dl>
-    <dt>Session Traversal Utilities for NAT (STUN) / Traversal Using Relays around NAT (TURN):</dt>
-    <dd>STUN helps in discovering the correct IP address and port, while TURN relays media when direct peer-to-peer connection fails.</dd>
+    <dt>Session Traversal Utilities for NAT (STUN):</dt>
+    <dd>STUN is used to discover the public IP address and port assigned to a device behind a NAT. This information is crucial for ICE candidates to establish a peer-to-peer connection, allowing devices to communicate directly over the internet.</dd>
   </dl>
 </details>
 
 <details>
-  <summary>🎥 Audio-video <abbr title="Peer-to-Peer">P2P</abbr></summary>
+  <summary>🔄 <abbr title="Traversal Using Relays around NAT">TURN</abbr></summary>
   <dl>
-    <dt>Audio-video Peer-to-Peer (P2P):</dt>
-    <dd>Direct peer-to-peer communication for audio and video streams.</dd>
+    <dt>Traversal Using Relays around NAT (TURN):</dt>
+    <dd>TURN is employed when a direct peer-to-peer connection fails, often due to firewalls or restrictive NAT configurations. It relays media traffic through a server to ensure connectivity between peers, acting as a backup when direct communication is not possible.</dd>
   </dl>
 </details>
 
 <details>
-  <summary>📡 <abbr title="User Datagram Protocol">UDP</abbr> and <abbr title="Transmission Control Protocol">TCP</abbr> streams</summary>
+  <summary>❄️ <abbr title="Interactive Connectivity Establishment">ICE</abbr></summary>
   <dl>
-    <dt>User Datagram Protocol (UDP) and Transmission Control Protocol (TCP):</dt>
-    <dd>Protocols for data transmission. UDP is preferred for real-time communication (audio and video), while TCP is used for reliable data transmission using text, such as with HTTP and WebSockets.</dd>
-  </dl>
-</details>
-
-<details>
-  <summary>🔗 Websockets</summary>
-  <dl>
-    <dt>Websockets:</dt>
-    <dd>Protocol for two-way communication between a client and a server.</dd>
-  </dl>
-</details>
-
-<details>
-  <summary>📞 Signaling path</summary>
-  <dl>
-    <dt>Signaling Path:</dt>
-    <dd>The process of establishing, maintaining, and terminating the connection between peers.</dd>
+    <dt>Interactive Connectivity Establishment (ICE):</dt>
+    <dd>ICE is a framework that facilitates the establishment of peer-to-peer connections by gathering candidates (potential connection endpoints) and checking their reachability. It combines STUN and TURN servers to determine the best path for media transmission. ICE addresses the challenges of identifying peer locations, navigating NAT complexities, and accommodating dynamic public IPs and VPNs, ensuring effective direct communication between peers.</dd>
   </dl>
 </details>
 
@@ -294,7 +278,47 @@ Understanding the key terms and components in WebRTC is crucial for working with
   <summary>📜 <abbr title="Session Description Protocol">SDP</abbr></summary>
   <dl>
     <dt>Session Description Protocol (SDP):</dt>
-    <dd>A format for describing multimedia communication sessions.</dd>
+    <dd>SDP is a format used to describe multimedia communication sessions. It provides essential information about the media types, codecs, and connection details required for peers to establish a communication session.</dd>
+  </dl>
+</details>
+
+<details>
+  <summary>🎥 Audio-video <abbr title="Peer-to-Peer">P2P</abbr></summary>
+  <dl>
+    <dt>Audio-video Peer-to-Peer (P2P):</dt>
+    <dd>P2P communication allows two devices to connect directly to each other for streaming audio and video, bypassing the need for a central server. This enhances performance by reducing latency and improving bandwidth utilization.</dd>
+  </dl>
+</details>
+
+<details>
+  <summary>📡 <abbr title="Transmission Control Protocol">TCP</abbr></summary>
+  <dl>
+    <dt>Transmission Control Protocol (TCP):</dt>
+    <dd>TCP is a protocol that ensures reliable data transmission and cares about data integrity. It establishes a connection and guarantees that packets are delivered in the correct order, are aligned, and are error-free. This makes TCP suitable for applications where data accuracy is essential, such as HTTP and WebSockets.</dd>
+  </dl>
+</details>
+
+<details>
+  <summary>📡 <abbr title="User Datagram Protocol">UDP</abbr></summary>
+  <dl>
+    <dt>User Datagram Protocol (UDP):</dt>
+    <dd>UDP is a protocol for data transmission that prioritizes speed and low latency, making it ideal for real-time communications like audio and video streams, where quick delivery is prioritized over reliability. It does not guarantee packet order or integrity, allowing some packets to be lost or arrive out of sequence. Although, this enables continuous session flow despite network issues, ensuring that the most recent packets are processed to maintain synchronization, especially in unstable Wi-Fi environments.</dd>
+  </dl>
+</details>
+
+<details>
+  <summary>🔗 Websockets</summary>
+  <dl>
+    <dt>Websockets:</dt>
+    <dd>A protocol that enables two-way communication between a client and a server over a single, long-lived connection. This allows for real-time data exchange and is particularly useful in applications requiring frequent updates, such as chat applications or live notifications.</dd>
+  </dl>
+</details>
+
+<details>
+  <summary>📞 Signaling path</summary>
+  <dl>
+    <dt>Signaling Path:</dt>
+    <dd>The signaling path refers to the process of establishing, maintaining, and terminating a connection between peers. It involves the exchange of messages that help peers discover each other, negotiate connection parameters, and handle disconnections. It can be an HTTP request or a WebSockets one</dd>
   </dl>
 </details>
 
@@ -302,7 +326,7 @@ Understanding the key terms and components in WebRTC is crucial for working with
   <summary>🖥️ Signaling server</summary>
   <dl>
     <dt>Signaling Server:</dt>
-    <dd>A server that helps in establishing connections between peers by exchanging signaling messages (e.g., offers, answers, and ICE candidates), both HTTP and WebSockets can be used for signaling, but WebSockets are preferred.</dd>
+    <dd>A signaling server facilitates the establishment of connections between peers by exchanging signaling messages, which include offers, answers, and ICE candidates. While both HTTP and WebSockets can be used for signaling, WebSockets are preferred due to their support for real-time communication and lower latency.</dd>
   </dl>
 </details>
 
