@@ -98,7 +98,7 @@ By developing this PoC, we aim to reassure stakeholders of the viability and eff
 
 ### Node.js
 
-Install [Node.js LTS](https://nodejs.org/en) to install the Front-End dependencies.
+Install [Node.js LTS](https://nodejs.org/en) to install dependencies and run both the Front-End and Back-End servers.
 
 ## Configuration  
 
@@ -170,8 +170,9 @@ npm install
 ```shell
 npm run dev-https
 
-# If you use Bun with `bun dev-https`, it will work just fine
 ```
+
+__Note:__ This project is compatible with other JS runtimes such as [Bun](https://bun.sh/docs). If you use one, you can simply run `bun dev-https` to start the server.
 
 This command will compile the Angular application and start a development server in HTTPS (WebRTC requires a secure context to function correctly).
 You can then access the application in your browser at `https://localhost:4200`.
@@ -210,6 +211,8 @@ npm start
 
 # If you use the Bun JS runtime you can also use `bun start`
 ```
+
+__Note:__ This project is also compatible with alternative JS runtimes like [Bun](https://bun.sh/docs), in which case you can start the server with `bun start`.
 
 This command will start the NodeJS development server.
 You can then access the API with: `https://localhost:3000`.
@@ -348,7 +351,7 @@ const ls2 = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: f
 Create an `RTCPeerConnection` object.
 
 ```js
-const pc = new RTCPeerConnection(turnOrStunConfig);
+const pc = new RTCPeerConnection(stunTurnConfig);
 ```
 
 ### Add Local Tracks to the Connection
@@ -558,7 +561,7 @@ When negotiation is needed, handle it appropriately (e.g., create and send a new
 <details>
   <summary>💻 WebRTC flow chart</summary>
 
-<img src="https://private-user-images.githubusercontent.com/78600723/358182094-8117e3d7-780c-4d00-8505-41ec0aad2527.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MjUwMjk4MzgsIm5iZiI6MTcyNTAyOTUzOCwicGF0aCI6Ii83ODYwMDcyMy8zNTgxODIwOTQtODExN2UzZDctNzgwYy00ZDAwLTg1MDUtNDFlYzBhYWQyNTI3LnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNDA4MzAlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjQwODMwVDE0NTIxOFomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPWE0MzVkOTgwYjNmMDc4MThmOGQxOTg5ZGZlNmEwYjliMmJhYWU0NTUxZWJmNWFiMGQ5ZGNmZWY0NzcyYjY0NDEmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JmFjdG9yX2lkPTAma2V5X2lkPTAmcmVwb19pZD0wIn0.OJ70nO_HISqGSazBsS2p3wB7dS49Y42gdWT3tqAD1Wo" alt="WebRTC flow chart" height="500" style="object-fit: contain" />
+<img src="https://private-user-images.githubusercontent.com/78600723/358182094-8117e3d7-780c-4d00-8505-41ec0aad2527.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MjU3ODczNTgsIm5iZiI6MTcyNTc4NzA1OCwicGF0aCI6Ii83ODYwMDcyMy8zNTgxODIwOTQtODExN2UzZDctNzgwYy00ZDAwLTg1MDUtNDFlYzBhYWQyNTI3LnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNDA5MDglMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjQwOTA4VDA5MTczOFomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTI5OGE5YTdjMmZkMjMxYmQ5ZmU4MDMyYTNkN2U0NTkzZjM4Yzc0OGJlZWVkMDBhY2U0ZDVmMjk5YjI2MTI0MTQmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JmFjdG9yX2lkPTAma2V5X2lkPTAmcmVwb19pZD0wIn0.4E6-jqEvSm11MiFr8E1jz8QX0AkNLmUCyK8GlXKtR_I" alt="WebRTC flow chart" height="500" style="object-fit: contain" />
 
 [View discussion here](https://github.com/LePhenix47/Lahouiti_Younes_P13_21062024/discussions/12)
 </details>
