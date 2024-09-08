@@ -172,7 +172,7 @@ npm run dev-https
 
 ```
 
-__Note:__ This project is compatible with other JS runtimes such as [Bun](https://bun.sh/docs). If you use one, you can simply run `bun dev-https` to start the server.
+**Note:** This project is compatible with other JS runtimes such as [Bun](https://bun.sh/docs). If you use one, you can simply run `bun dev-https` to start the server.
 
 This command will compile the Angular application and start a development server in HTTPS (WebRTC requires a secure context to function correctly).
 You can then access the application in your browser at `https://localhost:4200`.
@@ -212,7 +212,7 @@ npm start
 # If you use the Bun JS runtime you can also use `bun start`
 ```
 
-__Note:__ This project is also compatible with alternative JS runtimes like [Bun](https://bun.sh/docs), in which case you can start the server with `bun start`.
+**Note:** This project is also compatible with alternative JS runtimes like [Bun](https://bun.sh/docs), in which case you can start the server with `bun start`.
 
 This command will start the NodeJS development server.
 You can then access the API with: `https://localhost:3000`.
@@ -239,7 +239,7 @@ The PoC has some known limitations:
 
 - **Potential Memory Leak During Screen Recording:** Starting a screen recording and then sharing the screen can cause a memory leak, potentially leading to performance issues.
 
-- **Buggy Room Handling:** The room management system has bugs. For example, if two users are in a room and a third user creates and then deletes a new room, it can mistakenly delete all rooms. Additionally, the creator of a full room may be unable to create or delete their room afterward.
+- **Buggy Room Handling:** The room management system has a few bugs as well.
 
 ## WebRTC glossary
 
