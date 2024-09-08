@@ -151,9 +151,12 @@ export class ChatWebRtcService extends WebRTCService {
       }
     );
 
-    this.socketio.on('room-deleted', (data: { roomName: string }) => {
-      this.onRoomDeletedCallback?.(data.roomName);
-    });
+    this.socketio.on(
+      'room-deleted',
+      (data: { roomName: string; userName: string }) => {
+        this.onRoomDeletedCallback?.(data.roomName);
+      }
+    );
 
     this.socketio.on('room-error', (error: { message: string }) => {
       console.error(`Room error: ${error.message}`);

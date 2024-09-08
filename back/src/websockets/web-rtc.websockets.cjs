@@ -1,5 +1,9 @@
 const { getRoomsArrayFromMap } = require("../utils/map.utils.cjs");
 
+const {
+  deleteRoomAndHandleEmissions,
+} = require("../utils/web-sockets.utils.cjs");
+
 module.exports = (io, socket, connectedUsersMap, roomsMap) => {
   const { userName } = socket.handshake.auth;
   // Handle a user creating a room
@@ -47,6 +51,15 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
   });
 
   socket.on("room-deleted", (roomName) => {
+    if (!roomName) {
+      console.warn(`No room name was specified for the user ${userName}`);
+      socket.emit("room-error", {
+        message: "Cannot delete room because the room name was not specified",
+      });
+
+      return;
+    }
+
     if (!roomsMap.has(roomName)) {
       // Check if the room already exists
       console.warn(`Room ${roomName} does not exist`);
@@ -55,17 +68,15 @@ module.exports = (io, socket, connectedUsersMap, roomsMap) => {
       });
       return;
     }
-
-    roomsMap.delete(roomName);
-
-    const userInfo = connectedUsersMap.get(userName);
-    userInfo.joinedRoom = null;
-
-    connectedUsersMap.set(userName, userInfo);
-    io.emit("room-list", getRoomsArrayFromMap(roomsMap));
-
-    io.emit("room-deleted", true);
-    console.log(`Room deleted: ${roomName}`, roomsMap);
+    console.log("Room to delete: ", roomName);
+    deleteRoomAndHandleEmissions(
+      io,
+      socket,
+      null,
+      roomsMap,
+      roomName,
+      userName
+    );
   });
 
   // Handle a user joining a room

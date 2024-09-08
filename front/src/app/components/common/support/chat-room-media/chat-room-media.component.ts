@@ -578,39 +578,6 @@ export class ChatRoomMediaComponent {
     this.isReceiver = false;
   };
 
-  private roomJoinedCallback = (
-    roomName: string,
-    otherPeerUserName: string
-  ) => {
-    this.currentRoom.update(() => {
-      return roomName;
-    });
-
-    this.isReceiver =
-      otherPeerUserName === this.ownUsername() &&
-      otherPeerUserName !== this.currentRoom();
-
-    this.otherPeerUserName = this.isReceiver
-      ? this.currentRoom()
-      : otherPeerUserName;
-
-    this.chatWebRtcService.notifyRemotePeerOfLocalMediaShare({
-      video: this.showWebcam(),
-      audio: this.openMicrophone(),
-    });
-  };
-
-  private roomDeletedCallback = (): void => {
-    this.disconnectFromWebRtcSession();
-
-    this.currentRoom.update(() => {
-      return null;
-    });
-
-    this.resetRoomState();
-    this.resetWebRTCState();
-  };
-
   private updateRoomsList = (rooms: Room[]): void => {
     this.roomsList.update(() => {
       return rooms;
@@ -635,10 +602,6 @@ export class ChatRoomMediaComponent {
     // ? See roomCreatedCallback for the rest (async callback)
   };
 
-  public deleteRoom = (): void => {
-    this.chatWebRtcService.deleteRoom(this.ownUsername());
-  };
-
   public connectToRoom = (roomName: string): void => {
     this.chatWebRtcService.initializePeerConnection();
     this.chatWebRtcService.joinRoom(roomName, this.ownUsername());
@@ -646,6 +609,32 @@ export class ChatRoomMediaComponent {
     this.setWebRtcVideoElements();
 
     // ? See roomJoinedCallback for the rest (async callback)
+  };
+
+  private roomJoinedCallback = (
+    roomName: string,
+    otherPeerUserName: string
+  ) => {
+    this.currentRoom.update(() => {
+      return roomName;
+    });
+
+    this.isReceiver =
+      otherPeerUserName === this.ownUsername() &&
+      otherPeerUserName !== this.currentRoom();
+
+    this.otherPeerUserName = this.isReceiver
+      ? this.currentRoom()
+      : otherPeerUserName;
+
+    this.chatWebRtcService.notifyRemotePeerOfLocalMediaShare({
+      video: this.showWebcam(),
+      audio: this.openMicrophone(),
+    });
+  };
+
+  public deleteRoom = (): void => {
+    this.chatWebRtcService.deleteRoom(this.ownUsername());
   };
 
   public disconnectFromRoom = (): void => {
@@ -656,6 +645,17 @@ export class ChatRoomMediaComponent {
     this.currentRoom.update(() => {
       return null;
     });
+  };
+
+  private roomDeletedCallback = (): void => {
+    this.disconnectFromWebRtcSession();
+
+    this.currentRoom.update(() => {
+      return null;
+    });
+
+    this.resetRoomState();
+    this.resetWebRTCState();
   };
 
   public sendTestMessage = (): void => {

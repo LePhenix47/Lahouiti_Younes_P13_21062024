@@ -45,10 +45,13 @@
         }
 
         <p class="chat-room-media__room-info">
-          @if(currentRoom() && otherPeerUserName && !webRtcSessionStarted){
+          @if((currentRoom() === otherPeerUserName || currentRoom() === ownUsername())
+          && (room.roomName === otherPeerUserName || room.roomName === ownUsername()) &&
+          !webRtcSessionStarted){
 
           <span
-            class="chat-room-media__remote-peer-info {{!hasRemotePeerSharedWebCam() && !hasRemotePeerSharedMicrophone() ? 'chat-room-media__element--outline' : ''}}">
+            class="chat-room-media__remote-peer-info {{!hasRemotePeerSharedWebCam() && !hasRemotePeerSharedMicrophone() && (currentRoom() === otherPeerUserName || currentRoom() === ownUsername())
+          && (room.roomName === otherPeerUserName || room.roomName === ownUsername()) ? 'chat-room-media__element--outline' : ''}}">
             Remote peer shared:
             @if(hasRemotePeerSharedMicrophone()){
             <mat-icon>mic</mat-icon>
