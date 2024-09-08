@@ -1,6 +1,6 @@
 # P13: Your car your way WebSockets and WebRTC Proof of Concept (PoC)
 
-<img src="./front/src/assets/png/your-car-your-way-logo.png" alt="Your Car Your Way logo" width="100%" height="300" style="object-fit: contain" />
+<img src="./front/src/assets/png/your-car-your-way-logo.png" alt="Your Car Your Way logo" width="327" height="200" style="object-fit: contain" />
 
 ### Description
 
