@@ -81,7 +81,7 @@ By developing this PoC, we aim to reassure stakeholders of the viability and eff
 ### Back-End
 
 - Node.js 20.11.0
-- ExpressJS 4.19.2 (only for HTTP requests)
+- ExpressJS 4.19.2 (for HTTP requests in this PoC to save time. Our Architecture Definition and Compliance docs specify Java + Spring Boot for production)
 - Socket.io 4.7.5
 
 <a href="https://nodejs.org/en/" target="_blank" rel="noreferrer" title="NodeJS">
