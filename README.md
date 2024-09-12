@@ -581,6 +581,11 @@ Given these challenges, Node.js was chosen for WebSocket implementation due to i
 
 </details>
 
+<details>
+  <summary>🔍 Debugging WebRTC Connections</summary>
+  To effectively debug WebRTC connections, instead of relying on manual console logs, you can use the built-in debugging tool available at <a href="chrome://webrtc-internals/" target="blank">chrome://webrtc-internals/</a>. This tool provides detailed insights into the WebRTC connection, including ICE candidates, connection state, and media stream statistics, helping you diagnose issues more efficiently.
+</details>
+
 ## Conclusion
 
 This Proof of Concept (PoC) for "Your Car Your Way" successfully demonstrates the capabilities of WebSockets and WebRTC for real-time communication in an online chat and video-conference environment. Through the seamless integration of these technologies, we've showcased the potential to deliver an interactive, high-quality user experience that meets the expectations of modern digital communication.
