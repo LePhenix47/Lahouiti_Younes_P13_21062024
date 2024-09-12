@@ -273,7 +273,7 @@ Understanding the key terms and components in WebRTC is crucial for working with
   <summary>❄️ <abbr title="Interactive Connectivity Establishment">ICE</abbr></summary>
   <dl>
     <dt>Interactive Connectivity Establishment (ICE):</dt>
-    <dd>ICE is a framework that facilitates the establishment of peer-to-peer connections by gathering candidates (potential connection endpoints) and checking their reachability. It combines STUN and TURN servers to determine the best path for media transmission. ICE addresses the challenges of identifying peer locations, navigating NAT complexities, and accommodating dynamic public IPs and VPNs, ensuring effective direct communication between peers.</dd>
+    <dd>ICE is a framework designed to establish peer-to-peer connections by gathering multiple connection candidates (possible network paths) and testing their reachability. These candidates provide information such as IP addresses and ports, representing different network interfaces (e.g., local network, public IP). ICE works in conjunction with <abbr title="Session Traversal Utilities for NAT">STUN</abbr> servers to discover the public IP address of a peer, and <abbr title="Traversal Using Relays around NAT">TURN</abbr> servers to relay data if direct connections fail. The framework resolves issues like Network Address Translation (NAT) traversal, dynamic IP addressing, and VPN usage, ensuring a reliable and efficient connection for media or data exchange between peers.</dd>
   </dl>
 </details>
 
