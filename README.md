@@ -583,7 +583,7 @@ Given these challenges, Node.js was chosen for WebSocket implementation due to i
 
 <details>
   <summary>🔍 Debugging WebRTC Connections</summary>
-  To effectively debug WebRTC connections, instead of relying on manual console logs, you can use the built-in debugging tool available at <a href="chrome://webrtc-internals/" target="blank">`chrome://webrtc-internals/`</a>. This tool provides detailed insights into the WebRTC connection, including ICE candidates, connection state, and media stream statistics, helping you diagnose issues more efficiently.
+  To effectively debug WebRTC connections, instead of relying on manual console logs, you can use the built-in debugging tool available at: <code>chrome://webrtc-internals/</code>. This tool provides detailed insights into the WebRTC connection, including ICE candidates, connection state, and media stream statistics, helping you diagnose issues more efficiently.
 </details>
 
 ## Conclusion
