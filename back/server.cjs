@@ -99,11 +99,13 @@ io.on("connection", (socket) => {
 
   io.emit("room-list", getRoomsArrayFromMap(roomsMap));
 
-  socket.on("disconnect", () => {
-    // Additional logic for cleanup or logging goes here
+  socket.on("disconnect", (reason) => {
+    console.group("disconnect reason: ");
+    console.log({ reason });
 
     // Get the room name the user is in
     console.log("User disconnected: ", userName, connectedUsersMap, roomsMap);
+    console.groupEnd();
 
     const roomName =
       roomsMap.get(userName) || connectedUsersMap.get(userName)?.joinedRoom;
