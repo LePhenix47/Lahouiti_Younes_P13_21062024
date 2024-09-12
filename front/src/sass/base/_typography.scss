@@ -1,11 +1,13 @@
 @use "../utils/" as *;
 
 @layer typography {
-
-  //We import manually the font for the
   @font-face {
     font-family: "Phosphate Pro Solid";
-    src: url("./fonts/phosphatepro-solid.otf");
+    src: url('./fonts/phosphatepro-solid-webfont.woff2') format('woff2'),
+      url('./fonts/phosphatepro-solid-webfont.woff') format('woff'),
+      url("./fonts/phosphatepro-solid.otf") format("opentype");
+    font-weight: normal;
+    font-style: normal;
   }
 
 
