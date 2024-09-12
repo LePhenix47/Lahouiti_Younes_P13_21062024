@@ -93,11 +93,18 @@ export class ChatWebRtcService extends WebRTCService {
    */
   public override removeWebRtcSocketEventListeners = (): void => {
     if (!this.socketio) {
+      console.error(
+        'No socketio instance found, unable to remove room event listeners'
+      );
+
       return;
     }
 
     if (!this.hasAddedWebRtcSocketListeners) {
-      console.warn('WebRTC socket listeners not added, skipping removal');
+      console.warn(
+        'Room socket listeners not added, skipping event listeners removal'
+      );
+
       return;
     }
 
@@ -119,11 +126,16 @@ export class ChatWebRtcService extends WebRTCService {
    */
   public addRoomSocketEventListeners = (): void => {
     if (!this.socketio) {
+      console.error(
+        'No socketio instance found, unable to add room event listeners'
+      );
+
       return;
     }
 
     if (this.hasAddedRoomSocketListeners) {
       console.warn('Room socket listeners already added, skipping');
+
       return;
     }
 

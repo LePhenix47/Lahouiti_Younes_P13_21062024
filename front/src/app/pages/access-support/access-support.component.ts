@@ -6,11 +6,12 @@ import { CheckUsernameService } from '@core/services/check-username/check-userna
 import { Store } from '@ngrx/store';
 import { SpinLoaderComponent } from '@components/shared/spin-loader/spin-loader.component';
 import { usernameSuggestions } from '@core/variables/access-support.variables';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-access-support',
   standalone: true,
-  imports: [ReactiveFormsModule, SpinLoaderComponent],
+  imports: [ReactiveFormsModule, SpinLoaderComponent, MatIconModule],
   templateUrl: './access-support.component.html',
   styleUrl: './access-support.component.scss',
 })

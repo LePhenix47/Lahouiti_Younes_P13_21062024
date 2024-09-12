@@ -280,6 +280,8 @@ export class ChatRoomMediaComponent {
     this.chatWebRtcService.resetPeerConnection();
 
     this.resetScreenRecordingIntervalId();
+
+    this.socketIO()!.disconnect();
   }
 
   private resetScreenRecordingIntervalId = (): void => {
@@ -638,13 +640,13 @@ export class ChatRoomMediaComponent {
   };
 
   public disconnectFromRoom = (): void => {
-    this.chatWebRtcService.leaveRoom();
-
-    this.disconnectFromWebRtcSession();
-
     this.currentRoom.update(() => {
       return null;
     });
+
+    this.chatWebRtcService.leaveRoom();
+
+    this.disconnectFromWebRtcSession();
   };
 
   private roomDeletedCallback = (): void => {

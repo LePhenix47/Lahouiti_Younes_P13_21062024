@@ -49,4 +49,30 @@
 
     margin-bottom: 15px;
   }
+
+  &__error-message {
+    &:empty {
+      display: none;
+    }
+
+    margin-bottom: 15px;
+
+    background-color: #d93025;
+
+    border-radius: 5px;
+
+    display: inline-flex;
+    gap: 5px;
+
+    padding: 5px;
+
+    &--span {
+      color: white;
+
+      display: inline-flex;
+      align-items: center;
+
+      gap: 10px;
+    }
+  }
 }

@@ -29,8 +29,11 @@
   }
 
   @if(error()){
-  <p>{{ error()?.error?.message }}</p>
+  <p class="access-support__error-message">
+    <mat-icon>highlight_off</mat-icon> {{ error()?.error?.message }}
+  </p>
   }
+
   @if(isAvailable()){
   <p>Joining chat</p>
   }
